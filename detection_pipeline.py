@@ -15,15 +15,18 @@ This script chains together all components of the detection pipeline.
 
 """
 
-from pipeline_components import detection_preprocessing, detection, detection_postprocessing
-from src import helpers
+import sys
+
+sys.path.append('scripts/pipeline_components/')
+sys.path.append('scripts/src/')
+
+
+import detection_preprocessing, detection, detection_postprocessing
+import helpers
 import yaml
 import sys
 import geojson
 import torch
-from src import helpers
-
-sys.path.append('../src')
 
 
 def main(): 

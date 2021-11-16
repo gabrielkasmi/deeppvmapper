@@ -18,16 +18,18 @@ Detection is done in two parts :
 - Leveraging the CAM to localize the array on the thumbnail
 """
 
+import sys 
+sys.path.append('../src')
+
+
 import torch
 import os
-from src import dataset, tiles_processing
+import dataset, tiles_processing
 import tqdm
 from torch.nn import functional as F
 import json
 from torch.utils.data import DataLoader
 import numpy as np
-import sys
-sys.path.append('../src')
 
 class Detection():
 

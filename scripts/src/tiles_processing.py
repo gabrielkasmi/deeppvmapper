@@ -3,7 +3,7 @@
 # Contains a set of funtions that handle the tiles.
 
 import sys
-sys.path.append('dsfrance/src')
+sys.path.append('../src')
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ from fiona import collection
 import glob
 import gdal
 from fiona import collection
-from src import cam
+import cam
 import torchvision
 from skimage import transform
 

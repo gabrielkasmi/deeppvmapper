@@ -7,12 +7,14 @@ This script takes as input the raw dictionnary of results taken from the previou
 and returns a geojson file with the aggregated coordinates. 
 Power plants and rooftop mounted installations are flagged.
 """
+import sys 
+sys.path.append('../src')
 
 import json
 import os
 from geojson import Point, Feature, FeatureCollection
 import geojson
-from src import helpers
+import helpers
 from pyproj import Proj, transform
 
 

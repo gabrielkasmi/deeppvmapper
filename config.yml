@@ -19,8 +19,8 @@ source_iris_dir :
 source_topo_dir : '/data/GabrielKasmi/data/ign/D034/BDTOPO_3-0_TOUSTHEMES_SHP_LAMB93_D034_2021-03-15'
 model_dir : 'models'
 
-outputs_dir : 'outputs'
-thumbnails_dir : 'thumbnails'
+outputs_dir : 'data/outputs'
+thumbnails_dir : 'data/thumbnails'
 
 # -------- Parameters --------
 # Parameters for the main pipeline script 
@@ -56,7 +56,7 @@ departement_number : 34
 # - threshold : the value of the thresold. Should be deliberatily low because false
 #               positives (that are not located on buildings) are filtered out
 # - run_detections : if true, saves the raw output dictionnary
-device : 'cuda:2'
+device : 
 batch_size : 512
 threshold : 0.2
 run_detection : True

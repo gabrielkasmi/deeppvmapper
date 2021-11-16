@@ -7,15 +7,17 @@ This script takes the raw input images and preprocesses them in order
 to be handled by the model.
 Images are processed and stored in a dedicated directory, also passed as input.
 """
+import sys 
+sys.path.append('../src')
 
-import tqdm
+#import tqdm
 import glob
 from fiona import collection
 import yaml
 import os
 from PIL import Image
 import warnings
-from src import tiles_processing
+import tiles_processing
 import concurrent
 
 warnings.filterwarnings('ignore')
