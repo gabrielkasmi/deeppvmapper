@@ -29,9 +29,9 @@ thumbnails_dir : 'data/thumbnails'
 # - map_center : a list that corresponds to the center coordinates of the map to be generated. Should be 
 # in the form [lat, long] in decimal coordinates.
 
-run_preprocessing : False
-run_main_detection : True
-run_postprocessing : True
+run_preprocessing : True
+run_main_detection : False
+run_postprocessing : False
 
 save_map : True
 center_latitude : 43.6291

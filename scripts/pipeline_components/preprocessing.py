@@ -13,12 +13,12 @@ sys.path.append('../src')
 #import tqdm
 import glob
 from fiona import collection
-import yaml
 import os
 from PIL import Image
 import warnings
 import tiles_processing
 import concurrent
+import tqdm
 
 warnings.filterwarnings('ignore')
 
@@ -98,12 +98,14 @@ class PreProcessing():
 
         print('There are {} tiles to proceed.'.format(len(tiles_list)))
 
+        ## TODO. Add a small helper that loops over the target ditectory and sees which images have already been processed.
+
         #for tile in tqdm.tqdm(tiles_list):
-        #    tiles_processing.generate_thumbnails_only_for_a_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)  
+        #    tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)  
 
         def f(tile) : # Local function to be put in the threadpoolexecutor
-            return  tiles_processing.generate_thumbnails_only_for_a_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)  
-
+            print('Processing tile {}...'.format(tile))
+            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(f, tiles_list)

@@ -21,12 +21,13 @@ sys.path.append('scripts/pipeline_components/')
 sys.path.append('scripts/src/')
 
 
-import detection_preprocessing, detection, detection_postprocessing
+import preprocessing, detection, postprocessing
 import helpers
 import yaml
 import sys
 import geojson
 import torch
+import os
 
 
 def main(): 
@@ -85,7 +86,7 @@ def main():
 
         print('Starting pre processing...')
 
-        pre_processing = detection_preprocessing.PreProcessing(configuration)
+        pre_processing = preprocessing.PreProcessing(configuration)
         pre_processing.run()
 
         print('Preprocessing complete. ')
@@ -103,8 +104,8 @@ def main():
 
         print('Starting postprocessing... ')
 
-        postprocessing = detection_postprocessing.PostProcessing(configuration)
-        postprocessing.run()
+        post_processing = postprocessing.PostProcessing(configuration)
+        post_processing.run()
 
         print('Postprocessing complete.')
 
@@ -117,7 +118,7 @@ def main():
 
         # open and load the file
 
-        with open('outputs/installations_{}.geojson'.format(dpt)) as f:
+        with open(os.path.join(outputs_dir,'installations_{}.geojson'.format(dpt))) as f:
             installations_features = geojson.load(f)
 
         # save the file.

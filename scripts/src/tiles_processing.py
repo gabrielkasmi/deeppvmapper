@@ -18,12 +18,12 @@ from fiona import collection
 import cam
 import torchvision
 from skimage import transform
-
+import imageio
 
 import warnings
 warnings.filterwarnings('ignore')
 
-Image.MAX_IMAGE_PIXELS = None    # No limit when opening an image.
+# Image.MAX_IMAGE_PIXELS = None    # No limit when opening an image.
 
 
 """
@@ -226,34 +226,6 @@ def extract_estimated_array_coordinates_per_tile(img_list, folder, patch_size = 
 
 
 """
-Generates thumbnails for a whole tile.
-"""
-
-def generate_thumbnails_only_for_a_tile(folder, target_folder, tile, patch_size):
-    """
-    For a given tile, generates a set of thumbnails and the corresponding labels
-    """
-    
-    # Generate the thumbnails
-    img_centers, images = generate_thumbnails_from_tile(folder, tile, patch_size)
-        
-    # Set up the target directory
-    
-    target_directory = os.path.join(target_folder, tile[:-4])
-    try:
-        os.mkdir(target_directory) # if it does not exist, create the folder and store the outputs in it
-        
-        # Export the thumbnails
-        export_thumbnails(images, tile, img_centers, target_directory)
-    
-    except : # if the directory already exists
-        
-        # Export the thumbnails
-        export_thumbnails(images, tile, img_centers, target_directory)
-        
-    return None
-
-"""
 Exports a list of thumbnails to a desired location
 """
 
@@ -280,65 +252,82 @@ At the rightmost and lowermost edges, patches overlap if
 the patch size is not a factor of the width/height of the 
 tile.
 """
-def generate_thumbnails_from_tile(folder, tile_name, patch_size):
+def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
         """
-        crops the input image into thumbnails of a given size
-        returns the list of images
+        Crops the input impage into thumbnails of a given inputed size.
+        Returns the thumbnail names (cooresponding to the coordinates of the 
+        center of the thumbnail)
         """
+
+        # retrieve the location of the image
+        dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
+
+        # create the destination directory 
+        destination_directory = os.path.join(target_folder, tile_name[:-4])
+
+        # creates the directory if the latter does not already exists
+        if not os.path.isdir(destination_directory):
+            os.mkdir(destination_directory)
+
+        if dnsSHP: # if the list is not empty, then look for the shapefile of the tile
+
+            with collection(dnsSHP[0], "r") as input:
+                for shapefile_record  in input:
+                    if shapefile_record['properties']['NOM'][2:] == tile_name:
+                        dns=shapefile_record['properties']['NOM'][2:] #open the corresponding tile
+
+                        dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
+
+            ds=gdal.Open(dnsJP2) # open the image
+
+            # get the geographical characteristics
+            ulx, xres, xskew, uly, yskew, yres  = ds.GetGeoTransform()
+
+
+            width, height = ds.RasterXSize, ds.RasterYSize
         
-        path = [os.path.join(dirpath,filename) for dirpath, _, filenames in os.walk(folder) for filename in filenames if filename == tile_name][0]
+            # number of steps to the left and to the right that will be needed 
 
-        
-        # lists that contain the image centers and the images
-        img_centers, images = [], []
-        
-        # open the image
-        
-        im = Image.open(path)
-        print('Image {} opened.'.format(tile_name))
-            
-        width, height = im.size
+            x_shifts, y_shifts = int(width / patch_size) + 1, int(height / patch_size) + 1
 
 
-        # number of steps to do in the x, y directions
-        x_shifts, y_shifts = int(width / patch_size) + 1, int(height / patch_size) + 1
+            # set up the rightmost and lowermost boundaries. The center cannot be 
+            # farther than those points
 
-        # set up the rightmost and lowermost boundaries. The center cannot be 
-        # farther than those points
+            x_max, y_max = width - (patch_size / 2), height - (patch_size / 2)
+
+            # initialize the row number
+            row = -1
+
+            for i in range(x_shifts * y_shifts): # loop over the tile to extract the thumbnails
 
 
-        x_max, y_max = width - (patch_size / 2), height - (patch_size / 2)
+                if i % x_shifts == 0:
+                    row += 1
 
-        # initialize the row number
-        row = -1
-
-        for i in range(x_shifts * y_shifts):
-
-            if i % x_shifts == 0:
-                row += 1
-                if row % 10 == 0:
-                    print('Processing row {}/{}...'.format(row + 1, y_shifts))
-
-            # center of the thumbnail
-            x = min((patch_size / 2) + patch_size * (i % x_shifts), x_max)
-            y = min((patch_size / 2) + patch_size * row, y_max)
-
-            # store the center
-            img_centers.append((x,y))
-
-            # boundaries of the image
-            left = x - patch_size / 2
-            top = y - patch_size / 2
-
-            # for the right and bottom boundaries, consider
-            # the potential limit
-
-            right = x + patch_size/2
-            bottom = y + patch_size / 2
-        
-            # extract the image
-            img = im.crop((left, top, right, bottom))
-            images.append(img)
+                xNN = min((patch_size / 2) + patch_size * (i % x_shifts), x_max)
+                yNN = min((patch_size / 2) + patch_size * row, y_max)
+    
+                    
+                xOffset=xNN-(patch_size/2) # upper left corner (x coordinate)
+                yOffset=yNN-(patch_size/2) # upper left corner (y coordinate)
                 
-        return img_centers, images
+
+                R0=ds.GetRasterBand(1)
+                G0=ds.GetRasterBand(2)
+                B0=ds.GetRasterBand(3)
+
+                R = R0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+                G = G0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+                B = B0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+
+                rgb=np.dstack((R,G,B)) # convert as an array
+
+                img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * xres) + '.png'    
+
+
+
+                # save the image in the destination folder
+                imageio.imwrite(os.path.join(destination_directory, img_name), rgb)
+
                 
