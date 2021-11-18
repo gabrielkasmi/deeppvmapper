@@ -315,7 +315,7 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
             # extract the coordinates in Lambert93
 
             if locations_coordinates is not None: # return a dictionnary of locations or a none if there were no detection
-                items[tile]['array_locations'] = {k : v[1] for k,v in locations_coordinates[tile].items()}
+                items[tile]['array_locations'] = {k : v for k,v in locations_coordinates[tile].items()}
             else :
                 items[tile]['array_locations'] = None
         
@@ -442,7 +442,31 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
         print('Done.')
         return merged_coordinates, plants_coordinates
 
+def return_converted_coordinates(coordinates, inProj, outProj):
+    """
+    returns an array of merged coordinates given an inputed
+    dictionnary of coordinates. Each key of the dictionnary is 
+    the id of a coordinate to compute.
 
+    args :
+    coordinates ; a dictionnary with the input coordinates as Lambert, 
+    inProj, outProj : the projectors
+    """
 
+    # Create the array of coordinates
+    in_coords = np.array((len(list(coordinates.keys())), 2))
 
-    
+    for i, installation in enumerate(list(coordinates.keys())):
+        # fill the array with the coordinates
+        # TODO. See whether we need to remove the [0] or not, if there is additional info or not to be included 
+        # for each installation
+        x0, y0 = coordinates[installation]
+
+        in_coords[i, 0], in_coords[i, 1] = x0, y0
+
+    # Now that the array is computed, compute the out_array
+    # which is the transform of the coordinates.
+
+    out_coords = transform(inProj,outProj, in_coords[:,0], in_coords[:,1]) 
+
+    return out_coords

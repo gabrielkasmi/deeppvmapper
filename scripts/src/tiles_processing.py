@@ -9,8 +9,6 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import os
-import pyproj
-from pyproj import Proj
 from fiona import collection
 import glob
 import gdal
@@ -18,52 +16,28 @@ from fiona import collection
 import cam
 import torchvision
 from skimage import transform
-import imageio
+import osr
 
-import warnings
-warnings.filterwarnings('ignore')
-
-# Image.MAX_IMAGE_PIXELS = None    # No limit when opening an image.
 
 
 """
 Expresses a point on a thumbnail (e.g. (120,225)) as a coordinate 
 """
 
-def translate_thumbnail_point_to_geo(point, patch_size, thumbnail_center, tile_name, dataset_dir):
+def translate_thumbnail_point_to_geo(point, thumbnail):
     """
     translates the position on a thumbnail in a coordinate in Lambert93
-    
-    args
-    
-    - point : a list or tuple, corresponding to the x, y coordinates
-    - patch_size : the size of the image
-    - thumbnail_center : a list or a tuple, corresponding to the center of the thumbnail
-    - tile_name : the name of the tile to which the thumbnail belongs to
-    - dataset_dir : the path/to/dataset
+
+    since the thumbnail is a geotiff image, it can be directly computed
     """
     
     # express the coordinates in terms of pixels on the tile
-    x, y = point
-    x_0, y_0 = thumbnail_center
-    
-    x_coord = x + (x_0 - (patch_size / 2))
-    y_coord = y + (y_0 - (patch_size / 2))
-    
-    # get the upper left coordinate of the corresponding tile
-    dnsSHP = glob.glob(dataset_dir + "/**/dalles.shp", recursive = True)
+    x, y = point # coordinates
 
-    with collection(dnsSHP[0], 'r') as input:
-        for shapefile in input:
-            if tile_name == shapefile["properties"]["NOM"][2:]:
-                dns=shapefile["properties"]["NOM"][2:]
-                dnsJP2 = glob.glob(dataset_dir + "/**/" +  dns,recursive = True)[0]
-                ds=gdal.Open(dnsJP2)
-                ulx, xres, _, uly, _, yres  = ds.GetGeoTransform()
-                
-    x_final = x_coord * xres + ulx
-    y_final = y_coord * yres + uly
-    
+    ulx, xres, _, uly, _, yres = thumbnail.GetGeoTransform()
+     
+    x_final = x * xres + ulx
+    y_final = x * yres + uly
 
     return x_final, y_final
         
@@ -144,7 +118,7 @@ and the value the estimate of the center of the KDE/CAM, translates this coordin
 Put otherwise, we no longer approximate but rather consider the "true" estimated value of the 
 array on the thumbnail, as guessed by the model.
 """
-def extract_estimated_array_coordinates_per_tile(img_list, folder, patch_size = 299):
+def extract_estimated_array_coordinates_per_tile(img_list):
     """
     Returns a dictionnary where each key is the tile name
     For each tile, we have the approximate coordinate of the array, based on the 
@@ -153,96 +127,23 @@ def extract_estimated_array_coordinates_per_tile(img_list, folder, patch_size = 
     args
     img_list:  a dictionnary where each key is a positive image and the value is the center of the KDE/CAM
     folder : the folder where the geo information is located
-    patch_size : the size of the thumbnail (default : 299)
     
-    returns the coordinates expressed in pixels and in geo coordinates (decimal)
     """
-    
-    def extract_coordinates(name):
-        """
-        Helper that extract the pixel coordinates from the image name
-
-        Returns the pixel coordinates
-        """
-
-        _, pixels_coords = name.split('_')
-        pixels_coords = pixels_coords[1:-5].split(',')
-        coords = [float(c) for c in pixels_coords]
-
-        return coords
-    
-    
-    # get the list of tile names
-    
-    tile_names = []
-    for name in img_list.keys():
-        tile_names.append(name.split('_')[0])
-
-    tile_names = list(set(tile_names))
-
-    if not len(tile_names) <= 1:
-        print('Images coming from more than one tile for this tile.')
-        raise ValueError
-
-    if len(tile_names) == 0:
-        # in this case, there is no detection on the tile, so we pass and return None.
-        return None
     
     # main dictionnary
     approximate_coordinates = {}
-    
-    for tile_name in tile_names:
 
-        for i, name in enumerate(list(img_list.keys())): # names of thumbnails that contain an array
-            if tile_name in name: # check whether we are in the correct tile
-                
-                # extract the coordinates
-                pixel_coords = img_list[name] # correspond to the value in the dictionnary
-                
-                # get the center of the thumbnail
-                center = extract_coordinates(name)
-                
-                # by default, we extract the coordinatesof the center of the thumbnail
-                # so the value passed for the location on the image (1st argument of the function)
-                # is (0,0)
-                
-                geo_coords = translate_thumbnail_point_to_geo(pixel_coords, patch_size, center, tile_name + '.jp2', folder)
+    for i, thumbnail in enumerate(list(img_list.keys())):
 
-                print(geo_coords)
-                
-                # rescale the pixel coordinates to express them relative
-                # to the upper left of the tile
-                
-                x, y = pixel_coords
-                x0, y0 = center
+        pixel_coords = img_list[thumbnail]
     
-                x_coord = x + (x0 - (patch_size / 2))
-                y_coord = y + (y0 - (patch_size / 2))
+        geo_coords = translate_thumbnail_point_to_geo(pixel_coords, thumbnail)
                 
-                approximate_coordinates[str(i + 1)] = [(x_coord, y_coord), geo_coords]
+        approximate_coordinates[str(i + 1)] = geo_coords
                 
                 
     return approximate_coordinates
 
-
-"""
-Exports a list of thumbnails to a desired location
-"""
-
-def export_thumbnails(images, tile, img_centers, target_folder):
-        """
-        exports the images in the desired folder
-        """
-        
-        for image, name in zip(images, img_centers):
-                    
-            image_name = tile[:-4] + '_' + str(name) + '.png'
-                    
-            location = os.path.join(target_folder, image_name)
-            
-            image.save(location, 'PNG')
-            
-        return None
 
 """
 Generates a list of thumbnails given a imputed tile name and 
@@ -281,7 +182,8 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
             ds=gdal.Open(dnsJP2) # open the image
 
             # get the geographical characteristics
-            ulx, xres, xskew, uly, yskew, yres  = ds.GetGeoTransform()
+            geotransform  = ds.GetGeoTransform() # keep the wrapped variable
+            ulx, xres, xskew, uly, yskew, yres  = geotransform 
 
 
             width, height = ds.RasterXSize, ds.RasterYSize
@@ -321,13 +223,61 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
                 G = G0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
                 B = B0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
 
-                rgb=np.dstack((R,G,B)) # convert as an array
+                img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * yres) + '.tif'    
 
-                img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * xres) + '.png'    
+                # save the image as a geotiff
+                save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, img_name)
+
+"""
+Small helpers that returns the thumbnail as a geotiff file.
+"""
+def save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, filename):
+    """
+    saves the thumbnail as a geotiff image.
+
+    - R, G, B : arrays that corresponds to the R,G,B rasters
+    of the thumbnail
+    - xNN, yNN : the coordinates (pixel) of the center of the image
+    - patch_size : the size of the patch
+    - geotransform : the geographical characteristics of the tile
+
+    """
 
 
+    def pixel_to_lambert(point, geotransform):
+        """
+        converts a pixel into a Lambert93 coordinate
+        """
 
-                # save the image in the destination folder
-                imageio.imwrite(os.path.join(destination_directory, img_name), rgb)
+        x, y = point
 
-                
+        ulx, xres, _, uly, _, yres  = geotransform
+
+        return ulx + x * xres, uly + y * yres
+
+    # setting up the latitude and longitude box of the image
+    longitude = [pixel_to_lambert(point, geotransform) for point in [xNN - (patch_size / 2), xNN + (patch_size / 2)]]
+    latitude = [pixel_to_lambert(point, geotransform) for point in [yNN - (patch_size / 2), yNN + (patch_size / 2)]]
+    
+    # get the geotransforms
+    xmin, ymin, xmax, ymax = [min(longitude), min(latitude), max(longitude), max(latitude)]
+
+    xres = (xmax - xmin) / float(patch_size)
+    yres = (ymax - ymin) / float(patch_size)
+
+    # set up the geotransform reversely, or get the coordinates for the four corners
+    geotrans = (xmin, xres, 0, ymax, 0, -yres)
+
+    # create the 3-band raster file
+    dst_ds = gdal.GetDriverByName('GTiff').Create(filename, patch_size, patch_size, 3, gdal.GDT_Byte)
+
+    dst_ds.SetGeoTransform(geotrans)    # specify coords
+    srs = osr.SpatialReference()            # establish encoding
+    srs.ImportFromEPSG(2154)                # Lambert93 coordinate system
+    dst_ds.SetProjection(srs.ExportToWkt()) # export coords to file
+    dst_ds.GetRasterBand(1).WriteArray(R)   # write r-band to the raster
+    dst_ds.GetRasterBand(2).WriteArray(G)   # write g-band to the raster
+    dst_ds.GetRasterBand(3).WriteArray(B)   # write b-band to the raster
+    dst_ds.FlushCache()                     # write to disk
+    dst_ds = None
+

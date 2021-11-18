@@ -163,8 +163,8 @@ class Detection():
             thumbnails_folder = os.path.join(self.thumbnails_dir, tile)
 
             img_list = tiles_processing.compute_location_dictionary(model_outputs[tile], model, thumbnails_folder, device = device)
-
-            tile_coords = tiles_processing.extract_estimated_array_coordinates_per_tile(img_list, self.source_images_dir, patch_size = self.patch_size) 
+            
+            tile_coords = tiles_processing.extract_estimated_array_coordinates_per_tile(img_list)
 
             approximate_coordinates[tile] = tile_coords
 

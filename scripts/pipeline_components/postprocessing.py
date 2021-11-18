@@ -142,14 +142,19 @@ class PostProcessing():
         # Appliquer la fonction sur l'array directement 
         # faire un zip pour retrouver les propriétés
 
+
         for tile in merged_coordinates.keys():
-            for installation in merged_coordinates[tile].keys():
 
-                x0, y0 = merged_coordinates[tile][installation][0]
+            out_coords = helpers.return_converted_coordinates(merged_coordinates[tile])
 
-                y,x = transform(inProj,outProj, x0, y0) # autre fonction qui ne va pas créer de transformer à chaque fois
+            # finally, export the points
+
+            for i, installation in enumerate(list(merged_coordinates[tile].keys())):
+
+                x, y = out_coords[i,:]
 
                 coordinate = Point((x,y))
+                # TODO. Add more info on the point
                 properties = {'tile' : tile, 'type' : 'rooftop', 'id' : installation}
                 
                 installations.append(Feature(geometry = coordinate, properties = properties))

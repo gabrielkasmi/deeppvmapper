@@ -134,3 +134,4 @@ dmypy.json
 *.html
 *.geojson
 *.ipynb
+.DS_Store

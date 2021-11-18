@@ -20,10 +20,6 @@ import tiles_processing
 import concurrent
 import tqdm
 
-warnings.filterwarnings('ignore')
-
-Image.MAX_IMAGE_PIXELS = None    
-
 """
 A class that performs the preprocessing
 """
