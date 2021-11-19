@@ -27,8 +27,8 @@ Expresses a point on a thumbnail (e.g. (120,225)) as a coordinate
 def translate_thumbnail_point_to_geo(point, thumbnail):
     """
     translates the position on a thumbnail in a coordinate in Lambert93
+    the input is the thumbnail
 
-    since the thumbnail is a geotiff image, it can be directly computed
     """
     
     # express the coordinates in terms of pixels on the tile
@@ -118,7 +118,7 @@ and the value the estimate of the center of the KDE/CAM, translates this coordin
 Put otherwise, we no longer approximate but rather consider the "true" estimated value of the 
 array on the thumbnail, as guessed by the model.
 """
-def extract_estimated_array_coordinates_per_tile(img_list):
+def extract_estimated_array_coordinates_per_tile(img_list, target_folder):
     """
     Returns a dictionnary where each key is the tile name
     For each tile, we have the approximate coordinate of the array, based on the 
@@ -136,8 +136,11 @@ def extract_estimated_array_coordinates_per_tile(img_list):
     for i, thumbnail in enumerate(list(img_list.keys())):
 
         pixel_coords = img_list[thumbnail]
+
+        # open the thumbnail
+        thumbnail_image = gdal.Open(glob.glob(target_folder + "/**/" + thumbnail, recursive=True)[0])
     
-        geo_coords = translate_thumbnail_point_to_geo(pixel_coords, thumbnail)
+        geo_coords = translate_thumbnail_point_to_geo(pixel_coords, thumbnail_image)
                 
         approximate_coordinates[str(i + 1)] = geo_coords
                 
@@ -226,7 +229,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
                 img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * yres) + '.tif'    
 
                 # save the image as a geotiff
-                save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, img_name)
+                save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, os.path.join(destination_directory,img_name))
 
 """
 Small helpers that returns the thumbnail as a geotiff file.
@@ -243,21 +246,25 @@ def save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, filename):
 
     """
 
-
-    def pixel_to_lambert(point, geotransform):
+    def pixel_to_lambert(point, geotransform, type):
         """
-        converts a pixel into a Lambert93 coordinate
+        converts a pixel point into a Lambert93 coordinate
+        specifies whether we are dealing with an x or y point
+        with the argument 'type'.
         """
 
-        x, y = point
 
         ulx, xres, _, uly, _, yres  = geotransform
 
-        return ulx + x * xres, uly + y * yres
+        if type == 'x':
+            return ulx + point * xres
+            
+        elif type == 'y':
+            return uly + point * yres
 
     # setting up the latitude and longitude box of the image
-    longitude = [pixel_to_lambert(point, geotransform) for point in [xNN - (patch_size / 2), xNN + (patch_size / 2)]]
-    latitude = [pixel_to_lambert(point, geotransform) for point in [yNN - (patch_size / 2), yNN + (patch_size / 2)]]
+    longitude = [pixel_to_lambert(point, geotransform, type = 'x') for point in [xNN - (patch_size / 2), xNN + (patch_size / 2)]]
+    latitude = [pixel_to_lambert(point, geotransform, type = 'y') for point in [yNN - (patch_size / 2), yNN + (patch_size / 2)]]
     
     # get the geotransforms
     xmin, ymin, xmax, ymax = [min(longitude), min(latitude), max(longitude), max(latitude)]

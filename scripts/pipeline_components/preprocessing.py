@@ -96,7 +96,8 @@ class PreProcessing():
 
         ## TODO. Add a small helper that loops over the target ditectory and sees which images have already been processed.
 
-        #for tile in tqdm.tqdm(tiles_list):
+
+        #for tile in tqdm.tqdm(tiles_list[:2]):
         #    tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)  
 
         def f(tile) : # Local function to be put in the threadpoolexecutor

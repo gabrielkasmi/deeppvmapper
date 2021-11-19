@@ -12,13 +12,14 @@ from PIL import Image
 
 
 class BDPVNoLabels(Dataset):
-    def __init__(self, img_dir, transform = None):
+    def __init__(self, img_dir, transform = None, extension = '.tif'):
         """
         Args:
             img_dir (string): directory with all the images.
             transform (callable, optional): optional transform to be applied on a sample.
+            extension (str, optional): the extension of the files to look for.
         """
-        self.img_names = [item for item in os.listdir(img_dir) if item[-4:] == '.png']
+        self.img_names = [item for item in os.listdir(img_dir) if item[-4:] == extension]
         self.img_dir = img_dir
         self.transform = transform
 

@@ -17,12 +17,13 @@ from pyproj import Proj, transform
 Function used in the detection pipeline.
 """
 
-def save_map(map_center, installations_features, dpt = None):
+def save_map(directory, map_center, installations_features, dpt = None):
 
     """
     loads and save the registry of installations as a .html map
 
     args:
+    directory : where the map should be stored
     map_center: the coordinates of the center of the map to draw
     installations_features: the dictionnary extracted from the geojson that
     contains the coordinates of the installations.
@@ -73,11 +74,10 @@ def save_map(map_center, installations_features, dpt = None):
 
     if dpt is not None:
 
-        m.save('maps/map_installations_{}.html'.format(dpt))
+        m.save(os.path.join(directory,'map_installations_{}.html'.format(dpt)))
 
     else:
-
-        m.save('maps/map_installations.html')
+        m.save(os.path.join(directory,'map_installations.html'))
 
 """
 Gets the list of power plant in the BDTOPO
@@ -185,8 +185,7 @@ def get_buildings_locations(bd_topo_path):
 
 """
 Assign the buildings to the tiles. Takes the form 
-{tile : [bulding_locations],
-tile : [bulding_locations],}
+{tile : 
 """
 def assign_building_to_tiles(covered_tiles, buildings):
             """
@@ -199,7 +198,7 @@ def assign_building_to_tiles(covered_tiles, buildings):
             for building in buildings.keys():
                 buildings[building]["counts"] = 0        
             
-            items = {}
+            items = {} #output dictionnary
             
             for tile in covered_tiles.keys():
                 
@@ -207,16 +206,16 @@ def assign_building_to_tiles(covered_tiles, buildings):
                 
                 Tile = Polygon(covered_tiles[tile]['coordinates']) # convert the tile as a polygon
                 
-                items[tile]['coordinates'] = {} # create an empty list
-                for i, building in enumerate(list(buildings.keys())): # loop over the buildings
-                    
+                items[tile] = {} # create an empty dictionnary
+
+                for building in buildings.keys(): # loop over the buildings. These ids are numbers
                     
                     Building = Polygon(buildings[building]['coordinates'])
                     
                     if Tile.intersects(Building):
-                        
-                        items[tile]['coordinates'][i] = buildings[building]['coordinates']
-                        
+
+                        items[tile][building] = buildings[building] # copy the dictionnary
+
                         # count the number of intersections. There cannot be more than 4 
                         # in this case the building is at the crossing of 4 different tiles
                         # and we remove the building from the dictionnary as it cannot
@@ -315,7 +314,7 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
             # extract the coordinates in Lambert93
 
             if locations_coordinates is not None: # return a dictionnary of locations or a none if there were no detection
-                items[tile]['array_locations'] = {k : v for k,v in locations_coordinates[tile].items()}
+                items[tile]['array_locations'] = locations_coordinates[tile] #{k : v for k,v in locations_coordinates[tile].items()}
             else :
                 items[tile]['array_locations'] = None
         
@@ -364,9 +363,9 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                             
                 # loop over the buildings
                 
-                for building_id in merged_dictionnary[tile]['buildings']['coordinates'].keys():
+                for building_id in merged_dictionnary[tile]['buildings'].keys():
                     
-                    coordinates = merged_dictionnary[tile]['buildings']['coordinates'][building_id]
+                    coordinates = merged_dictionnary[tile]['buildings'][building_id]["coordinates"]
                     
                     # building_center = list(np.array(coordinates).mean(axis = 0))
                                 
@@ -397,7 +396,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
 
                 # convert the coordinates
 
-                merged_coordinates[tile][building] = [mean_coords]
+                merged_coordinates[tile][building] = mean_coords
                 
         print('Associating coordinates of localizations to power plants...')
         # final part, power plants
@@ -426,17 +425,8 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                         
                         if plant_poly.contains(candidate_location):
                             # add the localization
-
-                            # Create a new key if the building contains an array
-                            # add the id to the list of identified ids
-                            try :                    
-                                plants_coordinates[tile][plant].append(plant_coords)
-                            except:
-                                plants_coordinates[tile][plant] = [plant_coords]
-                                
-                            # continue, we only need one localization per plant.
-                            break
-                            
+                            plants_coordinates[tile][plant] = plant_coords
+                            break # we only need only localization per plant.                            
 
                             
         print('Done.')
@@ -452,21 +442,19 @@ def return_converted_coordinates(coordinates, inProj, outProj):
     coordinates ; a dictionnary with the input coordinates as Lambert, 
     inProj, outProj : the projectors
     """
-
     # Create the array of coordinates
-    in_coords = np.array((len(list(coordinates.keys())), 2))
+    in_coords = np.empty((len(list(coordinates.keys())), 2))
 
     for i, installation in enumerate(list(coordinates.keys())):
         # fill the array with the coordinates
-        # TODO. See whether we need to remove the [0] or not, if there is additional info or not to be included 
         # for each installation
-        x0, y0 = coordinates[installation]
+        x0, y0 = coordinates[installation] 
 
         in_coords[i, 0], in_coords[i, 1] = x0, y0
 
     # Now that the array is computed, compute the out_array
     # which is the transform of the coordinates.
 
-    out_coords = transform(inProj,outProj, in_coords[:,0], in_coords[:,1]) 
+    x_out, y_out = transform(inProj, outProj, in_coords[:,0], in_coords[:,1]) 
 
-    return out_coords
+    return np.concatenate((x_out, y_out)).reshape(-1, 2) # reshape ensures the array is always two dimensional

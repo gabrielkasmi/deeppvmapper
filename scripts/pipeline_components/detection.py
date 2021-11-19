@@ -112,13 +112,14 @@ class Detection():
 
         model_outputs = {}
         
-        for tile in tiles_names:
+        for tile in tiles_names[:2]:
 
             print('Proceeding tile {}...'.format(tile))
 
             # access the folder and load the data
             dataset_dir = os.path.join(self.thumbnails_dir, tile)
             data_source = dataset.BDPVNoLabels(dataset_dir)
+            print(data_source.__len__())
             inference_data = DataLoader(data_source, batch_size = self.batch_size)
 
             # outputs per tile
@@ -142,7 +143,7 @@ class Detection():
         # save the raw model outputs
 
         with open(os.path.join(self.outputs_dir, 'raw_detection_results.json'), 'w') as f:
-            json.dump(model_outputs, f)
+            json.dump(model_outputs, f, indent=2)
 
         return model_outputs
 
@@ -164,7 +165,7 @@ class Detection():
 
             img_list = tiles_processing.compute_location_dictionary(model_outputs[tile], model, thumbnails_folder, device = device)
             
-            tile_coords = tiles_processing.extract_estimated_array_coordinates_per_tile(img_list)
+            tile_coords = tiles_processing.extract_estimated_array_coordinates_per_tile(img_list, thumbnails_folder)
 
             approximate_coordinates[tile] = tile_coords
 

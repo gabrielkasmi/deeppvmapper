@@ -33,6 +33,15 @@ import os
 def main(): 
  
     # - - - - - - - STEP 0 - - - - - - -  
+
+    # Parse the arguments
+    # Arguments are the following 
+    # - run_preprocessing
+    # - run_detection
+    # - run_postprocessing
+    # - force : indicate whether existing files should be overwritten or not.
+    # - dpt : the departement to process.
+
     # Load the configuration file
     config = 'config.yml'
 
@@ -55,6 +64,7 @@ def main():
     # output directory
 
     outputs_dir = configuration.get('outputs_dir')
+    results_dir = configuration.get('geo_dir')
 
     # Recap of the parameters for the detection pipeline
 
@@ -109,7 +119,7 @@ def main():
 
         print('Postprocessing complete.')
 
-    print('Pipeline completed. All outputs are in the folder {}.'.format(outputs_dir))
+    print('Pipeline completed. All itermediary outputs are in the folder {}.'.format(outputs_dir))
 
     # - - - - - - - STEP 3 - - - - - - -  
     # Save the map if specified.
@@ -118,12 +128,12 @@ def main():
 
         # open and load the file
 
-        with open(os.path.join(outputs_dir,'installations_{}.geojson'.format(dpt))) as f:
+        with open(os.path.join(results_dir,'installations_{}.geojson'.format(dpt))) as f:
             installations_features = geojson.load(f)
 
         # save the file.
 
-        helpers.save_map(map_center, installations_features, dpt = dpt)
+        helpers.save_map(results_dir, map_center, installations_features, dpt = dpt)
 
 if __name__ == '__main__':
     # Setting up the seed

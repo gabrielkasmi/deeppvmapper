@@ -17,9 +17,9 @@ import geojson
 import helpers
 from pyproj import Proj, transform
 
-
 import warnings
 warnings.filterwarnings("ignore")
+
 
 class PostProcessing():
     """
@@ -35,6 +35,7 @@ class PostProcessing():
         self.bd_topo_path = configuration.get("source_topo_dir")
         self.source_images_dir = configuration.get("source_images_dir")
         self.outputs_dir = configuration.get('outputs_dir')
+        self.results_dir= configuration.get('geo_dir')
 
         # Parameters for this part
         self.pre_processing = configuration.get('postprocessing_initialization')
@@ -61,6 +62,7 @@ class PostProcessing():
             print("Getting the list of relevant tiles...")
             relevant_tiles = helpers.get_relevant_tiles(self.source_images_dir, list(self.approximate_coordinates.keys()))
             print('List completed.')
+        
 
             # List of buildings
 
@@ -72,7 +74,7 @@ class PostProcessing():
             print('Computation complete. Saving the file.')
 
             with open(os.path.join(self.outputs_dir, 'building_locations_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(building_locations, f)
+                json.dump(building_locations, f, indent=2)
 
             print('Done.')
 
@@ -84,7 +86,7 @@ class PostProcessing():
             # Saving the file
 
             with open(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(plants_locations, f)
+                json.dump(plants_locations, f, indent = 2)
 
             print("Done.")
 
@@ -100,7 +102,7 @@ class PostProcessing():
 
             # Saving the file
             with open(os.path.join(self.outputs_dir, 'merged_dictionnary_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(merged_dictionnary, f)
+                json.dump(merged_dictionnary, f, indent=2)
             print("Done, and file saved.")
 
         else: # Directly load the merged_dictionnary and the plants location
@@ -111,15 +113,19 @@ class PostProcessing():
             # Plants
             with open(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt))) as f:
                 plants_locations = json.load(f)
+
+            # Buildings 
+            with open(os.path.join(self.outputs_dir, 'building_locations_{}.json'.format(self.dpt))) as f:
+                building_locations = json.load(f)
         
-        return merged_dictionnary, plants_locations
+        return merged_dictionnary, plants_locations, building_locations
 
     def run(self):
         """
         wraps everything together in order to export
         the geojson of detected installations
         """
-        merged_dictionnary, plants_locations = self.preparation()
+        merged_dictionnary, plants_locations, building_locations = self.preparation()
 
         # Get the cleaned dictionnaries
 
@@ -136,16 +142,9 @@ class PostProcessing():
         inProj = Proj(init="epsg:2154")
         outProj = Proj(init="epsg:4326")
 
-        # Process the rooftops
-        # TODO.. 
-        # Créer un array avec toutes les coordonnées à convertir
-        # Appliquer la fonction sur l'array directement 
-        # faire un zip pour retrouver les propriétés
-
-
         for tile in merged_coordinates.keys():
 
-            out_coords = helpers.return_converted_coordinates(merged_coordinates[tile])
+            out_coords = helpers.return_converted_coordinates(merged_coordinates[tile], inProj, outProj)
 
             # finally, export the points
 
@@ -154,8 +153,7 @@ class PostProcessing():
                 x, y = out_coords[i,:]
 
                 coordinate = Point((x,y))
-                # TODO. Add more info on the point
-                properties = {'tile' : tile, 'type' : 'rooftop', 'id' : installation}
+                properties = {'tile' : tile, 'type' : 'rooftop', 'id' : installation, 'building_type' : building_locations[installation]['building_type']}
                 
                 installations.append(Feature(geometry = coordinate, properties = properties))
 
@@ -180,10 +178,10 @@ class PostProcessing():
 
         # Export as a json.
 
-        with open(os.path.join(self.outputs_dir, 'installations_{}.geojson'.format(self.dpt)), 'w') as f:
-            geojson.dump(installations_features, f)
+        with open(os.path.join(self.results_dir, 'installations_{}.geojson'.format(self.dpt)), 'w') as f:
+            geojson.dump(installations_features, f, indent = 2)
 
-        print('Export complete. Installations have been saved in {}.'.format(self.outputs_dir))
+        print('Export complete. Installations have been saved in {}.'.format(self.results_dir))
 
 
 
