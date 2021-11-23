@@ -12,7 +12,7 @@
 # - outputs : the name of the directory (to consider or to create) in which
 #             all intermediate results will be stored.
 # - thumbnails : the name of the directory in which the thumbnails are stored
-# - geo_dir : the folder where the final outputs (geojson and map) are stored.
+
 
 source_images_dir : "/data/GabrielKasmi/data/ign/D034/ORTHOHR_1-0_RVB-0M20_JP2-E080_LAMB93_D034_2018-01-01"
 source_iris_dir : 
@@ -21,7 +21,6 @@ model_dir : 'models'
 
 outputs_dir : 'data/outputs'
 thumbnails_dir : 'data/thumbnails'
-geo_dir : 'geodata'
 
 # -------- Parameters --------
 # Parameters for the main pipeline script 
@@ -30,11 +29,10 @@ geo_dir : 'geodata'
 # - map_center : a list that corresponds to the center coordinates of the map to be generated. Should be 
 # in the form [lat, long] in decimal coordinates.
 
-run_preprocessing : False
-run_main_detection : False
+run_classification : False
 run_postprocessing : True
 
-save_map : True
+save_map : False
 center_latitude : 43.6291
 center_longitude : 3.2501
 

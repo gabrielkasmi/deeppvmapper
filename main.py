@@ -28,6 +28,7 @@ import sys
 import geojson
 import torch
 import os
+import argparse
 
 
 def main(): 
@@ -36,11 +37,26 @@ def main():
 
     # Parse the arguments
     # Arguments are the following 
-    # - run_preprocessing
-    # - run_detection
+    # - run_classification
     # - run_postprocessing
     # - force : indicate whether existing files should be overwritten or not.
     # - dpt : the departement to process.
+    # - count : the number of tiles to preprocess at each batch
+    # Arguments
+    parser = argparse.ArgumentParser(description = 'Large scale detection pipeline')
+
+    parser.add_argument('--force', default = False, help = "Indicates whether the inference process should be started from the beginning", type = bool)
+    parser.add_argument('--count', default = 16, help = "Number of tiles to process simultaneoulsy", type=int)
+
+    parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
+
+    parser.add_argument('--run_classification', default = None, help = "Whether detection should be done.", type=bool)
+    parser.add_argument('--run_postprocessing', default = None, help = "Whether postprocessing should be done.", type=bool)
+
+    args = parser.parse_args()
+
+    count = args.count
+    force = args.force
 
     # Load the configuration file
     config = 'config.yml'
@@ -49,72 +65,80 @@ def main():
         configuration = yaml.load(f, Loader=yaml.FullLoader)
 
     # Parameters that are specific to the wrapper
+    # Overwrite the configuration parameters whenever relevant.
 
-    run_preprocessing = configuration.get('run_preprocessing')
-    run_detection_step = configuration.get('run_main_detection')
+    run_classification = configuration.get('run_classification')
+
+    if args.run_classification is not None:
+        run_classification = args.run_classification
+
     run_postprocessing = configuration.get('run_postprocessing')
+
+    if args.run_postprocessing is not None:
+        run_postprocessing = args.run_postprocessing
 
     save_map = configuration.get("save_map")
     map_center = configuration.get("center_latitude"), configuration.get("center_longitude")
 
-    # department number to save the output map
+    # department number
+    # overwrite the configuration file if necessary.
 
     dpt = configuration.get("departement_number")
+    if args.dpt is not None:
+        dpt = args.dpt
 
     # output directory
 
     outputs_dir = configuration.get('outputs_dir')
     results_dir = configuration.get('geo_dir')
 
-    # Recap of the parameters for the detection pipeline
-
-    print("""The detection pipeline is set up as follows: \n 
-    - preprocessing : {}\n
-    - main detection : {}\n
-    - postprocessing : {}\n
-    """.format(run_preprocessing, run_detection_step, run_postprocessing))
-
-    # Load the component-specific parameters in order to display them
-    # to the user.
-
-    run_detection =  configuration.get('run_detection')
-    postprocessing_initialization = configuration.get('postprocessing_initialization')
-
-    print("""The options have been set as follows: \n
-
-    - run_detection (does the inference on the tiles and saves the raw output) : {}
-    - postprocessing_initialization (run all steps of the initialization in the postprocessing) : {}
-
-    """.format(run_detection, postprocessing_initialization)
-    )
-
-
     # - - - - - - - STEP 1 - - - - - - -  
     # Run parts of the process or all of it
 
-    if run_preprocessing:
+    if run_classification:
 
-        print('Starting pre processing...')
+        # Initialize the tiles tracker helper, that will keep track of the 
+        # tiles that have been completed and those that still need to be proceeded
+        tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = force) 
 
-        pre_processing = preprocessing.PreProcessing(configuration)
-        pre_processing.run()
+        while tiles_tracker.completed():
+            # While the full list of tiles has not been completed,
+            # do the following :
+            # 1) Split a batch of unprocessed tiles
+            # 2) Do inference and save the inferred locations
+            # 3) Update the list of tiles 
+            # 4) Clean the thumbnails
 
-        print('Preprocessing complete. ')
+            print('Starting pre processing...')
 
-    if run_detection_step:
+            pre_processing = preprocessing.PreProcessing(configuration, count)
+            pre_processing.run()
 
-        print('Strarting detection ...')
+            print('Preprocessing complete. ')
 
-        inference = detection.Detection(configuration)
-        inference.run()
+            print('Strarting detection ...')
 
-        print('Detection complete. ')
+            inference = detection.Detection(configuration)
+            inference.run()
+
+            print('Detection complete. ')
+
+            # update the tiles tracker and clean the thumbnails folder
+            print('Updating and cleaning the tiles list...')
+
+            tiles_tracker.update()
+
+            tiles_tracker.clean()
+
+            print('Complete.')
+        
+        print('Detection of the tiles on the departement {} complete.'.format(dpt))
 
     if run_postprocessing:
 
         print('Starting postprocessing... ')
 
-        post_processing = postprocessing.PostProcessing(configuration)
+        post_processing = postprocessing.PostProcessing(configuration, dpt, force)
         post_processing.run()
 
         print('Postprocessing complete.')
@@ -136,7 +160,8 @@ def main():
         helpers.save_map(results_dir, map_center, installations_features, dpt = dpt)
 
 if __name__ == '__main__':
-    # Setting up the seed
+
+    # Setting up the seed for reproducibility
 
     torch.manual_seed(42)
 

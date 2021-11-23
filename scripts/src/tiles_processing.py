@@ -17,7 +17,7 @@ import cam
 import torchvision
 from skimage import transform
 import osr
-
+import tqdm
 
 
 """
@@ -167,7 +167,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
         dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
 
         # create the destination directory 
-        destination_directory = os.path.join(target_folder, tile_name[:-4])
+        destination_directory = os.path.join(target_folder, tile_name)
 
         # creates the directory if the latter does not already exists
         if not os.path.isdir(destination_directory):
@@ -177,7 +177,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
 
             with collection(dnsSHP[0], "r") as input:
                 for shapefile_record  in input:
-                    if shapefile_record['properties']['NOM'][2:] == tile_name:
+                    if shapefile_record['properties']['NOM'][2:-4] == tile_name:
                         dns=shapefile_record['properties']['NOM'][2:] #open the corresponding tile
 
                         dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
@@ -204,7 +204,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
             # initialize the row number
             row = -1
 
-            for i in range(x_shifts * y_shifts): # loop over the tile to extract the thumbnails
+            for i in tqdm.tqdm(range(x_shifts + y_shifts)): # loop over the tile to extract the thumbnails
 
 
                 if i % x_shifts == 0:

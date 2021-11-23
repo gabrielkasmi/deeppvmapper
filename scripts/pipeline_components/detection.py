@@ -18,7 +18,9 @@ Detection is done in two parts :
 - Leveraging the CAM to localize the array on the thumbnail
 """
 
-import sys 
+import sys
+
+from tqdm.std import TqdmExperimentalWarning 
 sys.path.append('../src')
 
 
@@ -56,8 +58,6 @@ class Detection():
         self.batch_size = configuration.get('batch_size')
         self.threshold = configuration.get('threshold')
         self.patch_size = configuration.get('patch_size')
-        self.run_detection = configuration.get('run_detection')
-
 
     def initialization(self):
         """
@@ -99,7 +99,9 @@ class Detection():
         tile the name of the thumbnails that have been labelled as positive.
         """
 
-        tiles_names = os.listdir(self.thumbnails_dir)
+        # exclude the 'tiles_list.json' from the list of tiles to proceed
+        # and potential miscelanneous hidden files and folders.
+        tiles_names = [item for item in os.listdir(self.thumbnails_dir) if not (item[-5:] == '.json') | (item[0] == '.') ]
 
         print('There are {} tiles to proceed.'.format(len(tiles_names)) )
         
@@ -107,19 +109,18 @@ class Detection():
         # Raw outputs are in the form 
         # {tilename : [thumbnail_name, ...], 
         #  tilename : [thumbnail_name] }
-        # where the thumbnailname correspond to the name of the thumbnails
+        # where the thumbnail_name corresponds to the name of the thumbnails
         # that have been labelled as postive by the model.
 
         model_outputs = {}
         
-        for tile in tiles_names[:2]:
+        for tile in tiles_names:
 
             print('Proceeding tile {}...'.format(tile))
 
             # access the folder and load the data
             dataset_dir = os.path.join(self.thumbnails_dir, tile)
             data_source = dataset.BDPVNoLabels(dataset_dir)
-            print(data_source.__len__())
             inference_data = DataLoader(data_source, batch_size = self.batch_size)
 
             # outputs per tile
@@ -141,9 +142,25 @@ class Detection():
                         model_outputs[tile].append(names[index])
 
         # save the raw model outputs
+        # without erasing the existing file.
 
-        with open(os.path.join(self.outputs_dir, 'raw_detection_results.json'), 'w') as f:
-            json.dump(model_outputs, f, indent=2)
+        # if no file exists : 
+        if not os.path.isfile(os.path.join(self.outputs_dir, "raw_detection_results.json")):
+            with open(os.path.join(self.outputs_dir, 'raw_detection_results.json'), 'w') as f:
+                json.dump(model_outputs, f, indent=2)
+        else:
+            # update the file
+            # open the file
+            previous_outputs = json.load(open(os.path.join(self.outputs_dir, "raw_detection_results.json")))
+            
+            # add the latest tiles
+            for tile in model_outputs.keys():
+                previous_outputs[tile] = model_outputs[tile]
+
+            # save the new file
+            with open(os.path.join(self.outputs_dir, 'raw_detection_results.json'), 'w') as f:
+
+                json.dump(previous_outputs, f, indent=2)
 
         return model_outputs
 
@@ -155,7 +172,7 @@ class Detection():
         Returns a dictionnary where for each tile we get the list of coordinates
         """
 
-        approximate_coordinates = {}
+        temp_approximate_coordinates = {}
 
         for tile in model_outputs.keys():
 
@@ -167,11 +184,35 @@ class Detection():
             
             tile_coords = tiles_processing.extract_estimated_array_coordinates_per_tile(img_list, thumbnails_folder)
 
-            approximate_coordinates[tile] = tile_coords
+            temp_approximate_coordinates[tile] = tile_coords
+
+        return temp_approximate_coordinates
+
+    def save(self, temp_approximate_coordinates):
 
         # Save the approximate coordinates file
-        with open(os.path.join(self.outputs_dir, 'approximate_coordinates.json'), 'w') as f:
-            json.dump(approximate_coordinates, f, indent=2)
+        # without erasing the existing file.
+
+        # if no file exists : 
+        if not os.path.isfile(os.path.join(self.outputs_dir, "approximate_coordinates.json")):
+            with open(os.path.join(self.outputs_dir, 'approximate_coordinates.json'), 'w') as f:
+                json.dump(temp_approximate_coordinates, f, indent=2)
+
+        else:
+            # update the file
+            # open the file
+            approximate_coordinates = json.load(open(os.path.join(self.outputs_dir, "approximate_coordinates.json")))
+
+            # add the latest tiles
+            for tile in temp_approximate_coordinates.keys():
+                approximate_coordinates[tile] = temp_approximate_coordinates[tile]
+
+            # save the new file
+            with open(os.path.join(self.outputs_dir, 'approximate_coordinates.json'), 'w') as f:
+                json.dump(approximate_coordinates, f, indent=2)
+
+
+
 
     def run(self):
         """
@@ -182,13 +223,12 @@ class Detection():
         model, device = self.initialization()
 
         # do the inference or load the raw results directly.
-        # TODO. Detection si le fichier de sortie existe et passer
-        if self.run_detection:
-            model_outputs = self.inference(model, device)
-        else:
-            with open(os.path.join(self.outputs_dir, "raw_deteection_results.json")) as f:
-                model_outputs = json.load(f)
+        model_outputs = self.inference(model, device)
 
         # compute the coordinates based on the raw outputs
-        self.compute_localizations(model, model_outputs, device)
+        temp_approximate_coordinates = self.compute_localizations(model, model_outputs, device)
+
+        # save the computations for this batch and update the main
+        # approximate coordinates file
+        self.save(temp_approximate_coordinates)
 

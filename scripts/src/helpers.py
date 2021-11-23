@@ -200,7 +200,7 @@ def assign_building_to_tiles(covered_tiles, buildings):
             
             items = {} #output dictionnary
             
-            for tile in covered_tiles.keys():
+            for tile in tqdm.tqdm(covered_tiles.keys()):
                 
                 items[tile] = {}
                 
@@ -233,18 +233,12 @@ Get the list of tiles over which localization have been spotted
 """
 def get_relevant_tiles(data_path, covered_tiles):
             """
-            returns a dictionnary of tiles (and their converted coordinates)
+            returns a dictionnary of tiles (and their coordinates)
             if the latter are in the covered tiles. 
             """
 
             # location of the file with the power plants
             dnsSHP = glob.glob(data_path + "/**/dalles.shp", recursive = True)
-
-            i = 0 # set up the iterator
-
-            # set up the coordinates converter
-            #inProj = Proj(init="epsg:2154")
-            #outProj = Proj(init="epsg:4326")
 
             # dictionnary
             items = {}
@@ -269,13 +263,11 @@ def get_relevant_tiles(data_path, covered_tiles):
                         items[name]['coordinates'] = []
                         for c in coords[0]: # convert the coordinates
                             x0, y0 = c # consider only the two first coordinates            
-                            # y,x = transform(inProj,outProj, x0, y0)
 
-                            # save the converted coordinates as a list
+                            # save the coordinates as a list
 
                             items[name]['coordinates'].append((x0,y0))
-                        # save the polygon as well
-                        #items[i]['polygon'] = Polygon(items[i]['coordinates'])
+
             return items
 
 """
@@ -295,10 +287,10 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
         see which locations intersects with which building
         """
         
-        # check that the two keys list match
-        if not buildings_in_tiles.keys() == locations_coordinates.keys():
-            print('Keys are not matching.')
-            raise ValueError
+#        # check that the two keys list match
+#        if not buildings_in_tiles.keys() == locations_coordinates.keys():
+#            print('Keys are not matching.')
+ #           raise ValueError
         
         # initialize the dictionnary
         items = {}
@@ -306,6 +298,7 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
         # loop over the tiles
         
         for tile in buildings_in_tiles.keys():
+            # reference is the building in tiles, i.e. the building that we are proceeding
             
             items[tile] = {}
             
