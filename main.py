@@ -52,6 +52,7 @@ def main():
 
     parser.add_argument('--run_classification', default = None, help = "Whether detection should be done.", type=bool)
     parser.add_argument('--run_postprocessing', default = None, help = "Whether postprocessing should be done.", type=bool)
+    parser.add_argument('--save_map', default = None, help = "Whether the map should be computed.", type=bool)
 
     args = parser.parse_args()
 
@@ -75,9 +76,13 @@ def main():
     run_postprocessing = configuration.get('run_postprocessing')
 
     if args.run_postprocessing is not None:
-        run_postprocessing = args.run_postprocessing
+        run_postprocessing = args.run_postprocessing        
 
     save_map = configuration.get("save_map")
+
+    if args.save_map is not None: # overwrite the conf if necessary.
+        save_map = args.save_map
+
     map_center = configuration.get("center_latitude"), configuration.get("center_longitude")
 
     # department number

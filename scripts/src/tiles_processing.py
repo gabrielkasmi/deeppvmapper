@@ -204,7 +204,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
             # initialize the row number
             row = -1
 
-            for i in tqdm.tqdm(range(x_shifts + y_shifts)): # loop over the tile to extract the thumbnails
+            for i in tqdm.tqdm(range(x_shifts * y_shifts)): # loop over the tile to extract the thumbnails
 
 
                 if i % x_shifts == 0:

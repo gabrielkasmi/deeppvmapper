@@ -184,9 +184,6 @@ class PostProcessing():
 
         for tile in merged_coordinates.keys():
 
-
-            print(merged_coordinates[tile])
-
             if bool(merged_coordinates[tile]): # continue only if there are merged coordinates on the tile
 
                 out_coords = helpers.return_converted_coordinates(merged_coordinates[tile], inProj, outProj)

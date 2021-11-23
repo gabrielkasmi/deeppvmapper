@@ -21,6 +21,7 @@ model_dir : 'models'
 
 outputs_dir : 'data/outputs'
 thumbnails_dir : 'data/thumbnails'
+geo_dir : 'geodata'
 
 # -------- Parameters --------
 # Parameters for the main pipeline script 
@@ -31,8 +32,8 @@ thumbnails_dir : 'data/thumbnails'
 
 run_classification : False
 run_postprocessing : True
+save_map : True
 
-save_map : False
 center_latitude : 43.6291
 center_longitude : 3.2501
 
@@ -54,14 +55,7 @@ departement_number : 34
 # - batch_size : the batch_size
 # - threshold : the value of the thresold. Should be deliberatily low because false
 #               positives (that are not located on buildings) are filtered out
-# - run_detections : if true, saves the raw output dictionnary
 device : 
 batch_size : 512
 threshold : 0.2
-run_detection : True
-
-# Postprocessing
-# - postprocessing_initialization : indicates whether the initialization steps should be
-#                                   executed or not
-postprocessing_initialization : True
 
