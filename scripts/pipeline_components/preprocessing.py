@@ -77,14 +77,14 @@ class TilesTracker():
         # Open the tiles list file.
 
         # If the file exists and if force is false, load it.
-        if os.path.isfile(os.path.join(self.thumbnails_dir, "tiles_list.json")):
+        if os.path.isfile(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(dpt))):
 
             if not force : 
-                with open(os.path.join(self.thumbnails_dir, "tiles_list.json")) as f:
+                with open(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(dpt))) as f:
                     tiles_list = json.load(f)
             else:# if force is set on True, initialize the file
                 tiles_list = initialize_tiles_list(self.source_dir, dpt)
-                with open(os.path.join(self.thumbnails_dir, 'tiles_list.json'), 'w') as f:
+                with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(dpt)), 'w') as f:
                     json.dump(tiles_list, f, indent = 2)
 
                 # also initialize the approximate_coordinates and raw results fildes
@@ -97,7 +97,7 @@ class TilesTracker():
         else: # if the file does not exist create it in all cases.
 
             tiles_list = initialize_tiles_list(self.source_dir, dpt)
-            with open(os.path.join(self.thumbnails_dir, 'tiles_list.json'), 'w') as f:
+            with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(dpt)), 'w') as f:
                 json.dump(tiles_list, f, indent = 2)
 
         # save the list of tiles as an additional attribute.

@@ -3,14 +3,10 @@
 import folium
 from folium.plugins import MarkerCluster
 import tqdm
-from fiona import collection
-import tqdm
 from shapely.geometry.polygon import Polygon
-import glob
 import numpy as np
 import os
 from shapely import geometry
-from pyproj import Proj, transform
 
 
 """
@@ -61,16 +57,44 @@ def save_map(directory, map_center, installations_features, dpt = None):
 
         if installation['properties']["type"] == 'plant': # extract plant and directly plot them
 
-            folium.Marker(installation['geometry']['coordinates'][::-1]).add_to(m) # Informations to be added here (e.g. city)
+            # add a different layer for the marker
+            # and create the popup based on the info 
+
+            id = installation['properties']['id']
+            iris, code_iris = installation['properties']['iris'], installation['properties']['code_iris']
+            code_commune, commune = installation['properties']['code_commune'], installation['properties']['nom_commune'] 
+
+            popup = """ <b> ID </b> : {}\n
+             <b> iris </b>: {}\n
+             <b> code iris </b>: {}\n
+             <b> code commune </b> : {}\n
+             <b> commune </b>: {}\n
+            """.format(id, iris, code_iris, code_commune, commune)
+
+            folium.Marker(installation['geometry']['coordinates'][::-1],
+            icon = folium.Icon(color = 'red'),
+            popup = popup
+            ).add_to(m) # Informations to be added here (e.g. city)
 
         else: # cluster rooftop installations
 
-            folium.Marker(installation['geometry']['coordinates'][::-1]).add_to(marker_cluster)
+            # create the popup
+            id = installation['properties']['id']
+            iris, code_iris = installation['properties']['iris'], installation['properties']['code_iris']
+            code_commune, commune = installation['properties']['code_commune'], installation['properties']['nom_commune'] 
+
+            popup = """ <b> ID </b> : {}\n
+             <b> iris </b>: {}\n
+             <b> code iris </b>: {}\n
+             <b> code commune </b> : {}\n
+             <b> commune </b>: {}\n
+            """.format(id, iris, code_iris, code_commune, commune)
+
+            folium.Marker(installation['geometry']['coordinates'][::-1],
+            popup = popup
+            ).add_to(marker_cluster)
 
     folium.LayerControl().add_to(m)  
-
-    if not os.path.isdir('maps'):
-        os.mkdir('maps')
 
     if dpt is not None:
 
@@ -78,110 +102,6 @@ def save_map(directory, map_center, installations_features, dpt = None):
 
     else:
         m.save(os.path.join(directory,'map_installations.html'))
-
-"""
-Gets the list of power plant in the BDTOPO
-"""    
-def get_power_plants(bd_topo_path):
-            '''
-            returns a dictionnary of polygons. each item is a plant
-            the coordinates are converted in decimal coordinates
-            
-            remark: aggregates all power plants and not only PV power plants.
-            '''
-            
-            # location of the file with the power plants
-            dnsSHP = glob.glob(bd_topo_path + "/**/ZONE_D_ACTIVITE_OU_D_INTERET.shp", recursive = True)
-            
-            i = 0 # set up the iterator
-            
-            # set up the coordinates converter
-            inProj = Proj(init="epsg:2154")
-            outProj = Proj(init="epsg:4326")
-            
-            # dictionnary
-            items = {}
-                
-            # loop over the elements of the file
-            with collection(dnsSHP[0], 'r') as input: 
-                for shapefile_record  in tqdm.tqdm(input):
-
-                    if shapefile_record['properties']['NATURE'] == "Centrale électrique": # if a power plant is found
-                        coords_list = shapefile_record["geometry"]['coordinates']
-
-                        for coords in coords_list:
-
-                            # create a new instance
-
-                            items[i] = {}
-
-                            items[i]['coordinates'] = []
-                            for c in coords: # convert the coordinates
-                                x0, y0 = c            
-                                y,x = transform(inProj,outProj, x0, y0)
-
-                                # save the converted coordinates as a list
-                                items[i]['coordinates'].append((x,y))
-
-                            # save the polygon as well
-                            #items[i]['polygon'] = Polygon(items[i]['coordinates'])
-
-                            i += 1
-
-            return items
-
-"""
-Gets the location of the buldings in the BDTOPO
-"""
-def get_buildings_locations(bd_topo_path):
-            '''
-            returns a dictionnary of polygons. each item is a building
-            the coordinates are converted in decimal coordinates
-            '''
-            
-            # location of the file with the power plants
-            dnsSHP = glob.glob(bd_topo_path + "/**/BATIMENT.shp", recursive = True)
-            
-            i = 0 # set up the iterator
-            
-            # set up the coordinates converter
-            # inProj = Proj(init="epsg:2154")
-            # outProj = Proj(init="epsg:4326")
-            
-            # dictionnary
-            items = {}
-                
-            # loop over the elements of the file
-            with collection(dnsSHP[0], 'r') as input: 
-                for shapefile_record  in tqdm.tqdm(input):
-
-                    coords_list = shapefile_record["geometry"]['coordinates']
-                    
-                    for coord in coords_list:
-                        # create a new instance
-
-                        items[i] = {}
-
-                        items[i]['coordinates'] = []
-
-                        # add the building type
-                        items[i]['building_type'] = shapefile_record["properties"]["NATURE"]
-
-
-                        for c in coord: # convert the coordinates                  
-                            
-                            x0, y0 = c[0], c[1] # consider only the two first coordinates   
-                            # y,x = transform(inProj,outProj, x0, y0)
-
-                            # save the converted coordinates as a list
-
-                            items[i]['coordinates'].append((x0,y0))
-                        # save the polygon as well
-                        #items[i]['polygon'] = Polygon(items[i]['coordinates'])
-
-                        i += 1
-
-            return items
 
 """
 Assign the buildings to the tiles. Takes the form 
@@ -229,48 +149,6 @@ def assign_building_to_tiles(covered_tiles, buildings):
             return items
 
 """
-Get the list of tiles over which localization have been spotted
-"""
-def get_relevant_tiles(data_path, covered_tiles):
-            """
-            returns a dictionnary of tiles (and their coordinates)
-            if the latter are in the covered tiles. 
-            """
-
-            # location of the file with the power plants
-            dnsSHP = glob.glob(data_path + "/**/dalles.shp", recursive = True)
-
-            # dictionnary
-            items = {}
-
-            # loop over the elements of the file
-            with collection(dnsSHP[0], 'r') as input: 
-                for shapefile_record  in tqdm.tqdm(input):
-
-                    name = shapefile_record["properties"]["NOM"][2:-4]
-                    if name in covered_tiles: # if the tile is in the list of tiles that have been proceeded
-
-                        coords = shapefile_record["geometry"]['coordinates']
-
-                        if len(coords) > 1: #sanity check, there should be only one item in the coords
-                            print('Len greater than 1.')
-                            raise ValueError 
-
-                        # create a new instance
-
-                        items[name] = {}
-
-                        items[name]['coordinates'] = []
-                        for c in coords[0]: # convert the coordinates
-                            x0, y0 = c # consider only the two first coordinates            
-
-                            # save the coordinates as a list
-
-                            items[name]['coordinates'].append((x0,y0))
-
-            return items
-
-"""
 Merge the localization and the buildings in a single dictionnary
 We get an dictionnary with the following structure : 
 {tile : 
@@ -286,11 +164,7 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
         within each tile, we will use the returned dictionnary to 
         see which locations intersects with which building
         """
-        
-#        # check that the two keys list match
-#        if not buildings_in_tiles.keys() == locations_coordinates.keys():
-#            print('Keys are not matching.')
- #           raise ValueError
+    
         
         # initialize the dictionnary
         items = {}

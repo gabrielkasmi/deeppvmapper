@@ -14,7 +14,7 @@ import json
 import os
 from geojson import Point, Feature, FeatureCollection
 import geojson
-import helpers
+import helpers, data_handlers
 from pyproj import Transformer
 
 
@@ -33,9 +33,12 @@ class PostProcessing():
         self.source_images_dir = configuration.get("source_images_dir")
         self.outputs_dir = configuration.get('outputs_dir')
         self.results_dir= configuration.get('geo_dir')
+        self.source_iris_dir = configuration.get('source_iris_dir')
+        self.source_commune_dir = configuration.get("source_commune_dir")
 
         # Parameters for this part
         self.pre_processing = configuration.get('postprocessing_initialization')
+        self.compute_iris = configuration.get('compute_iris')
         self.dpt = dpt
 
         self.force = force
@@ -48,13 +51,16 @@ class PostProcessing():
         """
         initializes the auxiliary files that come from the BDTOPO
         Corresponds to the building list and the plants list
+
+        If the user inputs it, also computes the dictionnary associated with the IRIS and communes
+        (these information being added in the information on the rooftop installation/plant)
         """
 
         # List of buildings
         if not os.path.exists(os.path.join(self.outputs_dir, 'buildings_locations_{}.json'.format(self.dpt))):
 
             print('Computing the location of the buildings...')
-            buildings_locations = helpers.get_buildings_locations(self.bd_topo_path)
+            buildings_locations = data_handlers.get_buildings_locations(self.bd_topo_path)
 
             # save the file
             print('Computation complete. Saving the file.')
@@ -66,15 +72,16 @@ class PostProcessing():
 
         else:
             # open the existing file 
-            print('Opening the buildings_locations.json file... This can take some time...')
+            print('Opening the buildings_locations_{}.json file... This can take some time...'.format(self.dpt))
             buildings_locations = json.load(open(os.path.join(self.outputs_dir, 'buildings_locations_{}.json'.format(self.dpt))))
-            print('File buildings_locations.json loaded.')
+            print('File buildings_locations_{}.json loaded.'.format(self.dpt))        
 
+        # Plants localization
         if not os.path.exists(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt))):
 
             # List of power plants
             print('Extracting the localization of the power plants...')
-            plants_locations = helpers.get_power_plants(self.bd_topo_path)
+            plants_locations = helpers.data_handlers(self.bd_topo_path)
 
             # Saving the file
 
@@ -85,9 +92,55 @@ class PostProcessing():
         else:
             # open the existing file
             plants_locations = json.load(open(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt))))
-            print('File plants_locations.json loaded.')        
+            print('File plants_locations_{}.json loaded.'.format(self.dpt))        
 
-        return plants_locations, buildings_locations
+        # IRIS and commune : to be done only if the user has specified it.
+        if self.compute_iris:
+
+            # Computation for the IRIS : 
+            if not os.path.exists(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt))):
+
+                print('Filtering the IRIS attached to departement {}...'.format(self.dpt))
+                iris_location = data_handlers.get_iris(self.source_iris_dir, self.dpt)
+
+                # save the file
+                print('Computation complete. Saving the file.')
+
+                with open(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt)), 'w') as f:
+                    json.dump(iris_location, f, indent=2)
+
+                print('Done.')
+
+            else:
+                # open the existing file 
+                print('Opening the iris_{}.json file... This can take some time...'.format(self.dpt))
+                iris_location = json.load(open(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt))))
+                print('File loaded.')
+
+            # Same for the commune
+            if not os.path.exists(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt))):
+
+                print('Filtering the communes attached to departement {}...'.format(self.dpt))
+                communes_location = data_handlers.get_communes(self.source_commune_dir, self.dpt)
+
+                # save the file
+                print('Computation complete. Saving the file.')
+
+                with open(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt)), 'w') as f:
+                    json.dump(communes_location, f, indent=2)
+
+                print('Done.')
+
+            else:
+                # open the existing file 
+                print('Opening the communes_{}.json file... This can take some time...'.format(self.dpt))
+                communes_location = json.load(open(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt))))
+                print('File loaded.')
+
+        else: # Iris and commune are None.
+            iris_location, communes_location = None
+
+        return plants_locations, buildings_locations, iris_location, communes_location
     
     def preparation(self, plants_locations, buildings_locations):
         """
@@ -108,7 +161,7 @@ class PostProcessing():
 
             # List of tiles (of the departement that is being processed)
             print("Getting the list of relevant tiles...")
-            relevant_tiles = helpers.get_relevant_tiles(self.source_images_dir, list(self.approximate_coordinates.keys()))
+            relevant_tiles = data_handlers.get_relevant_tiles(self.source_images_dir, list(self.approximate_coordinates.keys()))
             print('List completed.')    
 
             # Assignations of buildings to tiles
@@ -157,7 +210,7 @@ class PostProcessing():
         
         return merged_dictionnary, plants_locations, buildings_locations
 
-    def filter_detections(self, merged_dictionnary, buildings_locations, plants_locations):
+    def filter_detections(self, merged_dictionnary, buildings_locations, plants_locations, iris_location, communes_locations):
         """
         filters the detections from the merged coordinate dictionnary in order to
         - assign all observations that have been made for a plant to the same plant
@@ -191,9 +244,31 @@ class PostProcessing():
                     x, y = out_coords[i,:]
 
                     # reverse the points in the geojson
-
                     coordinate = Point((y,x))
-                    properties = {'tile' : tile, 'type' : 'rooftop', 'id' : installation, 'building_type' : buildings_locations[installation]['building_type']}
+
+                    # add the information on the commune and the iris if relevant
+                    iris, code_iris, code_commune, nom_commune = data_handlers.get_location_info(out_coords[i,:], iris_location, communes_locations)
+
+                    # add the information in the properties if relevant
+
+                    if self.compute_iris:
+                    
+                        properties = {'tile'          : tile, 
+                                    'type'          : 'rooftop', 
+                                    'id'            : installation, 
+                                    'building_type' : buildings_locations[installation]['building_type'],
+                                    'iris'          : iris,
+                                    'code_iris'     : code_iris,
+                                    'code_commune'  : code_commune,
+                                    'nom_commune'   : nom_commune 
+
+                                    }
+                    else:
+                        properties = {'tile'          : tile, 
+                                    'type'          : 'rooftop', 
+                                    'id'            : installation, 
+                                    'building_type' : buildings_locations[installation]['building_type']
+                                    }
                     
                     installations.append(Feature(geometry = coordinate, properties = properties))
 
@@ -207,10 +282,29 @@ class PostProcessing():
                     x, y = plant_coordinates[tile][installation][0]
 
                     x0, y0 = transformer.itransform(x,y)
-                    
+
                     # reverse the points in the geojson
                     coordinate = Point((y0,x0))
-                    properties = {'tile' : tile, 'type' : 'plant', 'id' : installation}
+
+                    # add the information on the location of the plant 
+                    iris, code_iris, code_commune, nom_commune = data_handlers.get_location_info(out_coords[i,:], iris_location, communes_locations)
+
+                    if self.compute_iris:
+
+                        properties = {'tile' : tile, 
+                                      'type' : 'plant', 
+                                      'id' : installation,
+                                    'iris'          : iris,
+                                    'code_iris'     : code_iris,
+                                    'code_commune'  : code_commune,
+                                    'nom_commune'   : nom_commune 
+                                      }
+
+                    else: 
+                        properties = {'tile' : tile, 
+                                      'type' : 'plant', 
+                                      'id' : installation}
+
                     
                     installations.append(Feature(geometry = coordinate, properties = properties))
                     
@@ -230,13 +324,15 @@ class PostProcessing():
         """
 
         # location of the plants and the buildings from the BD TOPO
-        plants_locations, buildings_locations = self.initialization()
+        # and information on the IRIs and commune (are None if the user doesnt specified them)
+        plants_locations, buildings_locations, iris_location, communes_locations = self.initialization()
 
-        # preparation of the data to get a merged dictionnary
+        # preparation of the detection data to get a merged dictionnary
         merged_dictionnary, plants_locations, buildings_locations = self.preparation(plants_locations, buildings_locations)
 
         # filter the detections and export the geojson file
-        self.filter_detections(merged_dictionnary, buildings_locations, plants_locations)
+        # add the information regarding the IRIS and the communes.
+        self.filter_detections(merged_dictionnary, buildings_locations, plants_locations, iris_location, communes_locations)
 
 
 

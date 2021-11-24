@@ -6,16 +6,20 @@
 # - path/to/source/images : the path to the source images
 # - path/to/topo : the path to the BDTOPO
 # - path/to/iris : the path to the IRIS dataset, used in the postprocessing step.
+# - path/to/communes : the path to the geographic information of the communes, used in the
+#                      postprocessing step.
 # - path/to/model : the path to the model that will be used for detection.
 #
 # Custom directories
 # - outputs : the name of the directory (to consider or to create) in which
 #             all intermediate results will be stored.
 # - thumbnails : the name of the directory in which the thumbnails are stored
-
+# - geodir : the name of the directory in which the final outputs (.geojson file and associated html map)
+#            are stored
 
 source_images_dir : "/data/GabrielKasmi/data/ign/D034/ORTHOHR_1-0_RVB-0M20_JP2-E080_LAMB93_D034_2018-01-01"
-source_iris_dir : 
+source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021'
+source_commune_dir : '/data/GabrielKasmi/data/communes'
 source_topo_dir : '/data/GabrielKasmi/data/ign/D034/BDTOPO_3-0_TOUSTHEMES_SHP_LAMB93_D034_2021-03-15'
 model_dir : 'models'
 
@@ -39,18 +43,14 @@ center_longitude : 3.2501
 
 # Parameters that are common to certain pipelines:
 # Patch_size : used in the pre processing and the detection steps.
-# - patch_size : the size of the input patch passed to the model.
 # - departement_number : the departement number, used in the postprocessing and main script.
 
 patch_size : 299
 departement_number : 34
 
-
 # Parameters that are specific to certain pipelines
-# Preprocessing
-# None
 
-# Detection
+# Classification
 # - device : the device to use. If None, the device is automatically set up
 # - batch_size : the batch_size
 # - threshold : the value of the thresold. Should be deliberatily low because false
@@ -59,3 +59,10 @@ device :
 batch_size : 512
 threshold : 0.2
 
+# Postprocessing
+# - compute localization of IRIS and commune : whether the detected installations
+# should be given information on their commune and IRIS. 
+# While IRIS comes from IGN, the administrative splitting of the communes 
+# comes from OSM and can be downloaded from here : 
+# https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/
+compute_iris : True
