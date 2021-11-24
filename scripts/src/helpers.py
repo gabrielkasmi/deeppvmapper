@@ -335,7 +335,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
         returns 
         - merged_coordinates, a dictionnary with 
         {tile : locations} 
-        - unsorted_coordinates, a dictionnary with {tile : locations}
+        - plants_coordinates, a dictionnary with {tile : locations}
         """
         
         merged_coordinates = {}
@@ -387,8 +387,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                 # compute and return the mean
                 mean_coords = list(coords.mean(axis = 0))
 
-                # convert the coordinates
-
+                # replace the coordinates in the dictionnary.
                 merged_coordinates[tile][building] = mean_coords
                 
         print('Associating coordinates of localizations to power plants...')
@@ -407,7 +406,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                     # transform the coordinates as a polygon and 
                     # compute the mean localization of the plant.
                     plant_poly = Polygon(coordinates)
-                    plant_coords = list(np.array(coordinates).mean(axis =0))
+                    plant_barycenter = list(np.array(coordinates).mean(axis =0))
                     
                     
                     # loop over the detections of the tile
@@ -418,36 +417,38 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                         
                         if plant_poly.contains(candidate_location):
                             # add the localization
-                            plants_coordinates[tile][plant] = plant_coords
+                            plants_coordinates[tile][plant] = plant_barycenter
                             break # we only need only localization per plant.                            
 
                             
         print('Done.')
         return merged_coordinates, plants_coordinates
 
-def return_converted_coordinates(coordinates, inProj, outProj):
+def return_converted_coordinates(tiles_coordinates, transformer):
     """
-    returns an array of merged coordinates given an inputed
-    dictionnary of coordinates. Each key of the dictionnary is 
-    the id of a coordinate to compute.
-
-    args :
-    coordinates ; a dictionnary with the input coordinates as Lambert, 
-    inProj, outProj : the projectors
+    convers the coordinates of a set of coordinates from Lambert93 
+    to decimal.
+    
+    args:
+    - tiles_coordinates : a dictionnary {building_id : avg_coord}
+    - transformer : a pyproj generator, used to do the conversion
     """
-    # Create the array of coordinates
-    in_coords = np.empty((len(list(coordinates.keys())), 2))
+    
+    # convert the dictionnary as an array 
+    # reshape to always have a two dimensional array
+    in_coordinates = np.array([tiles_coordinates[k] for k in tiles_coordinates.keys()]).reshape(-1,2)    
+    
+    # initialize the output array
+    out_coordinates = np.empty((in_coordinates.shape[0], in_coordinates.shape[1]))
+    
+    # do the conversion
+    converted_coords = transformer.itransform(in_coordinates)
+    
+    # populate the output array
+    for i, point in enumerate(converted_coords):
 
-    for i, installation in enumerate(list(coordinates.keys())):
-        # fill the array with the coordinates
-        # for each installation
-        x0, y0 = coordinates[installation] 
-
-        in_coords[i, 0], in_coords[i, 1] = x0, y0
-
-    # Now that the array is computed, compute the out_array
-    # which is the transform of the coordinates.
-
-    x_out, y_out = transform(inProj, outProj, in_coords[:,0], in_coords[:,1]) 
-
-    return np.concatenate((x_out, y_out)).reshape(-1, 2) # reshape ensures the array is always two dimensional
+        out_coordinates[i,:] = point 
+    
+    
+    return out_coordinates
+    

@@ -15,10 +15,7 @@ import os
 from geojson import Point, Feature, FeatureCollection
 import geojson
 import helpers
-from pyproj import Proj, transform
-
-import warnings
-warnings.filterwarnings("ignore")
+from pyproj import Transformer
 
 
 class PostProcessing():
@@ -169,7 +166,7 @@ class PostProcessing():
 
         # Get the cleaned dictionnaries
 
-        merged_coordinates, plant_coordinates = helpers.merge_location_of_arrays(merged_dictionnary, plants_locations)
+        rooftop_coordinates, plant_coordinates = helpers.merge_location_of_arrays(merged_dictionnary, plants_locations)
 
 
         # Export the files
@@ -177,24 +174,25 @@ class PostProcessing():
         installations = []
 
         # Conversion of the coordinates
-
         # set up the coordinates converter
-        inProj = Proj(init="epsg:2154")
-        outProj = Proj(init="epsg:4326")
+        transformer = Transformer.from_crs(2154, 4326)
 
-        for tile in merged_coordinates.keys():
 
-            if bool(merged_coordinates[tile]): # continue only if there are merged coordinates on the tile
+        for tile in rooftop_coordinates.keys():
 
-                out_coords = helpers.return_converted_coordinates(merged_coordinates[tile], inProj, outProj)
+            if bool(rooftop_coordinates[tile]): # continue only if there are merged coordinates on the tile
+
+                out_coords = helpers.return_converted_coordinates(rooftop_coordinates[tile], transformer)
 
                 # finally, export the points
 
-                for i, installation in enumerate(list(merged_coordinates[tile].keys())):
+                for i, installation in enumerate(list(rooftop_coordinates[tile].keys())):
 
                     x, y = out_coords[i,:]
 
-                    coordinate = Point((x,y))
+                    # reverse the points in the geojson
+
+                    coordinate = Point((y,x))
                     properties = {'tile' : tile, 'type' : 'rooftop', 'id' : installation, 'building_type' : buildings_locations[installation]['building_type']}
                     
                     installations.append(Feature(geometry = coordinate, properties = properties))
@@ -206,12 +204,12 @@ class PostProcessing():
             if bool(plant_coordinates[tile]) == True : # only consider non empty dictionnaries
                 for installation in plant_coordinates[tile].keys():
                     
-                    coords = plant_coordinates[tile][installation][0]
-                    y, x = coords
-                    # Convert the coordinates from lambert to decimal
-                    y0,x0 = transform(inProj,outProj, x, y)
+                    x, y = plant_coordinates[tile][installation][0]
 
-                    coordinate = Point((x0,y0))
+                    x0, y0 = transformer.itransform(x,y)
+                    
+                    # reverse the points in the geojson
+                    coordinate = Point((y0,x0))
                     properties = {'tile' : tile, 'type' : 'plant', 'id' : installation}
                     
                     installations.append(Feature(geometry = coordinate, properties = properties))
