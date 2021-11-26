@@ -132,6 +132,5 @@ dmypy.json
 /data
 /models
 *.html
-*.geojson
 *.ipynb
 .DS_Store
