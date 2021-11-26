@@ -135,10 +135,6 @@ def get_buildings_locations(bd_topo_path):
             
             i = 0 # set up the iterator
             
-            # set up the coordinates converter
-            # inProj = Proj(init="epsg:2154")
-            # outProj = Proj(init="epsg:4326")
-            
             # dictionnary
             items = {}
                 
@@ -158,18 +154,10 @@ def get_buildings_locations(bd_topo_path):
                         # add the building type
                         items[i]['building_type'] = shapefile_record["properties"]["NATURE"]
 
+                        for c in coord: # add the coordinates  
 
-                        for c in coord: # convert the coordinates                  
+                            items[i]['coordinates'].append(c[:2])                
                             
-                            x0, y0 = c[0], c[1] # consider only the two first coordinates   
-                            # y,x = transform(inProj,outProj, x0, y0)
-
-                            # save the converted coordinates as a list
-
-                            items[i]['coordinates'].append((x0,y0))
-                        # save the polygon as well
-                        #items[i]['polygon'] = Polygon(items[i]['coordinates'])
-
                         i += 1
 
             return items
@@ -190,10 +178,7 @@ def get_power_plants(bd_topo_path):
             dnsSHP = glob.glob(bd_topo_path + "/**/ZONE_D_ACTIVITE_OU_D_INTERET.shp", recursive = True)
             
             i = 0 # set up the iterator
-            
-            # set up the projector
-            transformer = Transformer.from_crs(2154, 4326)
-            
+                        
             # dictionnary
             items = {}
                 
@@ -211,18 +196,8 @@ def get_power_plants(bd_topo_path):
                             items[i] = {}
 
                             items[i]['coordinates'] = []
-                            for c in coords: # convert the coordinates
-
-                                converted_coords = transformer.itransform(c)
-
-                                for pt in converted_coords :
-                                    x, y = pt
-
-                                # save the converted coordinates as a list
-                                items[i]['coordinates'].append((x,y))
-
-                            # save the polygon as well
-                            #items[i]['polygon'] = Polygon(items[i]['coordinates'])
+                            for c in coords: 
+                                items[i]['coordinates'].append(c)
 
                             i += 1
 

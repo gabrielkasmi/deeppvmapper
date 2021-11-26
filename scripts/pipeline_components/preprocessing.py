@@ -69,6 +69,7 @@ class TilesTracker():
         self.source_dir = configuration.get('source_images_dir')
         self.thumbnails_dir = configuration.get('thumbnails_dir')
         self.outputs_dir = configuration.get("outputs_dir")
+        self.dpt = configuration.get('departement_number')
 
         # Create the thumbnails direcetory if the latter does not exist.
         if not os.path.isdir(self.thumbnails_dir):
@@ -121,7 +122,7 @@ class TilesTracker():
             self.tiles_list[tile] = True
 
         # update the file in the source folder.
-            with open(os.path.join(self.thumbnails_dir, 'tiles_list.json'), 'w') as f:
+            with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
                 json.dump(self.tiles_list, f, indent=2)
 
     def clean(self):
@@ -195,9 +196,11 @@ class PreProcessing():
         self.patch_size = configuration.get('patch_size')
         self.count = count
 
+        self.dpt = configuration.get('departement_number')
+
         # Tiles list. The tiles that will be proceeded are the one that are flagged as false
         # Tiles that are marked as 'False'
-        full_tiles_list = json.load(open(os.path.join(self.thumbnails_dir, "tiles_list.json")))
+        full_tiles_list = json.load(open(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(self.dpt))))
 
         # filter the dictionnary to keep only the tiles for which the value is "False"
         self.tiles_list = {k : v for k,v in full_tiles_list.items() if v == False}

@@ -2,6 +2,8 @@
 
 import folium
 from folium.plugins import MarkerCluster
+from numpy.core.numeric import count_nonzero
+from numpy.core.records import array
 import tqdm
 from shapely.geometry.polygon import Polygon
 import numpy as np
@@ -54,6 +56,7 @@ def save_map(directory, map_center, installations_features, dpt = None):
 
 
     for installation in installations_features['features']:
+        # TODO. Take into account the case where compute_iris = False.
 
         if installation['properties']["type"] == 'plant': # extract plant and directly plot them
 
@@ -143,8 +146,6 @@ def assign_building_to_tiles(covered_tiles, buildings):
                         buildings[building]['counts'] += 1
                         
                         
-                        if buildings[building]['counts'] == 4:
-                            del buildings[building]
                             
             return items
 
@@ -207,12 +208,11 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
         of a building
         
         returns 
-        - merged_coordinates, a dictionnary with 
-        {tile : locations} 
+        - array_coordinates, a dictionnary with {tile : locations} 
         - plants_coordinates, a dictionnary with {tile : locations}
         """
         
-        merged_coordinates = {}
+        array_coordinates = {}
         # unsorted_coordinates = {} # will be populated by the installations that have not 
         # been assigned to any array
         plants_coordinates = {}
@@ -220,50 +220,58 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
         # loop over the tiles
         
         print('Merging points that belong to the same building...')
-        
+
+       
         for tile in tqdm.tqdm(merged_dictionnary.keys()):
 
-            # carry on only if the tile contains arrays.
-            if merged_dictionnary[tile]['array_locations'] is not None:
+            # create a new key
+            array_coordinates[tile] = {}
 
-                merged_coordinates[tile] = {} 
-                            
-                # loop over the buildings
-                
-                for building_id in merged_dictionnary[tile]['buildings'].keys():
-                    
-                    coordinates = merged_dictionnary[tile]['buildings'][building_id]["coordinates"]
-                    
-                    # building_center = list(np.array(coordinates).mean(axis = 0))
-                                
-                    building_polygon = Polygon(coordinates)          
-                
-                    for location_id in merged_dictionnary[tile]['array_locations'].keys() :
-                    
-                        candidate_location = geometry.Point(merged_dictionnary[tile]['array_locations'][location_id])
-                    
-                        if building_polygon.contains(candidate_location):
-                            # Create a new key if the building contains an array
-                            # add the id to the list of identified ids
-                            try :                    
-                                merged_coordinates[tile][building_id].append(merged_dictionnary[tile]['array_locations'][location_id])
-                            except:
-                                merged_coordinates[tile][building_id] = [merged_dictionnary[tile]['array_locations'][location_id]]    
+            # loop over the buildings that are on that tile
+            for building_id in merged_dictionnary[tile]["buildings"].keys():
 
-                            
+                # get the coordinates of the building
+                building_coordinates = merged_dictionnary[tile]['buildings'][building_id]['coordinates']
+
+                # convert the coordinates as a polygon
+                building_polygon = Polygon(building_coordinates)
+                #print(type(building_polygon))
+
+                # loop over the detections that have been made over this tile
+                for detection_id in merged_dictionnary[tile]['array_locations'].keys():
+
+                    candidate_location = merged_dictionnary[tile]['array_locations'][detection_id]
+
+                    # convert as a point
+                    candidate_point = geometry.Point(candidate_location)
+
+                    # check if the building contains the point or not
+                    if building_polygon.contains(candidate_point):
+                        # either create a new key (whose ID is the building id)
+                        # or append the location to the list of locations that have 
+                        # already been assigned to that building
+                        if not building_id in array_coordinates[tile]:
+
+                            array_coordinates[tile][building_id] = [candidate_location]
+                        else:
+                            array_coordinates[tile][building_id].append(candidate_location)
+
+        print('Averaging the rooftop coordinates that have been associated to buildings...')                   
         # now that the coordinates have been brought together, we merge them
-        for tile in merged_coordinates.keys():
-            
-            for building in merged_coordinates[tile].keys():
-                
-                # extract the coordinates as an array
-                coords = np.array(merged_coordinates[tile][building])
-                # compute and return the mean
-                mean_coords = list(coords.mean(axis = 0))
+        for tile in array_coordinates.keys():
 
-                # replace the coordinates in the dictionnary.
-                merged_coordinates[tile][building] = mean_coords
-                
+            for building in array_coordinates[tile].keys():
+
+                # extract the coordinates, compute the mean
+                # and replace the value in the array coordinates
+                # by the averaged value.
+
+                coordinates = np.array(array_coordinates[tile][building])
+
+                mean_coords = list(coordinates.mean(axis = 0))
+
+                array_coordinates[tile][building] = mean_coords
+                           
         print('Associating coordinates of localizations to power plants...')
         # final part, power plants
         
@@ -280,6 +288,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                     # transform the coordinates as a polygon and 
                     # compute the mean localization of the plant.
                     plant_poly = Polygon(coordinates)
+                    #print(type(plant_poly))
                     plant_barycenter = list(np.array(coordinates).mean(axis =0))
                     
                     
@@ -292,11 +301,11 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                         if plant_poly.contains(candidate_location):
                             # add the localization
                             plants_coordinates[tile][plant] = plant_barycenter
-                            break # we only need only localization per plant.                            
+                            # break # we only need only localization per plant.                            
 
                             
         print('Done.')
-        return merged_coordinates, plants_coordinates
+        return array_coordinates, plants_coordinates
 
 def return_converted_coordinates(tiles_coordinates, transformer):
     """

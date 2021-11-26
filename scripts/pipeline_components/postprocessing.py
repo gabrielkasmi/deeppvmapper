@@ -15,6 +15,7 @@ import os
 from geojson import Point, Feature, FeatureCollection
 import geojson
 import helpers, data_handlers
+import tqdm
 from pyproj import Transformer
 
 
@@ -81,7 +82,7 @@ class PostProcessing():
 
             # List of power plants
             print('Extracting the localization of the power plants...')
-            plants_locations = helpers.data_handlers(self.bd_topo_path)
+            plants_locations = data_handlers.get_power_plants(self.bd_topo_path)
 
             # Saving the file
 
@@ -138,7 +139,7 @@ class PostProcessing():
                 print('File loaded.')
 
         else: # Iris and commune are None.
-            iris_location, communes_location = None
+            iris_location, communes_location = None, None
 
         return plants_locations, buildings_locations, iris_location, communes_location
     
@@ -161,8 +162,14 @@ class PostProcessing():
 
             # List of tiles (of the departement that is being processed)
             print("Getting the list of relevant tiles...")
-            relevant_tiles = data_handlers.get_relevant_tiles(self.source_images_dir, list(self.approximate_coordinates.keys()))
-            print('List completed.')    
+            # filter to process only the tiles that contain an array
+            non_empty_tiles = []
+            for tile in self.approximate_coordinates.keys():
+                if len(self.approximate_coordinates[tile]) > 0:
+                    non_empty_tiles.append(tile) 
+             
+            relevant_tiles = data_handlers.get_relevant_tiles(self.source_images_dir, non_empty_tiles)
+            print('List completed. {} tiles containing at least one detection have been found.'.format(len(list(relevant_tiles.keys()))))    
 
             # Assignations of buildings to tiles
             print("Assigning the buildings to the tiles...")
@@ -184,8 +191,14 @@ class PostProcessing():
 
             # List of tiles (of the departement that is being processed)
             print("Getting the list of relevant tiles...")
-            relevant_tiles = helpers.get_relevant_tiles(self.source_images_dir, list(self.approximate_coordinates.keys()))
-            print('List completed.')    
+            # filter to process only the tiles that contain an array
+            non_empty_tiles = []
+            for tile in self.approximate_coordinates.keys():
+                if len(self.approximate_coordinates[tile]) > 0:
+                    non_empty_tiles.append(tile) 
+             
+            relevant_tiles = data_handlers.get_relevant_tiles(self.source_images_dir, non_empty_tiles)
+            print('List completed. {} tiles containing at least one detection have been found.'.format(len(list(relevant_tiles.keys()))))      
 
             # Assignations of buildings to tiles
             print("Assigning the buildings to the tiles...")
@@ -204,7 +217,7 @@ class PostProcessing():
 
         else:
             # open the existing file
-            print('Opening the output dictionnary...')
+            print('Opening the dictionnary merged_dictionnary_{}.json...'.format(self.dpt))
             merged_dictionnary = json.load(open(os.path.join(self.outputs_dir, 'merged_dictionnary_{}.json'.format(self.dpt))))
             print('Done.')
         
@@ -218,8 +231,8 @@ class PostProcessing():
         """
 
         # Get the cleaned dictionnaries
-
         rooftop_coordinates, plant_coordinates = helpers.merge_location_of_arrays(merged_dictionnary, plants_locations)
+
 
 
         # Export the files
@@ -230,8 +243,7 @@ class PostProcessing():
         # set up the coordinates converter
         transformer = Transformer.from_crs(2154, 4326)
 
-
-        for tile in rooftop_coordinates.keys():
+        for tile in tqdm.tqdm(list(rooftop_coordinates.keys())):
 
             if bool(rooftop_coordinates[tile]): # continue only if there are merged coordinates on the tile
 
@@ -256,7 +268,7 @@ class PostProcessing():
                         properties = {'tile'          : tile, 
                                     'type'          : 'rooftop', 
                                     'id'            : installation, 
-                                    'building_type' : buildings_locations[installation]['building_type'],
+                                    'building_type' : merged_dictionnary[tile]['buildings'][installation]['building_type'],
                                     'iris'          : iris,
                                     'code_iris'     : code_iris,
                                     'code_commune'  : code_commune,
@@ -279,15 +291,15 @@ class PostProcessing():
             if bool(plant_coordinates[tile]) == True : # only consider non empty dictionnaries
                 for installation in plant_coordinates[tile].keys():
                     
-                    x, y = plant_coordinates[tile][installation][0]
+                    x, y = plant_coordinates[tile][installation]
 
-                    x0, y0 = transformer.itransform(x,y)
+                    x0, y0 = transformer.transform(x,y)
 
                     # reverse the points in the geojson
                     coordinate = Point((y0,x0))
 
                     # add the information on the location of the plant 
-                    iris, code_iris, code_commune, nom_commune = data_handlers.get_location_info(out_coords[i,:], iris_location, communes_locations)
+                    iris, code_iris, code_commune, nom_commune = data_handlers.get_location_info(plant_coordinates[tile][installation], iris_location, communes_locations)
 
                     if self.compute_iris:
 
