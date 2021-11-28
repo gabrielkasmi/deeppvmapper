@@ -287,21 +287,22 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                     coordinates = plants_location[plant]['coordinates']
                     # transform the coordinates as a polygon and 
                     # compute the mean localization of the plant.
-                    plant_poly = Polygon(coordinates)
-                    #print(type(plant_poly))
-                    plant_barycenter = list(np.array(coordinates).mean(axis =0))
-                    
-                    
-                    # loop over the detections of the tile
-                    # loop over all the locations of the tiles
-                    for location_id in merged_dictionnary[tile]['array_locations'].keys() :
+                    if len(coordinates) >= 3: # compute the polygon only if it contains more than three coordinates
+                        plant_poly = Polygon(coordinates)
+                        #print(type(plant_poly))
+                        plant_barycenter = list(np.array(coordinates).mean(axis =0))
                         
-                        candidate_location = geometry.Point(merged_dictionnary[tile]['array_locations'][location_id])
                         
-                        if plant_poly.contains(candidate_location):
-                            # add the localization
-                            plants_coordinates[tile][plant] = plant_barycenter
-                            # break # we only need only localization per plant.                            
+                        # loop over the detections of the tile
+                        # loop over all the locations of the tiles
+                        for location_id in merged_dictionnary[tile]['array_locations'].keys() :
+                            
+                            candidate_location = geometry.Point(merged_dictionnary[tile]['array_locations'][location_id])
+                            
+                            if plant_poly.contains(candidate_location):
+                                # add the localization
+                                plants_coordinates[tile][plant] = plant_barycenter
+                                # break # we only need only localization per plant.                            
 
                             
         print('Done.')
