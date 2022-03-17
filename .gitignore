@@ -27,7 +27,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 dataset/
-/train
+/train/dataset
+/train/models
+/train/results
+/train/runs
+/train/_misc
 
 
 # PyInstaller
