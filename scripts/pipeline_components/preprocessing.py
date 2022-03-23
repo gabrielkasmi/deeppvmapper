@@ -127,12 +127,29 @@ class TilesTracker():
 
     def clean(self):
         """cleans the thumbnails directory"""
-
         # open the file
-        approximate_coordinates = json.load(open(os.path.join(self.outputs_dir, "approximate_coordinates.json")))
-        completed_tiles = list(approximate_coordinates.keys())
+        raw_results = json.load(open(os.path.join(self.outputs_dir, 'raw_detection_results.json')))
+        completed_tiles = [tile for tile in os.listdir(self.thumbnails_dir) if not (tile[-5:] == '.json') | (tile[0] == '.')] # consider only the folders that have not been deleted
 
-        # remove the folders
+        # create a folder with the positive tiles
+        # segmentation inference will be run from this folder.
+        segmentation_thumbnails = os.path.join(self.outputs_dir, 'segmentation') 
+        if not os.path.isdir(segmentation_thumbnails):
+            os.mkdir(segmentation_thumbnails)
+
+        # get the list of tiles that are positively labelled
+        for tile in completed_tiles:
+            positive_thumbnails = raw_results[tile]
+
+            # copy the tiles
+            for positive_thumbnail in positive_thumbnails:
+                source = os.path.join(os.path.join(self.thumbnails_dir, tile), positive_thumbnail)
+                target = os.path.join(segmentation_thumbnails, positive_thumbnail)
+
+                shutil.copy(source, target)
+
+        # remove the folders once the copy of the positive tiles is 
+        # complete.
         folders = 0
         for tile in completed_tiles:
             if os.path.isdir(os.path.join(self.thumbnails_dir, tile)):

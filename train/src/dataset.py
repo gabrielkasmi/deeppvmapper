@@ -57,7 +57,7 @@ class BDPVClassificationDataset(Dataset):
         return self.img_labels
 
 class BDPVSegmentationDataset(Dataset):
-    def __init__(self, masks_dir, img_dir, image_transform = None, random_transform = False, extension = '.png'):
+    def __init__(self, masks_dir, img_dir, image_transform = None, random_transform = False, extension = '.png', seed = 42):
         """
         Args:
             annotations_file (string): directory with the labels
@@ -84,6 +84,7 @@ class BDPVSegmentationDataset(Dataset):
         self.image_transform = image_transform
         self.random_transform = random_transform
         self.extension = extension
+        self.seed = seed
 
     def __len__(self):      
         # the length is computed as the number of masks in the masks directory
@@ -104,6 +105,8 @@ class BDPVSegmentationDataset(Dataset):
             image = self.image_transform(image)
 
         if self.random_transform:
+
+            random.seed(self.seed)
 
             # applies a series of transform to the image and the mask
 

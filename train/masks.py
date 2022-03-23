@@ -19,6 +19,7 @@ from skimage import io
 import numpy as np
 from shapely.geometry import Polygon, Point
 import warnings
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
@@ -160,14 +161,17 @@ def main():
     """
 
     # loop over the images in each directory
-    for case in ['validation']:#img_subdirs.keys():
+    for case in img_subdirs.keys():
 
         print('Generating segmentation masks for the {} images...'.format(case))
 
         # get the thumbnails (end by .png)
-        images = [item for item in os.listdir(img_subdirs[case]) if item[-4:] == '.png']
+        labels = pd.read_csv(os.path.join(img_subdirs[case], "labels.csv"), header = None)
+        labels.columns = ['img', 'label']
 
-        print(len(images))
+        images = list(labels[labels['label'] == 1]['img'].values)
+
+        print('There are {} to generate.'.format(len(images)))
 
         def f(image):
             return generate_and_save_mask(annotations, image, masks_subdirs[case], size = args.size)

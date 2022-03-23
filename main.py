@@ -51,6 +51,7 @@ def main():
     parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
 
     parser.add_argument('--run_classification', default = None, help = "Whether detection should be done.", type=bool)
+    parser.add_argument('--run_segmentation', default = None, help = "Whether segmentation should be done.", type=bool)
     parser.add_argument('--run_postprocessing', default = None, help = "Whether postprocessing should be done.", type=bool)
     parser.add_argument('--save_map', default = None, help = "Whether the map should be computed.", type=bool)
 
@@ -73,10 +74,18 @@ def main():
     if args.run_classification is not None:
         run_classification = args.run_classification
 
-    run_postprocessing = configuration.get('run_postprocessing')
+    run_segmentation = configuration.get('run_segmentation')
+
+    if args.run_classification is not None:
+        run_segmentation = args.run_segmentation
+
+    run_segmentation = configuration.get('run_segmentation')
 
     if args.run_postprocessing is not None:
         run_postprocessing = args.run_postprocessing        
+
+    run_postprocessing = configuration.get('run_postprocessing')
+    
 
     save_map = configuration.get("save_map")
 
@@ -110,9 +119,10 @@ def main():
             # While the full list of tiles has not been completed,
             # do the following :
             # 1) Split a batch of unprocessed tiles
-            # 2) Do inference and save the inferred locations
-            # 3) Update the list of tiles 
-            # 4) Clean the thumbnails
+            # 2) Do inference and save the list of thumbnails that are identified 
+            #    as positives
+            # 3) Update the list of tiles that have been processed 
+            # 4) remove the negative images
 
             print('Starting pre processing...')
 
@@ -121,7 +131,7 @@ def main():
 
             print('Preprocessing complete. ')
 
-            print('Strarting detection ...')
+            print('Starting detection ...')
 
             inference = detection.Detection(configuration)
             inference.run()
@@ -139,30 +149,58 @@ def main():
         
         print('Detection of the tiles on the departement {} complete.'.format(dpt))
 
-    if run_postprocessing:
+    if run_segmentation:
+        print('Starting segmentation... ')
 
-        print('Starting postprocessing... ')
+        # do stuff
+        # source folder : thumbnails/segmentation (created on the file)
+        # add a warning if the folder does not exist
+        # then runs inference on the selected tiles
+        # then removes the folder.
 
-        post_processing = postprocessing.PostProcessing(configuration, dpt, force)
-        post_processing.run()
+        # raw output : detection on a thumbnail
+        # take into consideration the case where the installation lies on the border 
+        # of the thumbnail (and in this case, merge it)
+        # big part
 
-        print('Postprocessing complete.')
+        # output : a file with for each tile, the localisation of the arrays
+        # in the same spirit as the training database
+        
+        # open questions : shoud there be some post processing on the shape at this state ? 
 
-    print('Pipeline completed. All itermediary outputs are in the folder {}.'.format(outputs_dir))
+    # if run_characterization:
+
+        print('Computing the arrays characteristics...')
+
+        # partie correspondant au stage de YT.
+
+
+
+
+    #if run_postprocessing:
+
+    #    print('Starting postprocessing... ')
+
+    #    post_processing = postprocessing.PostProcessing(configuration, dpt, force)
+    #    post_processing.run()
+
+    #    print('Postprocessing complete.')
+
+    #print('Pipeline completed. All itermediary outputs are in the folder {}.'.format(outputs_dir))
 
     # - - - - - - - STEP 3 - - - - - - -  
     # Save the map if specified.
 
-    if save_map:
+    #if save_map:
 
         # open and load the file
 
-        with open(os.path.join(results_dir,'installations_{}.geojson'.format(dpt))) as f:
-            installations_features = geojson.load(f)
+    #    with open(os.path.join(results_dir,'installations_{}.geojson'.format(dpt))) as f:
+    #        installations_features = geojson.load(f)
 
         # save the file.
 
-        helpers.save_map(results_dir, map_center, installations_features, dpt = dpt)
+    #    helpers.save_map(results_dir, map_center, installations_features, dpt = dpt)
 
 if __name__ == '__main__':
 

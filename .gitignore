@@ -32,7 +32,7 @@ dataset/
 /train/results
 /train/runs
 /train/_misc
-
+/data_old
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

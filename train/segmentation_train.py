@@ -55,14 +55,16 @@ parser.add_argument('--dataset_dir', default = "dataset", help = "path to the tr
 parser.add_argument('--results_dir', default = "results", help = "where the results should be stored", type = str)
 
 # parallel (bool) : whether training is parallelized.
-parser.add_argument('--parallel', default = True, help = "whether the model should be parallelized.", type = bool)
+parser.add_argument('--parallel', default = False, help = "whether the model should be parallelized.", type = bool)
 # device (str) : the device on which the model should be trained
 parser.add_argument('--device', default = "cuda", help = "name of the GPU device on which to train the model", type = str)
+# num devices (str) : the devices on which the model should be sent
+parser.add_argument('--num_devices', default = '0,1,2', help = "the index of the devices on which tensors will be sent.", type = str)
 
 # batch size (int) : the batch size
 parser.add_argument('--batch_size', default = 32, help = "batch size.", type = int)
 # epochs (int) : the number of training epochs
-parser.add_argument('--epochs', default = 10, help = "Number of training epochs.", type = int)
+parser.add_argument('--epochs', default = 25, help = "Number of training epochs.", type = int)
 # seed (int) : the number of training epochs
 parser.add_argument('--seed', default = 42, help = "Random seed.", type = int)
 # threshold (float) : the default classification threshold
@@ -112,7 +114,7 @@ for case in ['train', 'validation', 'test']:
     random_transform = (case == 'train')
     
     data = dataset.BDPVSegmentationDataset(masks_dir, images_dir, image_transform = transforms, random_transform = random_transform)
-    database = DataLoader(data, batch_size = args.batch_size)
+    database = DataLoader(data, batch_size = args.batch_size, drop_last = args.parallel)
     
     dataloader[case] = database
 
@@ -128,8 +130,12 @@ model.to(args.device)
 
 # Parallelize the model to do inference faster
 if args.parallel:
-    model = nn.DataParallel(model, device_ids = list(range(torch.cuda.device_count())))
+
+    devices = [int(k) for k in args.num_devices.split(',')]
+    
+    model = nn.DataParallel(model, device_ids = devices)
     model.to(args.device)
+
      
 """
 Main function of the script.
@@ -183,7 +189,7 @@ def main():
     shutil.rmtree(weights_dir) #remove the directory
 
     # evaluate this model on the test set and print the performance
-    outputs = segmentation_model.evaluate(final_model, args.models_dir)
+    outputs = segmentation_model.evaluate("model_{}.pth".format(args.name), args.models_dir)
 
     # Create the folder if the latter does not exist
     if not os.path.isdir(args.results_dir):

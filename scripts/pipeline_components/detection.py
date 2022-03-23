@@ -32,6 +32,7 @@ from torch.nn import functional as F
 import json
 from torch.utils.data import DataLoader
 import numpy as np
+import torchvision
 
 class Detection():
 
@@ -55,9 +56,11 @@ class Detection():
 
         # Parameters for this part
         self.device = configuration.get('device')
-        self.batch_size = configuration.get('batch_size')
-        self.threshold = configuration.get('threshold')
+        self.batch_size = configuration.get('classification_batch_size')
+        self.threshold = configuration.get('classification_threshold')
         self.patch_size = configuration.get('patch_size')
+
+        self.model_name = configuration.get('classification_model')
 
     def initialization(self):
         """
@@ -67,7 +70,7 @@ class Detection():
         # Setting up the device
 
         if self.device is None:
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             device = self.device
 
@@ -79,11 +82,8 @@ class Detection():
             pass
 
         # Load the model 
-        # In the model directory, we look for the .pth file. 
-        for item in os.listdir(self.model_dir):
-            if item[-4:] == '.pth':
-                model_name = item
-                break
+        # Add in the config file
+        model_name = self.model_name + '.pth'
 
         model = torch.load(os.path.join(self.model_dir, model_name))
         model.to(device)
@@ -112,6 +112,13 @@ class Detection():
         # where the thumbnail_name corresponds to the name of the thumbnails
         # that have been labelled as postive by the model.
 
+        # transforms : normalize the images
+        transforms = torchvision.transforms.Compose([
+        torchvision.transforms.ToPILImage(),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean = (0.485, 0.456, 0.406), std = (0.229, 0.224, 0.225)),
+        ])
+
         model_outputs = {}
         
         for tile in tiles_names:
@@ -120,7 +127,7 @@ class Detection():
 
             # access the folder and load the data
             dataset_dir = os.path.join(self.thumbnails_dir, tile)
-            data_source = dataset.BDPVNoLabels(dataset_dir)
+            data_source = dataset.BDPVClassificationNoLabels(dataset_dir, transform = transforms)
             inference_data = DataLoader(data_source, batch_size = self.batch_size)
 
             # outputs per tile
@@ -210,9 +217,6 @@ class Detection():
             # save the new file
             with open(os.path.join(self.outputs_dir, 'approximate_coordinates.json'), 'w') as f:
                 json.dump(approximate_coordinates, f, indent=2)
-
-
-
 
     def run(self):
         """

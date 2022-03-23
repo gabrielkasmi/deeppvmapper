@@ -182,16 +182,14 @@ class BDPVSegmentationModel():
                 truth.append(masks)
                 
         # reshape as a tensor
-        preds = torch.cat(preds).type(torch.int64)
+        preds = torch.cat(preds)
         truth = torch.cat(truth).type(torch.int64)
 
         # now that we accumulated the predictions and grund truth,
         # compute the Jaccard associated to each threshold
         
         thresholds = np.linspace(0.01,.99, 99)
-        
-        print('Fine tuning the classification threshold...')
-                
+                        
         for threshold in thresholds:           
 
             # binarize the outputs
@@ -201,8 +199,8 @@ class BDPVSegmentationModel():
             jaccard_temp = iou(binary_outputs, truth).item()            
             jaccards[jaccard_temp] = threshold
             
-            # save the jaccard minimizing threshold
-            self.best_threshold = jaccards[np.nanmin(list(jaccards.keys()))]
+            # save the jaccard maximizing threshold
+            self.best_threshold = jaccards[np.nanmax(list(jaccards.keys()))]
             self.outputs['best_threshold'] = self.best_threshold
                 
     def evaluate(self, best_model, model_dir):
@@ -236,7 +234,7 @@ class BDPVSegmentationModel():
                 truth.append(masks)
                 
         # reshape as a tensor
-        preds = torch.cat(preds).type(torch.int64)
+        preds = torch.cat(preds)
         truth = torch.cat(truth).type(torch.int64)
         
         # compute the iou 

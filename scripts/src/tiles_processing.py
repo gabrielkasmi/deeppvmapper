@@ -37,7 +37,7 @@ def translate_thumbnail_point_to_geo(point, thumbnail):
     ulx, xres, _, uly, _, yres = thumbnail.GetGeoTransform()
      
     x_final = x * xres + ulx
-    y_final = x * yres + uly
+    y_final = y * yres + uly
 
     return x_final, y_final
         
@@ -288,3 +288,43 @@ def save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, filename):
     dst_ds.FlushCache()                     # write to disk
     dst_ds = None
 
+def masks_to_coordinates(outputs, img_names, img_dir):
+    """
+    converts a mask associated with a .tif image into a polygon
+    the polygon is expessed in geographical coordinates
+    """
+
+    # loop over the images 
+    for i, name in zip(img_names):
+
+        mask = outputs[i]
+        img_name = img_names[i]
+
+        # open the thumbnail
+        thumbnail = Image.open(os.path.join(img_dir, img_name))
+
+        # extract the coordinates of the exterior of the mask
+
+        # for each coordinate, translate it into a geopoint
+
+        for point in points:
+
+            coords = translate_thumbnail_point_to_geo(point, thumbnail)
+            coordinates.append(coords)
+
+        
+
+    return polygons
+
+def sort_polygons(polygons, source_images_dir):
+    """
+    associate a polygon to a tile and adds the coordinates 
+    in pixel relative to the upper left corner of the tile
+    
+    all polygons associated to the same tile are gathered under the same
+    key.
+
+    args :
+    polygons : the dictionnary {thumbnail_name : mask}
+
+    """
