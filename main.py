@@ -71,7 +71,6 @@ def main():
     run_characterization = configuration.get('run_characterization')
     
     # department number
-    # overwrite the configuration file if necessary.
 
     if args.dpt is not None:
         dpt = args.dpt
@@ -91,9 +90,9 @@ def main():
     # Check that the aux directory is not empty. 
     # If it is the case, stop the script and tell the user to 
     # run auxiliary inference first.
-    # if not os.listdir(aux_dir):
-    #     print('No outputs found in the auxiliary directory. Run aux.py before running the main script.')
-    #     raise ValueError
+    if not os.listdir(aux_dir):
+        print('No outputs found in the auxiliary directory. Run aux.py before running the main script.')
+        raise ValueError
 
     # - - - - - - - STEP 1 - - - - - - -  
     # Run parts of the process or all of it
@@ -152,11 +151,17 @@ def main():
     if run_segmentation:
         print('Starting segmentation... ')
 
+        # create the outputs direectory if the latter does not exist
+        if not os.path.isdir(outputs_dir):
+            os.mkdir(outputs_dir)
+
 
         segmenter = segmentation.Segmentation(configuration)
         segmenter.run()
 
         print('Segmentation of the positive thumbnails of department {} complete.'.format(dpt))
+
+    # A la fin de l'exécution du script, supprimer aussi le fichier avec les auxiliaires (vu qu'on démarre un nv département)
 
     #if run_postprocessing:
 

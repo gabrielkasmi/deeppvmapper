@@ -75,7 +75,7 @@ class TilesTracker():
         if not os.path.isdir(self.temp_dir):
             os.mkdir(self.temp_dir)
         # create the thumbnails directory if the latter does not exist
-        thumbnails_dir = os.path.join(self.temp_dir, 'thumbnails')
+        thumbnails_dir = os.path.join(self.temp_dir, 'classification')
         if not os.path.isdir(thumbnails_dir):
             os.mkdir(thumbnails_dir)
         
@@ -132,7 +132,7 @@ class TilesTracker():
     def clean(self):
         """cleans the thumbnails directory"""
 
-        thumbnails_dir = os.path.join(self.temp_dir, 'thumbnails')
+        thumbnails_dir = os.path.join(self.temp_dir, 'classification')
 
         # open the file
         raw_results = json.load(open(os.path.join(self.temp_dir, 'raw_detection_results.json')))
@@ -177,8 +177,8 @@ class PreProcessing():
     """
     Preprocesses the data. 
 
-    The preprocessing step stores in the folder "temp_dir/thumbnails" 
-    all the thumbnails generated from each tile of the departement. 
+    The preprocessing step stores in the folder "temp_dir/classification" 
+    all the classification generated from each tile of the departement. 
 
     The structure is the following :
     - thumbnails
@@ -215,7 +215,7 @@ class PreProcessing():
         # Retrieve the directories for this part
         self.source_dir = configuration.get('source_images_dir')
         self.temp_dir = configuration.get('temp_dir')
-        self.thumbnails_dir = os.path.join(self.temp_dir, "thumbnails")
+        self.thumbnails_dir = os.path.join(self.temp_dir, "classification")
 
         # Parameters for this part
         self.patch_size = configuration.get('patch_size')

@@ -28,6 +28,7 @@ import dataset, tiles_processing
 import torchvision
 from torch.utils.data import DataLoader
 import shutil
+import geojson
 
 
 """
@@ -61,6 +62,31 @@ def save(outputs, target_directory, file_name):
 
     return None
 
+def save_geojson(outputs, target_directory, file_name):
+    """
+    saves the raw outputs of the model 
+    the outputs should be a dictionnary.
+    """
+# if no file exists : 
+    if not os.path.isfile(os.path.join(target_directory, file_name)):
+        with open(os.path.join(target_directory, file_name), 'w') as f:
+            geojson.dump(outputs, f, indent=2)
+    else:
+        # update the file
+        # open the file
+        previous_outputs = geojson.load(open(os.path.join(target_directory, file_name)))
+        
+        # add the latest tiles
+        for key in outputs.keys():
+            previous_outputs[key] = outputs[key]
+
+        # save the new file
+        with open(os.path.join(target_directory, file_name), 'w') as f:
+
+            geojson.dump(previous_outputs, f, indent=2)
+
+    return None
+
 class Segmentation():
     """
         Given the configuration file, segments the installations with a pretrained
@@ -76,6 +102,7 @@ class Segmentation():
         self.temp_dir = configuration.get('temp_dir')
         self.model_dir = configuration.get('model_dir')
         self.aux_dir = configuration.get('aux_dir')
+        self.outputs_dir = configuration.get('outputs_dir')
         self.source_images_dir = configuration.get('source_images_dir')
 
         # Parameters for this part
@@ -87,7 +114,6 @@ class Segmentation():
 
         # inference model
         self.model_name = configuration.get('seg_model')
-
 
     def initialization(self):
         """
@@ -177,6 +203,18 @@ class Segmentation():
         # save the outputs without erasing the existing file.
         save(coordinates, self.temp_dir, "raw_segmentation_results.json")
 
+        return coordinates
+
+    def generate_pseudo_arrays(self, coordinates):
+        """
+        transforms raw annotations into pseudo arrays by merging adjacent 
+        polygons located on the same rooftop.
+        """
+
+        pseudo_arrays = {}
+
+        save_geojson(pseudo_arrays, self.outputs_dir, "detected_arrays.geojson")
+
         return None
 
     def run(self):
@@ -192,11 +230,12 @@ class Segmentation():
 
         # transform the segmentation masks into polygon coordinates
         # with respect to their respective tile and in LAMB93
-        self.convert_to_coordinates(segmentation_arrays, img_names)
+        coordinates = self.convert_to_coordinates(segmentation_arrays, img_names)
 
         # Finally convert the detection polygons into pseudo arrays by merging
-        # adjacent polygons 
+        # adjacent polygons and save this file in the outputs directory
+        self.generate_pseudo_arrays(coordinates)
 
         # once segmentation is complete, remove the directory containing the thumbnails
         # to segment
-        shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))
+        # shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))

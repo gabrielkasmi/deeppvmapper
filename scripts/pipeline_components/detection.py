@@ -50,7 +50,7 @@ class Detection():
 
         # Retrieve the directories for this part
         self.temp_dir = configuration.get('temp_dir')
-        self.thumbnails_dir = os.path.join(self.temp_dir, "thumbnails")
+        self.thumbnails_dir = os.path.join(self.temp_dir, "classification")
         self.model_dir = configuration.get('model_dir')
         self.source_images_dir = configuration.get('source_images_dir')
 
