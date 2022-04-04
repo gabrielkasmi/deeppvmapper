@@ -13,6 +13,7 @@ associated with the panels, tile by tile.
 
 
 """
+from distutils.command.config import config
 import sys
 sys.path.append('../src')
 
@@ -26,7 +27,7 @@ import json
 import dataset, tiles_processing
 import torchvision
 from torch.utils.data import DataLoader
-
+import shutil
 
 
 """
@@ -72,18 +73,20 @@ class Segmentation():
         """
 
         # Retrieve the directories for this part
-        self.thumbnails_dir = configuration.get('thumbnails_dir')
-        self.outputs_dir = configuration.get('outputs_dir')
+        self.temp_dir = configuration.get('temp_dir')
         self.model_dir = configuration.get('model_dir')
+        self.aux_dir = configuration.get('aux_dir')
         self.source_images_dir = configuration.get('source_images_dir')
 
         # Parameters for this part
         self.device = configuration.get('device')
-        self.batch_size = configuration.get('segmentation_batch_size')
-        self.threshold = configuration.get('segmentation_threshold')
+
+        self.batch_size = configuration.get('seg_batch_size')
+        self.threshold = configuration.get('seg_threshold')
         self.num_gpu = configuration.get('num_gpu')
 
-        self.model_name = configuration.get('segmentation_model')
+        # inference model
+        self.model_name = configuration.get('seg_model')
 
 
     def initialization(self):
@@ -130,7 +133,7 @@ class Segmentation():
         ])
 
         # access the folder and load the data
-        dataset_dir = os.path.join(self.outputs_dir, 'segmentation')
+        dataset_dir = os.path.join(self.temp_dir, 'segmentation')
         data_source = dataset.BDPVSegmentationNoLabels(dataset_dir, transform = transforms)
         inference_data = DataLoader(data_source, batch_size = self.batch_size)
 
@@ -167,12 +170,14 @@ class Segmentation():
         polygon coordinates (in pixels and in coordinates)
         """
 
-        polygons = tiles_processing.masks_to_coordinates(outputs, img_names, os.path.join(self.outputs_dir, 'thumbnails'))
+        polygons = tiles_processing.masks_to_coordinates(outputs, img_names, os.path.join(self.temp_dir, 'segmentation'))
 
         coordinates = tiles_processing.sort_polygons(polygons, self.source_images_dir)
 
         # save the outputs without erasing the existing file.
-        save(coordinates, self.outputs_dir, "raw_segmentation_results.json")
+        save(coordinates, self.temp_dir, "raw_segmentation_results.json")
+
+        return None
 
     def run(self):
         """
@@ -185,6 +190,13 @@ class Segmentation():
         # inference
         segmentation_arrays, img_names = self.inference(model, device)
 
-        # turn the arrays into coordinates
-        # and save it in the outputs directory
+        # transform the segmentation masks into polygon coordinates
+        # with respect to their respective tile and in LAMB93
         self.convert_to_coordinates(segmentation_arrays, img_names)
+
+        # Finally convert the detection polygons into pseudo arrays by merging
+        # adjacent polygons 
+
+        # once segmentation is complete, remove the directory containing the thumbnails
+        # to segment
+        shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))

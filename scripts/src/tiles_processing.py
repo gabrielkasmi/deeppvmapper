@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import os
-from fiona import collection
 import glob
 import gdal
 from fiona import collection
@@ -18,7 +17,9 @@ import torchvision
 from skimage import transform
 import osr
 import tqdm
-
+import gdal
+import cv2
+from shapely.geometry import Polygon
 
 """
 Expresses a point on a thumbnail (e.g. (120,225)) as a coordinate 
@@ -163,6 +164,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
         center of the thumbnail)
         """
 
+
         # retrieve the location of the image
         dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
 
@@ -187,7 +189,6 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
             # get the geographical characteristics
             geotransform  = ds.GetGeoTransform() # keep the wrapped variable
             ulx, xres, xskew, uly, yskew, yres  = geotransform 
-
 
             width, height = ds.RasterXSize, ds.RasterYSize
         
@@ -288,33 +289,54 @@ def save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, filename):
     dst_ds.FlushCache()                     # write to disk
     dst_ds = None
 
+
+"""
+converts a segmentation mask into a polygon with coordinates
+expressed as lambert93 coordinates.
+
+the returned dictionnary has the shape
+{
+    thumbnail_id : {polygon_id : [coords],
+    }
+}
+"""
 def masks_to_coordinates(outputs, img_names, img_dir):
     """
     converts a mask associated with a .tif image into a polygon
     the polygon is expessed in geographical coordinates
     """
 
+    # output file
+    polygons = {}
+    _id = 0 # index of the polygons (there can be several for each thumbnail)
+
     # loop over the images 
-    for i, name in zip(img_names):
+
+    for i, name in enumerate(img_names):
 
         mask = outputs[i]
         img_name = img_names[i]
+        
+        polygons[name] = {}
 
         # open the thumbnail
-        thumbnail = Image.open(os.path.join(img_dir, img_name))
+        thumbnail = gdal.Open(os.path.join(img_dir, '{}'.format(img_name)))
+        # extract the geographical properties of the thumbnail
+        ulx, xres, _, uly, _, yres = thumbnail.GetGeoTransform()
 
-        # extract the coordinates of the exterior of the mask
+        # extract the contours of the mask
+        contours, _ = cv2.findContours(mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-        # for each coordinate, translate it into a geopoint
+        # loop over the contours deteceted and add them
+        # to the output file
+        for contour in contours:
+            _id += 1
+            polygons[name][_id] = contour.squeeze(1) 
+            polygons[name][_id][:,0] = polygons[name][_id][:,0] * xres + ulx
+            polygons[name][_id][:,1] = polygons[name][_id][:,1] * yres + uly
+            # polygons[_id] = polygons[_id].tolist()       
 
-        for point in points:
-
-            coords = translate_thumbnail_point_to_geo(point, thumbnail)
-            coordinates.append(coords)
-
-        
-
-    return polygons
+    return polygons    
 
 def sort_polygons(polygons, source_images_dir):
     """
@@ -328,3 +350,65 @@ def sort_polygons(polygons, source_images_dir):
     polygons : the dictionnary {thumbnail_name : mask}
 
     """
+
+    def lamb_to_px(coord, geotransform):
+        """
+        converts a lambert coordinate to a pixel coordinate
+        """
+        ulx, xres, _, uly, _, yres  = geotransform
+        x, y = coord
+
+        x0 = int((x - ulx) / xres)
+        y0 = int((y - uly) / yres)
+
+        return x0, y0
+
+    # retrieve the location of the image
+    dnsSHP = glob.glob(source_images_dir + "/**/dalles.shp", recursive = True)
+
+    raw_polygons = {}
+
+    if dnsSHP: # if the list is not empty, then look for the shapefile of the tile
+
+        with collection(dnsSHP[0], "r") as input:
+
+            for shapefile_record  in input:
+
+                tile = shapefile_record['properties']['NOM'][2:-4]             
+                raw_polygons[tile] = {}
+
+                # open the tile and get its geographical properties in order to 
+                # convert the LAMB93 coordinates into px coordinates wrt the upper
+                # left corner of the image
+                ds = gdal.Open(glob.glob(source_images_dir + "/**/{}.jp2".format(tile),recursive = True)[0]) # open the image
+
+                # get the geographical characteristics
+                geotransform  = ds.GetGeoTransform() 
+
+                # Create a polygon from the tile
+                Tile = Polygon(shapefile_record['geometry']['coordinates'][0]) 
+
+                for image in polygons.keys():
+                    for polygon_id in polygons[image].keys():
+
+                        annotation = polygons[image][polygon_id]
+
+                        if annotation.shape[0] > 2:
+
+                            Annotation = Polygon(annotation)
+
+                            if Tile.contains(Annotation):
+
+                                raw_polygons[tile][polygon_id] = {}
+
+                                raw_polygons[tile][polygon_id]['LAMB93'] = annotation.tolist()
+                                raw_polygons[tile][polygon_id]['PX'] = np.array([lamb_to_px(an, geotransform) for an in annotation]).tolist()
+
+    # once completed, remove the empty keys
+    old_keys = list(raw_polygons.keys())
+
+    for key in old_keys:
+        if len(raw_polygons[key].keys()) == 0:
+            del raw_polygons[key]
+            
+    return raw_polygons

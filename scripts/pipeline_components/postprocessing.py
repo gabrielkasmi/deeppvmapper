@@ -7,6 +7,7 @@ This script takes as input the raw dictionnary of results taken from the previou
 and returns a geojson file with the aggregated coordinates. 
 Power plants and rooftop mounted installations are flagged.
 """
+from modulefinder import replacePackageMap
 import sys 
 sys.path.append('../src')
 
@@ -47,6 +48,10 @@ class PostProcessing():
         # coordinates files from the detection part.
         with open(os.path.join(self.outputs_dir, 'approximate_coordinates.json')) as f:
             self.approximate_coordinates = json.load(f)
+
+
+        # coordinates files from the segmentation part.
+        self.approximate_polygons = json.load(open(os.path.join(self.outputs_dir, 'raw_segmentation_results.json')))
 
     def initialization(self):
         """
@@ -179,7 +184,7 @@ class PostProcessing():
 
             # Merging everything into a single dictionnary
             print("Mergining buildings and detections in a single dictionnary.")
-            merged_dictionnary = helpers.merge_buildings_and_installations_coordinates(building_in_tiles, self.approximate_coordinates)
+            merged_dictionnary = helpers.merge_buildings_and_installations_coordinates(building_in_tiles, self.approximate_polygons)
 
             # Saving the file
             with open(os.path.join(self.outputs_dir, 'merged_dictionnary_{}.json'.format(self.dpt)), 'w') as f:
@@ -208,7 +213,7 @@ class PostProcessing():
 
             # Merging everything into a single dictionnary
             print("Mergining buildings and detections in a single dictionnary.")
-            merged_dictionnary = helpers.merge_buildings_and_installations_coordinates(building_in_tiles, self.approximate_coordinates)
+            merged_dictionnary = helpers.merge_buildings_and_installations_coordinates(building_in_tiles, self.approximate_polygons)
 
             # Saving the file
             with open(os.path.join(self.outputs_dir, 'merged_dictionnary_{}.json'.format(self.dpt)), 'w') as f:
@@ -231,13 +236,52 @@ class PostProcessing():
         """
 
         # Get the cleaned dictionnaries
-        rooftop_coordinates, plant_coordinates = helpers.merge_location_of_arrays(merged_dictionnary, plants_locations)
+        rooftop_coordinates, plant_coordinates = helpers.merge_location_of_arrays(merged_dictionnary, plants_locations, self.source_images_dir)
+
+        ## a supprimer
+        print(rooftop_coordinates.keys())
+
+        tile = list(rooftop_coordinates.keys())[0]
+
+        print(rooftop_coordinates[tile].keys())
+
+        item = list(rooftop_coordinates[tile].keys())[0]
+
+        print(rooftop_coordinates[tile][item])
+
+        tmp = {}
+
+        for tile in rooftop_coordinates.keys():
+            tmp[tile] = {}
+
+            for building in rooftop_coordinates[tile].keys():
+
+                tmp[tile][building] = []
+
+                for array in rooftop_coordinates[tile][building]:
+
+                    tmp[tile][building].append(array.tolist())
 
 
+        print(tmp.keys())
+
+        tile = list(tmp.keys())[0]
+
+        print(tmp[tile].keys())
+
+        item = list(tmp[tile].keys())[0]
+
+        print(tmp[tile][item])
+
+        
+        with open(os.path.join(self.outputs_dir, 'tmp_rooftop.json'), 'w') as f:
+            json.dump(tmp, f)
 
         # Export the files
         print('Exporting the files...')
         installations = []
+
+        ## TODO. Modifier pour que ça convertisse des polygônes
 
         # Conversion of the coordinates
         # set up the coordinates converter
@@ -257,6 +301,7 @@ class PostProcessing():
 
                     # reverse the points in the geojson
                     coordinate = Point((y,x))
+                    # TODO. Modifier ici par un polygone correspondant à une pseudo installation
 
                     # add the information on the commune and the iris if relevant
                     iris, code_iris, code_commune, nom_commune = data_handlers.get_location_info(out_coords[i,:], iris_location, communes_locations)

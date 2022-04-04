@@ -21,7 +21,7 @@ sys.path.append('scripts/pipeline_components/')
 sys.path.append('scripts/src/')
 
 
-import preprocessing, detection, postprocessing
+import preprocessing, detection, postprocessing, segmentation
 import helpers
 import yaml
 import sys
@@ -45,20 +45,15 @@ def main():
     # Arguments
     parser = argparse.ArgumentParser(description = 'Large scale detection pipeline')
 
-    parser.add_argument('--force', default = False, help = "Indicates whether the inference process should be started from the beginning", type = bool)
     parser.add_argument('--count', default = 16, help = "Number of tiles to process simultaneoulsy", type=int)
-
+    parser.add_argument('--force', default = False, help = "Whether inteference should be started over.", type=bool)
     parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
 
     parser.add_argument('--run_classification', default = None, help = "Whether detection should be done.", type=bool)
     parser.add_argument('--run_segmentation', default = None, help = "Whether segmentation should be done.", type=bool)
     parser.add_argument('--run_postprocessing', default = None, help = "Whether postprocessing should be done.", type=bool)
-    parser.add_argument('--save_map', default = None, help = "Whether the map should be computed.", type=bool)
 
     args = parser.parse_args()
-
-    count = args.count
-    force = args.force
 
     # Load the configuration file
     config = 'config.yml'
@@ -71,40 +66,34 @@ def main():
 
     run_classification = configuration.get('run_classification')
 
-    if args.run_classification is not None:
-        run_classification = args.run_classification
-
     run_segmentation = configuration.get('run_segmentation')
 
-    if args.run_classification is not None:
-        run_segmentation = args.run_segmentation
-
-    run_segmentation = configuration.get('run_segmentation')
-
-    if args.run_postprocessing is not None:
-        run_postprocessing = args.run_postprocessing        
-
-    run_postprocessing = configuration.get('run_postprocessing')
+    run_characterization = configuration.get('run_characterization')
     
-
-    save_map = configuration.get("save_map")
-
-    if args.save_map is not None: # overwrite the conf if necessary.
-        save_map = args.save_map
-
-    map_center = configuration.get("center_latitude"), configuration.get("center_longitude")
-
     # department number
     # overwrite the configuration file if necessary.
 
-    dpt = configuration.get("departement_number")
     if args.dpt is not None:
         dpt = args.dpt
+    else:
+        print('Please input a departement number to rune the pipeline.')
+        raise ValueError
 
-    # output directory
+    # directories : 
+    # the aux directory contains auxiliary information needed at different stages of inference.
+    # the outputs directory stores the results of teh model
+    # the temp directory stores the temporary outputs and is erased at the end of inference.
 
     outputs_dir = configuration.get('outputs_dir')
-    results_dir = configuration.get('geo_dir')
+    aux_dir = configuration.get('aux_dir')
+    temp_dir = configuration.get('temp_dir')
+
+    # Check that the aux directory is not empty. 
+    # If it is the case, stop the script and tell the user to 
+    # run auxiliary inference first.
+    # if not os.listdir(aux_dir):
+    #     print('No outputs found in the auxiliary directory. Run aux.py before running the main script.')
+    #     raise ValueError
 
     # - - - - - - - STEP 1 - - - - - - -  
     # Run parts of the process or all of it
@@ -113,7 +102,11 @@ def main():
 
         # Initialize the tiles tracker helper, that will keep track of the 
         # tiles that have been completed and those that still need to be proceeded
-        tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = force) 
+        tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = args.force) 
+
+        i = 0
+
+        print('Starting classification. Batches of tiles will be subsequently proceeded.')
 
         while tiles_tracker.completed():
             # While the full list of tiles has not been completed,
@@ -124,9 +117,13 @@ def main():
             # 3) Update the list of tiles that have been processed 
             # 4) remove the negative images
 
+            i += 1
+
+            print('iteration : {}'.format(i))
+
             print('Starting pre processing...')
 
-            pre_processing = preprocessing.PreProcessing(configuration, count)
+            pre_processing = preprocessing.PreProcessing(configuration, args.count, args.dpt)
             pre_processing.run()
 
             print('Preprocessing complete. ')
@@ -146,43 +143,57 @@ def main():
             tiles_tracker.clean()
 
             print('Complete.')
+
+            if i == 3:
+                break
         
         print('Detection of the tiles on the departement {} complete.'.format(dpt))
 
     if run_segmentation:
         print('Starting segmentation... ')
 
-        # do stuff
-        # source folder : thumbnails/segmentation (created on the file)
-        # add a warning if the folder does not exist
-        # then runs inference on the selected tiles
-        # then removes the folder.
 
-        # raw output : detection on a thumbnail
-        # take into consideration the case where the installation lies on the border 
-        # of the thumbnail (and in this case, merge it)
-        # big part
+        segmenter = segmentation.Segmentation(configuration)
+        segmenter.run()
 
-        # output : a file with for each tile, the localisation of the arrays
-        # in the same spirit as the training database
-        
-        # open questions : shoud there be some post processing on the shape at this state ? 
+        print('Segmentation of the positive thumbnails of department {} complete.'.format(dpt))
+
+    #if run_postprocessing:
+
+    #    print('Starting postprocessing...')
+
+    #    post_processing = postprocessing.PostProcessing(configuration, dpt, args.force)
+    #    post_processing.run()
+
+    #    print('Postprocessing complete.')
+
+
+        # As this stage : generate pseudo arrays and discard power plants from distributed PV 
+        # using the BD TOPO
+
+
 
     # if run_characterization:
 
-        print('Computing the arrays characteristics...')
+        # print('Computing the arrays characteristics...')
 
         # partie correspondant au stage de YT.
 
 
 
 
-    #if run_postprocessing:
+    #if run_formatting:
+
+    # dans cette section, mise en forme de tout. A reprendre.
 
     #    print('Starting postprocessing... ')
 
     #    post_processing = postprocessing.PostProcessing(configuration, dpt, force)
     #    post_processing.run()
+    # dans le post processing, étapes suivantes : 
+    # identifier les détections correspondant à une centrale
+    # grouper les détections par batiment
+    # fusionner les détections appartenant au même batiment
 
     #    print('Postprocessing complete.')
 

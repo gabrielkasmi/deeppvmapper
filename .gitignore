@@ -33,6 +33,7 @@ dataset/
 /train/runs
 /train/_misc
 /data_old
+/temp
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

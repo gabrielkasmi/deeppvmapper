@@ -11,69 +11,64 @@
 # - path/to/model : the path to the model that will be used for detection.
 #
 # Custom directories
-# - outputs : the name of the directory (to consider or to create) in which
-#             all intermediate results will be stored.
-# - thumbnails : the name of the directory in which the thumbnails are stored
-# - geodir : the name of the directory in which the final outputs (.geojson file and associated html map)
+# - temp : the name of the directory that stores the intermediary outputs
+# - aux : the directory that contains auxiliary files (e.g. buildings)
+# 
+# - data : the name of the directory in which the final output (.geojson file)
 #            are stored
 
 source_images_dir : "/data/GabrielKasmi/data/ign/D034_2018"
-source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021'
-source_commune_dir : '/data/GabrielKasmi/data/communes'
-source_topo_dir : "/data/GabrielKasmi/data/ign/D011/BDTOPO_3-0_TOUSTHEMES_SHP_LAMB93_D011_2021-03-15" 
 model_dir : 'models'
 
-outputs_dir : 'data/outputs'
-thumbnails_dir : 'data/thumbnails'
-geo_dir : 'geodata'
+source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021'
+source_commune_dir : '/data/GabrielKasmi/data/communes'
+source_topo_dir : "/data/GabrielKasmi/data/ign/TOPO/D034_2021" 
+
+temp_dir : 'temp'
+aux_dir: 'aux'
+outputs_dir : 'data'
+
 
 # -------- Parameters --------
 # Parameters for the main pipeline script 
 # - run_xx.py : True if one want to run specific parts of the pipeline, False otherwise
-# - save_map : True if one wants to generate a folium .html map of the installations.
-# - map_center : a list that corresponds to the center coordinates of the map to be generated. Should be 
-# in the form [lat, long] in decimal coordinates.
 
 run_classification : True
-run_postprocessing : False
-save_map : False
-
-center_latitude : 43.6291
-center_longitude : 3.2501
+run_segmentation : False
+run_characterization : False
 
 # Parameters that are common to certain pipelines:
 # Patch_size : used in the pre processing and the detection steps.
 # - departement_number : the departement number, used in the postprocessing and main script.
 
 patch_size : 299
-departement_number : 34
 
 # Parameters that are specific to certain pipelines
 
 # Classification
 # - device : the device to use. If None, the device is automatically set up
-# - batch_size : the batch_size
-# - threshold : the value of the thresold. Should be deliberatily low because false
+# - cls_batch_size : the batch_size
+# - cls_threshold : the value of the thresold. Should be deliberatily low because false
 #               positives (that are not located on buildings) are filtered out
-# - classification_model : the name of the model to look for in the folder.
+# - cls_model : the name of the model to look for in the folder.
 
-device : 
-classification_batch_size : 512
-classification_threshold : 0.2
-classification_model : 'classification_model'
+device : 'cuda'
+cls_batch_size : 512
+cls_threshold : 0.2
+cls_model : 'classification_model'
 
 # Segmentation
-# - segmentation_batch_size : the size of the segmentation batch size
-# - segmentation_threshold : the threshold chosen for segmentation. Should be 
+# - seg_batch_size : the size of the segmentation batch size
+# - seg_threshold : the threshold chosen for segmentation. Should be 
 #                            the value that maximizes performance in order to get
 #                            masks that are as accurate as possible
 # - num_gpu : the number of GPU devices to use for inference
-# - segmentation_model : the name of the model to look for in the folder.
+# - seg_model : the name of the model to look for in the folder.
 #
-segmentation_threshold : 0.58
-num_gpu : 2
-segmentation_batch_size : 128
-segmentation_model : 'segmentation_model'
+seg_threshold : 0.58
+num_gpu : 1
+seg_batch_size : 128
+seg_model : 'segmentation_model'
 
 # Postprocessing
 # - compute localization of IRIS and commune : whether the detected installations
@@ -81,4 +76,4 @@ segmentation_model : 'segmentation_model'
 # While IRIS comes from IGN, the administrative splitting of the communes 
 # comes from OSM and can be downloaded from here : 
 # https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/
-compute_iris : True
+# compute_iris : True

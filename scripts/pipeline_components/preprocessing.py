@@ -7,6 +7,7 @@ This script takes the raw input images and preprocesses them in order
 to be handled by the model.
 Images are processed and stored in a dedicated directory, also passed as input.
 """
+from re import T
 import sys 
 sys.path.append('../src')
 
@@ -67,53 +68,56 @@ class TilesTracker():
         """
 
         self.source_dir = configuration.get('source_images_dir')
-        self.thumbnails_dir = configuration.get('thumbnails_dir')
-        self.outputs_dir = configuration.get("outputs_dir")
-        self.dpt = configuration.get('departement_number')
+        self.temp_dir = configuration.get("temp_dir")
+        self.dpt = dpt
 
-        # Create the thumbnails direcetory if the latter does not exist.
-        if not os.path.isdir(self.thumbnails_dir):
-            os.mkdir(self.thumbnails_dir)     
-
+        # initialize the temporary directory if the latter does not exist.
+        if not os.path.isdir(self.temp_dir):
+            os.mkdir(self.temp_dir)
+        # create the thumbnails directory if the latter does not exist
+        thumbnails_dir = os.path.join(self.temp_dir, 'thumbnails')
+        if not os.path.isdir(thumbnails_dir):
+            os.mkdir(thumbnails_dir)
+        
         # Open the tiles list file.
 
         # If the file exists and if force is false, load it.
-        if os.path.isfile(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(dpt))):
+        if os.path.isfile(os.path.join(self.temp_dir, "tiles_list_{}.json".format(self.dpt))):
 
             if not force : 
-                with open(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(dpt))) as f:
+                with open(os.path.join(self.temp_dir, "tiles_list_{}.json".format(self.dpt))) as f:
                     tiles_list = json.load(f)
             else:# if force is set on True, initialize the file
-                tiles_list = initialize_tiles_list(self.source_dir, dpt)
-                with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(dpt)), 'w') as f:
+                tiles_list = initialize_tiles_list(self.source_dir, self.dpt)
+                with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
                     json.dump(tiles_list, f, indent = 2)
 
-                # also initialize the approximate_coordinates and raw results fildes
-                if os.path.exists(os.path.join(self.outputs_dir, "raw_detection_results.json")):
-                    os.remove(os.path.join(self.outputs_dir, "raw_detection_results.json"))
+                # also initialize the approximate_coordinates and raw results files
+                if os.path.exists(os.path.join(self.temp_dir, "raw_detection_results.json")):
+                    os.remove(os.path.join(self.temp_dir, "raw_detection_results.json"))
                 
-                if os.path.exists(os.path.join(self.outputs_dir, "approximate_coordinates.json")):
-                    os.remove(os.path.join(self.outputs_dir, "approximate_coordinates.json"))
+                # if os.path.exists(os.path.join(self.outputs_dir, "approximate_coordinates.json")):
+                #    os.remove(os.path.join(self.outputs_dir, "approximate_coordinates.json"))
 
         else: # if the file does not exist create it in all cases.
 
-            tiles_list = initialize_tiles_list(self.source_dir, dpt)
-            with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(dpt)), 'w') as f:
+            tiles_list = initialize_tiles_list(self.source_dir, self.dpt)
+            with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
                 json.dump(tiles_list, f, indent = 2)
 
         # save the list of tiles as an additional attribute.
         self.tiles_list = tiles_list
 
     def update(self):
-        """update the list of tiles based on the approximate_coordinates.json file
+        """update the list of tiles based on the raw_detection_results.json file
         this file is returned at the end of the inference phase, before the postprocessing
         if panels have been found on a given tile, the key still exists but its 
         value is an empty dictionnary.
         """
 
         # open the file
-        approximate_coordinates = json.load(open(os.path.join(self.outputs_dir, "approximate_coordinates.json")))
-        completed_tiles = list(approximate_coordinates.keys())
+        proceeded_tiles = json.load(open(os.path.join(self.temp_dir, "raw_detection_results.json")))
+        completed_tiles = list(proceeded_tiles.keys())
 
         print("{} tiles have beed proceeded.".format(len(completed_tiles)))
 
@@ -122,18 +126,21 @@ class TilesTracker():
             self.tiles_list[tile] = True
 
         # update the file in the source folder.
-            with open(os.path.join(self.thumbnails_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
+            with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
                 json.dump(self.tiles_list, f, indent=2)
 
     def clean(self):
         """cleans the thumbnails directory"""
+
+        thumbnails_dir = os.path.join(self.temp_dir, 'thumbnails')
+
         # open the file
-        raw_results = json.load(open(os.path.join(self.outputs_dir, 'raw_detection_results.json')))
-        completed_tiles = [tile for tile in os.listdir(self.thumbnails_dir) if not (tile[-5:] == '.json') | (tile[0] == '.')] # consider only the folders that have not been deleted
+        raw_results = json.load(open(os.path.join(self.temp_dir, 'raw_detection_results.json')))
+        completed_tiles = [tile for tile in os.listdir(thumbnails_dir) if not (tile[-5:] == '.json') | (tile[0] == '.')] # consider only the folders that have not been deleted
 
         # create a folder with the positive tiles
         # segmentation inference will be run from this folder.
-        segmentation_thumbnails = os.path.join(self.outputs_dir, 'segmentation') 
+        segmentation_thumbnails = os.path.join(self.temp_dir, 'segmentation') 
         if not os.path.isdir(segmentation_thumbnails):
             os.mkdir(segmentation_thumbnails)
 
@@ -143,7 +150,7 @@ class TilesTracker():
 
             # copy the tiles
             for positive_thumbnail in positive_thumbnails:
-                source = os.path.join(os.path.join(self.thumbnails_dir, tile), positive_thumbnail)
+                source = os.path.join(os.path.join(thumbnails_dir, tile), positive_thumbnail)
                 target = os.path.join(segmentation_thumbnails, positive_thumbnail)
 
                 shutil.copy(source, target)
@@ -152,9 +159,9 @@ class TilesTracker():
         # complete.
         folders = 0
         for tile in completed_tiles:
-            if os.path.isdir(os.path.join(self.thumbnails_dir, tile)):
+            if os.path.isdir(os.path.join(thumbnails_dir, tile)):
                 folders += 1
-                shutil.rmtree(os.path.join(self.thumbnails_dir, tile))
+                shutil.rmtree(os.path.join(thumbnails_dir, tile))
 
         print("{} folders have beed deleted.".format(folders))
 
@@ -170,11 +177,11 @@ class PreProcessing():
     """
     Preprocesses the data. 
 
-    The preprocessing step stores in the folder "thumbnails_dir" 
+    The preprocessing step stores in the folder "temp_dir/thumbnails" 
     all the thumbnails generated from each tile of the departement. 
 
     The structure is the following :
-    - thumbnails_dir
+    - thumbnails
         |
         |- tile_name
         |   |- thumbnail
@@ -196,7 +203,7 @@ class PreProcessing():
     size 
     """
 
-    def __init__(self, configuration, count):
+    def __init__(self, configuration, count, dpt):
         """
         initialization of the pre processing step
 
@@ -207,24 +214,24 @@ class PreProcessing():
         """
         # Retrieve the directories for this part
         self.source_dir = configuration.get('source_images_dir')
-        self.thumbnails_dir = configuration.get('thumbnails_dir')
+        self.temp_dir = configuration.get('temp_dir')
+        self.thumbnails_dir = os.path.join(self.temp_dir, "thumbnails")
 
         # Parameters for this part
         self.patch_size = configuration.get('patch_size')
         self.count = count
 
-        self.dpt = configuration.get('departement_number')
-
         # Tiles list. The tiles that will be proceeded are the one that are flagged as false
         # Tiles that are marked as 'False'
-        full_tiles_list = json.load(open(os.path.join(self.thumbnails_dir, "tiles_list_{}.json".format(self.dpt))))
+        full_tiles_list = json.load(open(os.path.join(self.temp_dir, "tiles_list_{}.json".format(dpt))))
 
         # filter the dictionnary to keep only the tiles for which the value is "False"
         self.tiles_list = {k : v for k,v in full_tiles_list.items() if v == False}
 
         # number of tiles to proceed (cannot be greated than the len of the tiles_list)
         self.count = min(len(list(self.tiles_list.keys())), count) 
-        
+
+
 
     def run(self):
         """preprocess the number of tiles that have been flagged as

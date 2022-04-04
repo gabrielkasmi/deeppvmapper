@@ -9,6 +9,10 @@ from shapely.geometry.polygon import Polygon
 import numpy as np
 import os
 from shapely import geometry
+import gdal
+import glob
+import cv2
+
 
 
 """
@@ -188,7 +192,6 @@ def merge_buildings_and_installations_coordinates(buildings_in_tiles, locations_
         
         return items
 
-
 """
 Within each tile, treats the localization : 
 
@@ -196,7 +199,7 @@ Within each tile, treats the localization :
 - or merge detections that belong to the same building
 - or discard detections that are neither a plant nor a building
 """
-def merge_location_of_arrays(merged_dictionnary, plants_location):
+def merge_location_of_arrays(merged_dictionnary, plants_location, tiles_dir):
         """
         for each building in each tile, assigns to each building the list of locations that
         are within the building
@@ -211,6 +214,13 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
         - array_coordinates, a dictionnary with {tile : locations} 
         - plants_coordinates, a dictionnary with {tile : locations}
         """
+
+        def intersect_or_contain(p1, p2):
+            """
+            check whether p1 contains or intersects p2
+            """
+
+            return p1.contains(p2) or p1.intersects(p2)
         
         array_coordinates = {}
         # unsorted_coordinates = {} # will be populated by the installations that have not 
@@ -219,7 +229,7 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
             
         # loop over the tiles
         
-        print('Merging points that belong to the same building...')
+        print('Grouping polygons that belong to the same building...')
 
        
         for tile in tqdm.tqdm(merged_dictionnary.keys()):
@@ -240,37 +250,41 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                 # loop over the detections that have been made over this tile
                 for detection_id in merged_dictionnary[tile]['array_locations'].keys():
 
-                    candidate_location = merged_dictionnary[tile]['array_locations'][detection_id]
+                    candidate_location = np.array(merged_dictionnary[tile]['array_locations'][detection_id]['LAMB93'])
 
                     # convert as a point
-                    candidate_point = geometry.Point(candidate_location)
+                    candidate_point = geometry.Polygon(candidate_location)
 
                     # check if the building contains the point or not
-                    if building_polygon.contains(candidate_point):
+                    if intersect_or_contain(building_polygon, candidate_point):
+
+                        # here, add the pixel location as well to ease the computation of the mask. TODO.
+
+                        candidate_mask = lambert_pixel_conversion(candidate_location, tile, tiles_dir, to_geo = False)
+                        
+
                         # either create a new key (whose ID is the building id)
                         # or append the location to the list of locations that have 
                         # already been assigned to that building
                         if not building_id in array_coordinates[tile]:
 
-                            array_coordinates[tile][building_id] = [candidate_location]
-                        else:
-                            array_coordinates[tile][building_id].append(candidate_location)
+                            array_coordinates[tile][building_id] = [candidate_mask]
 
-        print('Averaging the rooftop coordinates that have been associated to buildings...')                   
+                        else:
+                            array_coordinates[tile][building_id].append(candidate_mask)
+
+        print('Generating pseudo arrays from the annotations that have been merged together...')                   
         # now that the coordinates have been brought together, we merge them
+        pseudo_arrays = {}
+
         for tile in array_coordinates.keys():
 
-            for building in array_coordinates[tile].keys():
+            pseudo_arrays[tile] = {}
 
-                # extract the coordinates, compute the mean
-                # and replace the value in the array coordinates
-                # by the averaged value.
+            for building_id in array_coordinates[tile].keys():
 
-                coordinates = np.array(array_coordinates[tile][building])
+                pseudo_arrays[tile][building_id] = convert_annotations_to_pseudo_mask(array_coordinates[tile][building_id])
 
-                mean_coords = list(coordinates.mean(axis = 0))
-
-                array_coordinates[tile][building] = mean_coords
                            
         print('Associating coordinates of localizations to power plants...')
         # final part, power plants
@@ -297,16 +311,16 @@ def merge_location_of_arrays(merged_dictionnary, plants_location):
                         # loop over all the locations of the tiles
                         for location_id in merged_dictionnary[tile]['array_locations'].keys() :
                             
-                            candidate_location = geometry.Point(merged_dictionnary[tile]['array_locations'][location_id])
+                            candidate_location = geometry.Polygon(np.array(merged_dictionnary[tile]['array_locations'][location_id]['LAMB93']))
                             
-                            if plant_poly.contains(candidate_location):
+                            if intersect_or_contain(plant_poly, candidate_location):
                                 # add the localization
                                 plants_coordinates[tile][plant] = plant_barycenter
-                                # break # we only need only localization per plant.                            
+                                break # we only need only localization per plant.                            
 
                             
         print('Done.')
-        return array_coordinates, plants_coordinates
+        return pseudo_arrays, plants_coordinates
 
 def return_converted_coordinates(tiles_coordinates, transformer):
     """
@@ -320,7 +334,10 @@ def return_converted_coordinates(tiles_coordinates, transformer):
     
     # convert the dictionnary as an array 
     # reshape to always have a two dimensional array
-    in_coordinates = np.array([tiles_coordinates[k] for k in tiles_coordinates.keys()]).reshape(-1,2)    
+    # TODO. Version modifiée qui prend la première coordonnée du polygone uniquement. 
+
+
+    in_coordinates = np.array([tiles_coordinates[k][0][0] for k in tiles_coordinates.keys()]).reshape(-1,2)    
     
     # initialize the output array
     out_coordinates = np.empty((in_coordinates.shape[0], in_coordinates.shape[1]))
@@ -331,8 +348,158 @@ def return_converted_coordinates(tiles_coordinates, transformer):
     # populate the output array
     for i, point in enumerate(converted_coords):
 
-        out_coordinates[i,:] = point 
+        out_coordinates[i,:] = point
     
     
     return out_coordinates
+
+
+"""
+conversion from pixel to lambert
+"""
+def lambert_pixel_conversion(location, tile, source_images_dir, to_geo = True):
+    """
+    converts lambert to pixel wrt to the upper left corner 
+    of the tile
+
+    to_geo : indicates whether convertion should be made from pixel to lambert.
+    if false, it is made from lambert to pixel.
+
+    candidate location is an array, returns a converted location
+    """
+
+    # get information on the tile
+    ds = gdal.Open(glob.glob(source_images_dir + "/**/{}.jp2".format(tile),recursive = True)[0]) # open the image
+
+    # get the geographical characteristics
+    ulx, xres, _, uly, _, yres  = ds.GetGeoTransform() 
+
+    out_coords = np.zeros(np.shape(location))
+
+    if not to_geo:
+
+        # input coordinates are in pixel
+        # output coordinates are in lambert
+
+        out_coords[:,0] += (location[:,0] - ulx) / xres
+        out_coords[:,1] += (location[:,1] - uly) / yres
+
+        out_coords.astype(np.int64)
+
+    else:
+        # input coordinates are in lambert
+        # output coordinates are in pixel
+
+        out_coords[:,0] += location[:,0] * xres + ulx
+        out_coords[:,1] += location[:,1] * yres + uly
+
+
+    return out_coords
+
+
+"""
+converts annotations into pseudo masks by merging together adjacent 
+polygons. 
+due to computational contraints, if there are more than 50 annotations
+to merge, it returns the raw annotations.
+"""
+def convert_annotations_to_pseudo_mask(annotations_list, tile, source_image_dir):
+    '''
+    merges the arrays from a list of annotation into pseudo masks
+    by merging annotations that
+
+    returns a list where each item is an array of coordinates, in the same
+    coordinate system as in the input 
     
+    due to computational constraints, if there are too many annotations, they are
+    not proceeded.
+    
+    Final postprocessing should take this into account when counting the arrays
+    '''
+
+    if len(annotations_list) == 1:
+        merged_masks = annotations_list
+        #output_mask = np.zeros((10,10))
+
+    elif len(annotations_list) < 50:   
+                
+        # close the polygons and convert them into pixels
+        polygons_list = []
+        
+        for annotation in annotations_list:
+            # close the polygon by repeating the first coordinate
+            # and append it to the list
+            
+            coord = lambert_pixel_conversion(np.array(annotation), tile, source_image_dir, to_geo = False)
+            polygons_list.append(np.vstack((coord, coord[0])))
+            
+            
+        # initialize the pseudo mask 
+        flatten_coordinates = np.array(
+            list(sum([p.tolist() for p in polygons_list], []))
+        )
+                
+        # define the bounding box by taking the 
+        # min and max across all coordinates of the list of arrays
+        x_min, x_max = np.min(flatten_coordinates[:,0]), np.max(flatten_coordinates[:,0])
+        y_min, y_max = np.min(flatten_coordinates[:,1]), np.max(flatten_coordinates[:,1])
+        
+        # size of the bb
+        width, height = int(x_max - x_min), int(y_max - y_min)
+                        
+        # initialize the pseudo mask
+        output_mask = np.zeros((width + 20, height + 20), dtype = np.int64)     
+                        
+        # express the annotations relative to the upper left corner
+        # of the pseudo_mask and see which pixels it recovers
+        
+        # generate the mask         
+        for coords in polygons_list:
+            
+            new_coord = coords.astype(np.int64)
+            new_coord[:,0] = new_coord[:,0] - (x_min - 10)
+            new_coord[:,1] = new_coord[:,1] - (y_min - 10)     
+            
+            # create the polygon  
+            Coords = Polygon(np.array(new_coord))
+                        
+            for ix, iy in np.ndindex(output_mask.shape):
+                
+                Pixel = Point(ix, iy)
+                                
+                if Coords.intersects(Pixel):
+                    
+                    output_mask[ix, iy] = 1
+                    
+        # extract the contours        
+        ulx, xres, _, uly, _, yres = ds.GetGeoTransform()
+
+        # extract the contours of the mask
+        output_mask = output_mask.transpose() 
+        contours, _ = cv2.findContours(output_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+        # loop over the contours deteceted and add them
+        # to the output file
+        
+        merged_masks = []
+        
+        for contour in contours:
+            
+            pseudo_array = contour.squeeze(1) 
+            
+            # express in terms of pixels relative to the tile
+            pseudo_array[:,0] = pseudo_array[:,0] + (x_min - 10)
+            pseudo_array[:,1] = pseudo_array[:,1] + (y_min - 10)
+            
+            # express in Lamb93
+            pseudo_array[:,0] = pseudo_array[:,0] * xres + ulx
+            pseudo_array[:,1] = pseudo_array[:,1] * yres + uly
+            
+            merged_masks.append(pseudo_array)
+            
+    else:
+        print('Too many raw masks to proceed. Returns the unmodified masks.')
+        merged_masks = annotations_list
+        #output_mask = np.zeros((10,10))
+
+    return merged_masks
