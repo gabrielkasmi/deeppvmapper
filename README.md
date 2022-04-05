@@ -12,9 +12,9 @@ To replicate the results, you'll need to download the data and the models
 #### Data
 
 The data needed for the pipeline is the following :
-- <u> The aerial images </u>, which can be downloaded [https://geoservices.ign.fr/bdortho](here)
-- <u> The topological data </u>, which can be downloaded [https://geoservices.ign.fr/bdtopo](here)
-- <u> The IRIS and Commune data </u>, which can be downloaded [https://geoservices.ign.fr/contoursiris](here) and [https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/](here)
+- <u> The aerial images </u>, which can be downloaded [here](https://geoservices.ign.fr/bdortho)
+- <u> The topological data </u>, which can be downloaded [here](https://geoservices.ign.fr/bdtopo)
+- <u> The IRIS and Commune data </u>, which can be downloaded [here](https://geoservices.ign.fr/contoursiris) and [here](https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/)
 - <u> The surface models </u>
 
 #### Models
