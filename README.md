@@ -12,9 +12,9 @@ To replicate the results, you'll need to download the data and the models
 #### Data
 
 The data needed for the pipeline is the following :
-- <u> The aerial images </u>, which can be downloaded ![https://geoservices.ign.fr/bdortho](here)
-- <u> The topological data </u>, which can be downloaded ![https://geoservices.ign.fr/bdtopo](here)
-- <u> The IRIS and Commune data </u>, which can be downloaded ![https://geoservices.ign.fr/contoursiris](here) and ![https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/](here)
+- <u> The aerial images </u>, which can be downloaded [https://geoservices.ign.fr/bdortho](here)
+- <u> The topological data </u>, which can be downloaded [https://geoservices.ign.fr/bdtopo](here)
+- <u> The IRIS and Commune data </u>, which can be downloaded [https://geoservices.ign.fr/contoursiris](here) and [https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/](here)
 - <u> The surface models </u>
 
 #### Models
@@ -26,10 +26,10 @@ The model weights can be downloaded here.
 Clone the repository by typing `git clone https://github.com/gabrielkasmi/dsfrance.git` and get into the folder `cd dsfrance`. 
 
 Set up the environment :
-``
-conda env create --file dsfrance.yml
-conda activate dsfrance
-``
+`
+    conda env create --file dsfrance.yml
+    conda activate dsfrance
+`
 Then open the `config.yml` file and specify your own paths to the following directories : `source_images_dir`, `source_iris_dir`, `source_commune_dir`, `source_topo_dir` and `model_dir`. Put the classification and segmentation models in `model_dir` and specify their names as well : `cls_model` and `seg_model`. 
 
 Specify which parts of the pipeline you want to run by setting `True` or `False` for `run_classification`, `run_segmentation` and `run_characterization`.
