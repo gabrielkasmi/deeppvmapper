@@ -104,7 +104,7 @@ def main():
         # tiles that have been completed and those that still need to be proceeded
         tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = args.force) 
 
-        #i = 0
+        i = 0
 
         print('Starting classification. Batches of tiles will be subsequently proceeded.')
 
@@ -117,7 +117,7 @@ def main():
             # 3) Update the list of tiles that have been processed 
             # 4) remove the negative images
 
-            #i += 1
+            i += 1
 
             print('iteration : {}'.format(i))
 

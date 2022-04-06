@@ -33,7 +33,7 @@ outputs_dir : 'data'
 # Parameters for the main pipeline script 
 # - run_xx.py : True if one want to run specific parts of the pipeline, False otherwise
 
-run_classification : False
+run_classification : True
 run_segmentation : True
 run_characterization : False
 
