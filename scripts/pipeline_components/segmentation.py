@@ -24,11 +24,13 @@ import numpy as np
 import tqdm
 import torch.nn as nn
 import json
-import dataset, tiles_processing
+import dataset, tiles_processing, data_handlers
 import torchvision
 from torch.utils.data import DataLoader
 import shutil
 import geojson
+import glob
+import gdal
 
 
 """
@@ -93,7 +95,7 @@ class Segmentation():
     model.
     """
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, dpt):
         """
         Get the parameters and the directories.
         """
@@ -111,6 +113,7 @@ class Segmentation():
         self.batch_size = configuration.get('seg_batch_size')
         self.threshold = configuration.get('seg_threshold')
         self.num_gpu = configuration.get('num_gpu')
+        self.dpt = dpt
 
         # inference model
         self.model_name = configuration.get('seg_model')
@@ -211,9 +214,33 @@ class Segmentation():
         polygons located on the same rooftop.
         """
 
-        pseudo_arrays = {}
+    
+        merged_coordinates = {}
 
-        save_geojson(pseudo_arrays, self.outputs_dir, "detected_arrays.geojson")
+        print('Merging detection polyons ...')
+        
+        for tile in tqdm.tqdm(coordinates.keys()):
+            
+            merged_coordinates[tile] = {}
+            
+            index = 0
+            
+            ds = gdal.Open(glob.glob(self.source_images_dir + "/**/{}.jp2".format(tile),recursive = True)[0])
+            
+            # compute the merged arrays 
+            # pass as input the list of the coordinates
+            merged_polygons = data_handlers.aggregate_polygons(list(coordinates[tile].values()), ds)
+            
+            for polygon in merged_polygons:
+                merged_coordinates[tile][index] = polygon
+                index += 1
+
+
+        # convert this dictionnary as a .geojson file
+        data_handlers.export_to_geojson(merged_coordinates, self.dpt, self.outputs_dir)
+
+                
+        save(merged_coordinates, self.outputs_dir, "detected_arrays.json")
 
         return None
 

@@ -29,7 +29,8 @@ import geojson
 import torch
 import os
 import argparse
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def main(): 
  
@@ -103,7 +104,7 @@ def main():
         # tiles that have been completed and those that still need to be proceeded
         tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = args.force) 
 
-        i = 0
+        #i = 0
 
         print('Starting classification. Batches of tiles will be subsequently proceeded.')
 
@@ -116,7 +117,7 @@ def main():
             # 3) Update the list of tiles that have been processed 
             # 4) remove the negative images
 
-            i += 1
+            #i += 1
 
             print('iteration : {}'.format(i))
 
@@ -143,8 +144,8 @@ def main():
 
             print('Complete.')
 
-            if i == 3:
-                break
+            #if i == 3:
+            #    break
         
         print('Detection of the tiles on the departement {} complete.'.format(dpt))
 
@@ -156,7 +157,7 @@ def main():
             os.mkdir(outputs_dir)
 
 
-        segmenter = segmentation.Segmentation(configuration)
+        segmenter = segmentation.Segmentation(configuration, args.dpt)
         segmenter.run()
 
         print('Segmentation of the positive thumbnails of department {} complete.'.format(dpt))

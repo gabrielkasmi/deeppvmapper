@@ -4,9 +4,13 @@ from fiona import collection
 import tqdm
 import glob
 import numpy as np
-from shapely.geometry.polygon import Polygon
-from shapely import geometry
+
+from shapely.geometry import Point, Polygon
+import itertools
 from pyproj import Transformer
+import cv2
+import geojson
+import os
 
 
 
@@ -335,3 +339,137 @@ def get_location_info(coordinate, iris_location, communes_locations):
     return iris, code_iris, code_commune, nom_commune
         
 
+"""
+a function that aggregates polygons based on their mask
+"""
+
+def aggregate_polygons(arrays, tile):
+    """
+    merges adjacent polygons and returns the list 
+    of pseudo arrays
+    tile should be the tile and not the name of the tile
+    """
+    
+    
+    # get the geographical infos from the geotransform
+    ulx, xres, _, uly, _, yres = tile.GetGeoTransform()
+    width, height = tile.RasterXSize, tile.RasterYSize
+    
+    # initialize the mask
+    mask = np.zeros((width, height))
+    
+    # list of outputs that is returned
+    outputs = []
+
+    for array in arrays:
+
+        # get the coordinates
+        coordinates = np.array(array['PX'])
+
+        # convert the array as as polygon
+        Array = Polygon(coordinates)
+
+        # compute the bounding box around the array
+        # by considering the min and the max of the coordinates 
+        x_min, x_max = np.min(coordinates[:,0]), np.max(coordinates[:,0])
+        y_min, y_max = np.min(coordinates[:,1]), np.max(coordinates[:,1])
+
+        x_range, y_range = range(x_min, x_max), range(y_min, y_max)
+
+        # loop only inside the bounding box to limit
+        # the number of computations to be made
+        for x, y in itertools.product(x_range, y_range):
+
+            # conver the point as a pixel
+            Pixel = Point(x,y)
+
+            if Array.intersects(Pixel):
+                mask[x,y] = 1
+
+    # transpose the mask to retrieve the correct shapes
+    mask = mask.transpose()
+
+    # get the contours of the points to generate the new polygons
+    # extract the contours of the mask
+    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # loop over the contours detected and add them
+    # to the output file
+    for contour in contours:
+                
+        if contour.shape[0] > 2: # add only the polygons
+            
+            item = {}
+            item['PX'] = contour.squeeze(1)  
+            item['LAMB93'] = np.zeros(item['PX'].shape)
+            item['LAMB93'][:,0] = item['PX'][:,0] * xres + ulx
+            item['LAMB93'][:,1] = item['PX'][:,1] * yres + uly
+
+            # convert as lists 
+            item['PX'] = item['PX'].tolist()
+            item['LAMB93'] = item['LAMB93'].tolist()
+            
+            outputs.append(item)
+                    
+    return outputs
+
+
+def convert_polygon_coordinates(merged_coordinates):
+    """
+    converts the coordinates to GPS coordinates
+    """
+    # coordinates converter
+    transformer = Transformer.from_crs(2154, 4326)
+
+    converted_coordinates = {}
+    
+    for tile in merged_coordinates.keys():
+        
+        converted_coordinates[tile] = {}
+        
+        for installation in merged_coordinates[tile].keys():
+        
+            
+            # get the coordinates
+            in_coordinates = np.array(merged_coordinates[tile][installation]["LAMB93"])
+
+            # array that stores the output coordinates
+            out_coordinates = np.empty(in_coordinates.shape)
+
+            # do the conversion and store it in the array
+            converted_coords = transformer.itransform(in_coordinates)
+            for i, c in enumerate(converted_coords):
+                out_coordinates[i, :] = c
+                
+            # new instance
+            converted_coordinates[tile][installation] = out_coordinates
+
+        
+    return converted_coordinates
+    
+
+def export_to_geojson(merged_coordinates, dpt, directory):
+    """
+    exports the dictionnary as a geojson file
+    """
+    
+    converted_coordinates = convert_polygon_coordinates(merged_coordinates)
+    
+    features = []
+
+    for tile in converted_coordinates.keys():
+        for installation in converted_coordinates[tile].keys():
+
+            array = converted_coordinates[tile][installation]
+            polygon = geojson.Polygon([[(c[1], c[0]) for c in array]])
+
+
+            features.append(geojson.Feature(geometry=polygon, properties={}))
+
+
+    feature_collection = geojson.FeatureCollection(features)
+
+    with open(os.path.join(directory, 'arrays_{}.geojson'.format(dpt)), 'w') as f:
+        geojson.dump(feature_collection, f)
+        
+    return None
