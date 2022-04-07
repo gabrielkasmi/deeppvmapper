@@ -240,7 +240,7 @@ class Segmentation():
         data_handlers.export_to_geojson(merged_coordinates, self.dpt, self.outputs_dir)
 
                 
-        save(merged_coordinates, self.outputs_dir, "detected_arrays.json")
+        # save(merged_coordinates, self.outputs_dir, "detected_arrays.json")
 
         return None
 
