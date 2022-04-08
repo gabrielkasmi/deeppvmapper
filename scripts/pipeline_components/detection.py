@@ -79,8 +79,8 @@ class Detection():
         # Add in the config file
         model_name = self.model_name + '.pth'
 
-        model = torch.load(os.path.join(self.model_dir, model_name))
-        model.to(device)
+        model = torch.load(os.path.join(self.model_dir, model_name), map_location = device)
+        # model.to(device)
         model.eval()
 
         return model, device
