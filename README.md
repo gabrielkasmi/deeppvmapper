@@ -2,6 +2,7 @@
 
 - aux.py : lance une alerte s'il n'y a pas des fichiers liés au département
 - config : install w/ cudatoolkit
+- nombre de tuiles à procéder (somme pour tous les départements, passer à une somme par département)
 
 # DeepSolar France
 
