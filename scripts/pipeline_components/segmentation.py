@@ -238,7 +238,6 @@ class Segmentation():
 
         # convert this dictionnary as a .geojson file
         data_handlers.export_to_geojson(merged_coordinates, self.dpt, self.outputs_dir)
-
                 
         # save(merged_coordinates, self.outputs_dir, "detected_arrays.json")
 
@@ -265,4 +264,4 @@ class Segmentation():
 
         # once segmentation is complete, remove the directory containing the thumbnails
         # to segment
-        # shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))
+        shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))

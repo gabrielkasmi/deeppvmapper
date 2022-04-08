@@ -464,7 +464,7 @@ def export_to_geojson(merged_coordinates, dpt, directory):
             polygon = geojson.Polygon([[(c[1], c[0]) for c in array]])
 
 
-            features.append(geojson.Feature(geometry=polygon, properties={}))
+            features.append(geojson.Feature(geometry=polygon, properties={"tile" : tile}))
 
 
     feature_collection = geojson.FeatureCollection(features)

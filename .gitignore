@@ -36,6 +36,7 @@ dataset/
 /temp
 /_misc
 /aux
+/validation
 
 
 # PyInstaller
