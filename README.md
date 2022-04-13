@@ -3,6 +3,7 @@
 - aux.py : lance une alerte s'il n'y a pas des fichiers liés au département
 - config : install w/ cudatoolkit  - actuellement ne fonctionne pas 
 - nombre de tuiles à procéder (somme pour tous les départements, passer à une somme par département)
+- sortie de la segmentation : polygones (avec application du seuil ou ensemble de masques non seuillés (à ranger dans un dossier /masks) sur lequel on applique ensuite l'algorithme de Edun et al ? 
 
 # DeepSolar France
 
