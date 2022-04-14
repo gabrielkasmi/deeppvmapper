@@ -36,8 +36,9 @@ dataset/
 /temp
 /_misc
 /aux
+/data
 /validation
-
+accuracy.py
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -141,7 +142,7 @@ dmypy.json
 .pyre/
 
 # misc 
-/data
+
 /models
 *.html
 *.ipynb
