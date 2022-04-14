@@ -14,5 +14,6 @@ dependencies:
   - conda-forge::geojson
   - conda-forge::folium
   - pyproj
+  - cudatoolkit
   - pip:
   - opencv-python
