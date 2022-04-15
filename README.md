@@ -1,5 +1,6 @@
 ### Todo 
 
+- si classification complète, segmentation bug (car pas de dossier temp/segmentation : à régler pour pouvoir passer a postprocessing ensuite.
 - aux.py : lance une alerte s'il n'y a pas des fichiers liés au département
 - config : install w/ cudatoolkit  - actuellement ne fonctionne pas 
 - nombre de tuiles à procéder (somme pour tous les départements, passer à une somme par département)
