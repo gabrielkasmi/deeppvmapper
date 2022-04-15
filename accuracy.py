@@ -214,7 +214,7 @@ def get_geographical_units(maille, tiles_list, source_dir, dpt):
                             maille_list.append(float(iris_name))
                             maille_coords[float(iris_name)] = coordinates #convert(source_coords)
 
-    elif maille == 'communes':
+    elif maille == 'commune':
         # récupérer la liste des communes à considérer
 
 
@@ -222,7 +222,7 @@ def get_geographical_units(maille, tiles_list, source_dir, dpt):
         maille_coords = {}
 
 
-        dnsSHP = glob.glob(source_dir + "/communes-20210101.shp", recursive = True) 
+        dnsSHP = glob.glob(source_dir + "/**/communes-20210101.shp", recursive = True) 
 
 
         with collection(dnsSHP[0], 'r') as input: # look for the tile that contains the point
