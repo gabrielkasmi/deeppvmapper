@@ -418,7 +418,7 @@ def main():
                        
             for _id in clustered_buildings[maille].keys():
 
-                results[maille]["detection_coords"][_id] = clustered_buildings[maille][_id].tolist()
+                results[maille]["detection_coords"][_id] = clustered_buildings[maille][_id]
 
             results[maille]["detections"] = count_buildings[maille]
             results[maille]["unfiltered_detections"] = count_detections[maille]
@@ -429,7 +429,7 @@ def main():
 
             for _id in clustered_annotations[maille].keys():
 
-                results[maille]["detection_coords"][_id] = clustered_annotations[maille][_id].tolist()            
+                results[maille]["detection_coords"][_id] = clustered_annotations[maille][_id]            
             
             results[maille]["detections"] = count_detections[maille]
 

@@ -54,7 +54,7 @@ patch_size : 299
 
 device : 'cuda'
 cls_batch_size : 512
-cls_threshold : 0.2
+cls_threshold : 0.65
 cls_model : 'classification_model'
 
 # Segmentation
