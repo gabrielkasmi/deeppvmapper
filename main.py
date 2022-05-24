@@ -21,7 +21,7 @@ sys.path.append('scripts/pipeline_components/')
 sys.path.append('scripts/src/')
 
 
-import preprocessing, detection, postprocessing, segmentation
+import preprocessing, detection, postprocessing, segmentation, aggregation
 import helpers
 import yaml
 import sys
@@ -70,6 +70,8 @@ def main():
     run_segmentation = configuration.get('run_segmentation')
 
     run_characterization = configuration.get('run_characterization')
+    
+    run_aggregation = configuration.get('run_aggregation')
     
     # department number
 
@@ -164,14 +166,14 @@ def main():
 
     # A la fin de l'exécution du script, supprimer aussi le fichier avec les auxiliaires (vu qu'on démarre un nv département)
 
-    #if run_postprocessing:
+    if run_aggregation:
 
-    #    print('Starting postprocessing...')
+        print('Starting aggregation...')
 
-    #    post_processing = postprocessing.PostProcessing(configuration, dpt, args.force)
-    #    post_processing.run()
+        aggregator = aggregation.Aggregation(configuration, dpt)
+        aggregator.run()
 
-    #    print('Postprocessing complete.')
+        print('Aggregation complete.')
 
 
         # As this stage : generate pseudo arrays and discard power plants from distributed PV 
