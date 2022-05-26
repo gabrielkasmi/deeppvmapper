@@ -121,8 +121,6 @@ def main():
 
             i += 1
 
-            print('iteration : {}'.format(i))
-
             print('Starting pre processing...')
 
             pre_processing = preprocessing.PreProcessing(configuration, args.count, args.dpt)
@@ -178,6 +176,10 @@ def main():
 
         # As this stage : generate pseudo arrays and discard power plants from distributed PV 
         # using the BD TOPO
+        
+    # Cleaning the temporary directories. 
+    # clean = postprocessing.Cleaner(configuration)
+    # clean.run()
 
 
 
@@ -229,3 +231,6 @@ if __name__ == '__main__':
 
     # Run the pipeline.
     main()
+    
+    # remove the temporary directory
+    

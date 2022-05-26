@@ -18,7 +18,29 @@ import geojson
 import helpers, data_handlers
 import tqdm
 from pyproj import Transformer
+import shutil
 
+
+class Cleaner():
+    """
+    Class that cleans the directory once inference is completed. 
+    It removes the temporary directories
+    """
+    
+    def __init__(self, configuration):
+        """
+        initialization of the class
+        """
+        
+        self.temp_dir = configuration.get("temp_dir")
+        
+    def clean(self):
+        '''
+        removes the temporary directory
+        '''
+        print('Deleting the temporary directory {}'.format(self.temp_dir))
+        shutil.rmtree(self.temp_dir)
+        print('Deletion complete.')
 
 class PostProcessing():
     """

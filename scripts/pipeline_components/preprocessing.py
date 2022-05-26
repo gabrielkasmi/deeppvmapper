@@ -168,7 +168,7 @@ class TilesTracker():
     def completed(self):
         """checks whether the tiles_list still contains 
         tiles flagged with False"""
-
+        
         return bool({k : v for k, v in self.tiles_list.items() if v == False})
 
 
