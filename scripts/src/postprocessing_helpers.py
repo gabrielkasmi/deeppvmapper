@@ -4,6 +4,13 @@
 import numpy as np
 from area import area
 from shapely.geometry import Point, Polygon
+from pyproj import Transformer
+import tqdm
+import glob
+from fiona import collection
+import pandas as pd
+import os
+import json
 
 
 """
@@ -23,13 +30,16 @@ def retrieve_city_code(center, communes):
     
     
     for commune in communes.keys():
+
+        raw_coords = np.array(communes[commune]['coordinates'])
+        if raw_coords.shape[0] == 1:# filter the communes that have a correct dimension
         
-        coords = np.array(communes[commune]['coordinates']).squeeze(0)
-        Coords = Polygon(coords)
+            coords = raw_coords.squeeze(0)
+            Coords = Polygon(coords)
         
-        if Coords.contains(Center):
-            code = communes[commune]['properties']['code_insee']
-            break
+            if Coords.contains(Center):
+                code = communes[commune]['properties']['code_insee']
+                break
             
     return code
 
@@ -74,7 +84,7 @@ def return_latitude_and_longitude_ids(center, latitude_categories, longitude_cat
             
     return lat_id, lon_id
 
-def compute_characteristics(array, lut, communes):
+def compute_characteristics(array, lut, communes, use_lut, constant):
     """
     array is a geogson object
     its characteristics are extracted and we return a list with :
@@ -205,11 +215,12 @@ def compute_characteristics(array, lut, communes):
      2: 0.13350621534945112,
      3: 0.13179292212903068}
 
+    constant_coef = 0.13207496765309207
+
     
     # extract the values
     coordinates = np.array(array['geometry']['coordinates']).squeeze(0) # array of coordinates (of the polygon)
     center = np.mean(coordinates, axis = 0) # barycenter of the array
-    
     # extract latitude and longitude from the center
     lon, lat = center
     
@@ -223,7 +234,10 @@ def compute_characteristics(array, lut, communes):
     lat_id, lon_id = return_latitude_and_longitude_ids(center, latitude_categories, longitude_categories)
     
     # access the lut to get a tilt estimation
-    tilt = lut[str(surface_id)][lon_id][lat_id]
+    if use_lut : 
+        tilt = lut[str(surface_id)][lon_id][lat_id]
+    else: 
+        tilt = 0 # otherwise directly consider the projected surface
     
     # based on the tilt and the projected surface, compute
     # the "real" surface
@@ -231,12 +245,292 @@ def compute_characteristics(array, lut, communes):
 
     # compute the installed capacity based on the 
     # surface cluster and the estimated surface
-    installed_capacity = estimated_surface * regression_coefficients[surface_id]
+    if not constant:
+        installed_capacity = estimated_surface * regression_coefficients[surface_id]
+    else:
+        installed_capacity = estimated_surface * constant_coef
     
     # finally, get the commune code
     # returns None if the installation does not lie in the departement of interest.
     city_code = retrieve_city_code(center, communes)
+
+    # tile name - used in subsequent processing steps
+    tile_name = array['properties']['tile']
     
-    # return everything
+    # return everything    
+    return [estimated_surface, tilt, installed_capacity, city_code, lat, lon, tile_name]
+
+
+def filter_installations(df, annotations, sorted_buildings, communes):
+    '''
+    filters the detections that are not on a building
+
+    if more than 1 detection is on the same building, 
+    merges the detections as one installation
+
+    returns a dataframe of filtered installations
+    '''
+
+    # assign the installations in the tiles to speed up the computations
+    # tiles are the keys of the buildings dictionnary 
+
+    clustered_installations = {}
+
+    target_tiles = list(annotations.keys())
+
+    for tile in target_tiles:
+
+        for building_id in sorted_buildings[tile].keys():
+
+            building = sorted_buildings[tile][building_id]['coordinates'] # get the coordinates
+            Building = Polygon(building) # convert as polygon
+
+            for installation in annotations[tile].keys():
+
+                coordinates = annotations[tile][installation]['LAMB93']
+                Coords = Point(coordinates)
+
+                if Building.contains(Coords):
+                    # if the installation is on a building, then
+                    # we add its index to the list. 
+                    # at the end we sort all installations by building
+
+                    if building_id in clustered_installations.keys():
+                        clustered_installations[building_id].append(installation)
+
+                    else:
+                        clustered_installations[building_id] = [installation]
+
+    # we now create a new dataframe as follows : 
+
+    # - the former installations that have not been clustered are dropped 
+    # - the installations that have been associated to the same building 
+    #   are merged together.
+
+    filtered_installations = []
+
+
+    for building in clustered_installations.keys():
+
+        if len(clustered_installations[building]) == 1:
+
+            # take the index in the source dataframe
+            corresponding_index = clustered_installations[building][0]
+
+            # take the values and convert them as a list
+            values = df.loc[corresponding_index].values.tolist()
+
+        else: # if there are more than 1 installation, sum the found values
+
+            corresponding_indices = clustered_installations[building]
+            # values : 
+            aggregated_surface = sum(df.loc[corresponding_indices]['surface'].values)
+            aggregated_capacity = sum(df.loc[corresponding_indices]['kWp'].values)
+
+            # localization : consider the barycenter 
+            coordinates = np.array([
+                df.loc[corresponding_indices]['lat'].values, df.loc[corresponding_indices]['lon'].values 
+            ]).transpose()
+
+            coordinates = np.mean(coordinates, axis = 0)
+
+            # city and tilt : should be the same
+            city = df.loc[corresponding_indices[0]]['city'] #all values should be the same
+
+            if np.isnan(city): # retrieve manually the coordinates if the coordinate is a nan
+                city = retrieve_city_code((coordinates[1], coordinates[0]), communes)
+
+            tilt = df.loc[corresponding_indices[0]]['tilt'] #all values should be the same
+            
+            tile_name = df.loc[corresponding_indices[0]]['tile_name']
+
+            # values to be added    
+            values = [aggregated_surface, tilt, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name]
+
+        # add the merged values in the dictionnary
+        filtered_installations.append(values)
+
+    # convert the dictionnary to a dataframe
+    filtered_df = pd.DataFrame(filtered_installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name'])
+
+    return filtered_df
+
+
+"""
+handles the conversions between lambert and gps
+"""
+def convert(coordinates, to_gps = True):
+    "converts lambert to wgs coordinates"
+
+    doubled = False
+
+    if to_gps:
+        transformer = Transformer.from_crs(2154, 4326, always_xy = True)
+    else:
+        transformer = Transformer.from_crs(4326, 2154, always_xy = True)
+        
+    # reshape the coordinates
+    if not isinstance(coordinates, np.ndarray):
+        coordinates = np.array(coordinates)
     
-    return [estimated_surface, tilt, installed_capacity, city_code, lat, lon]
+    if coordinates.shape[0] == 1:         
+        coordinates = np.array(coordinates).squeeze(0)
+        
+    elif len(coordinates.shape) == 3: 
+        out_coordinates = np.empty((3,3))
+        return out_coordinates
+
+    if len(coordinates.shape) == 1: # case of a single coordinate to convert.
+        coordinates = np.vstack([coordinates, coordinates])
+        doubled = True
+    
+    # array that stores the output coordinates
+    out_coordinates = np.empty(coordinates.shape)
+
+
+    # do the conversion and store it in the array
+    converted_coords = transformer.itransform(coordinates)
+
+    for i, c in enumerate(converted_coords):
+
+        out_coordinates[i, :] = c
+
+    # new instance
+    # out_coords.append(out_coordinates.tolist())
+
+    if doubled:
+        return out_coordinates.tolist()[0]
+    else:       
+        return out_coordinates.tolist()
+
+
+def intersect_or_contain(p1, p2):
+    """
+    check whether p1 contains or intersects p2
+    """
+
+    return p1.contains(p2) or p1.intersects(p2)
+
+
+"""
+Function that formats the .geojson if necessary
+"""
+def reshape_dataframe(df):
+
+    """
+    takes a pd.DataFrame file as input and returns it in the form of a json file.
+    notably, explicits the tiles on which arrays have been found.
+    """
+
+    tiles_list = np.unique(df['tile_name'].values).tolist()
+   
+
+    print("Annotations have been found on {} tiles.".format(len(tiles_list)))
+
+    annotations = {tile : {} for tile in tiles_list}
+
+    for id_installation in tqdm.tqdm(df.index):
+
+        coordinates = df['lon'][id_installation], df['lat'][id_installation]
+        tile = df["tile_name"][id_installation]
+
+        annotations[tile][id_installation] = {}
+
+        annotations[tile][id_installation]['WGS'] = list(coordinates)
+        annotations[tile][id_installation]['LAMB93'] = convert(np.array(coordinates), to_gps = False)    
+
+    return annotations
+
+"""
+assigns the buildings to the tiles based on the coordinates
+of the buildings and the coordinates of the tiles
+"""
+def assign_building_to_tiles(tiles_list, buildings, tiles_dir, temp_dir, dpt):
+    """
+    returns a dictionnary where each key is a tile
+    and the values are the buildings that belong to this tile
+    """
+
+    # see whether the file has already been computed. In this case, load it.
+    if os.path.exists(os.path.join(temp_dir, 'sorted_buildings_{}.json'.format(dpt))):
+        items = json.load(open(os.path.join(temp_dir, 'sorted_buildings_{}.json'.format(dpt))))
+
+        return items
+    
+    else:
+
+        
+        # get the coordinates of the tiles
+        tiles_coordinates = compute_tiles_coordinates(tiles_dir)
+
+        covered_tiles = {}
+
+        for tile in tiles_list:
+            covered_tiles[tile] = tiles_coordinates[tile]
+
+        # instanciate a new key for the buildings.
+        # this key counts the number of times 
+        for building in buildings.keys():
+            buildings[building]["counts"] = 0        
+        
+        items = {} #output dictionnary
+        
+        for tile in tqdm.tqdm(covered_tiles.keys()):
+
+            items[tile] = {}
+
+            coordinates = np.array(covered_tiles[tile]).squeeze(0)
+            
+            Tile = Polygon(coordinates) # convert the tile as a polygon
+            
+            items[tile] = {} # create an empty dictionnary
+
+            for building in buildings.keys(): # loop over the buildings. These ids are numbers
+                
+                Building = Polygon(buildings[building]['coordinates'])
+                
+                if Tile.intersects(Building):
+
+                    items[tile][building] = buildings[building] # copy the dictionnary
+
+                    # count the number of intersections. There cannot be more than 4 
+                    # in this case the building is at the crossing of 4 different tiles
+                    # and we remove the building from the dictionnary as it cannot
+                    # be found anywhere else.
+                    buildings[building]['counts'] += 1     
+
+
+        # save the item in the temporary directory
+        if not os.path.exists(os.path.join(temp_dir, 'sorted_buildings_{}.json'.format(dpt))):
+            with open(os.path.join(temp_dir, 'sorted_buildings_{}.json'.format(dpt)), 'w') as f:
+                json.dump(items, f)
+
+            
+        return items
+
+
+"""
+computes the coordinates of the tiles
+"""
+def compute_tiles_coordinates(tiles_dir):
+    """
+    returns a dictionnary of tiles (and their coordinates)
+    if the latter are in the covered tiles. 
+    """
+
+    # location of the file with the power plants
+    dnsSHP = glob.glob(tiles_dir + "/**/dalles.shp", recursive = True)
+
+    # dictionnary
+    items = {}
+
+    # loop over the elements of the file
+    with collection(dnsSHP[0], 'r') as input: 
+        for shapefile_record  in tqdm.tqdm(input):
+
+            name = shapefile_record["properties"]["NOM"][2:-4]
+            coords = shapefile_record["geometry"]['coordinates']
+
+            items[name] = coords
+
+    return items

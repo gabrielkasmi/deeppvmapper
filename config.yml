@@ -33,8 +33,8 @@ outputs_dir : 'data'
 # Parameters for the main pipeline script 
 # - run_xx.py : True if one want to run specific parts of the pipeline, False otherwise
 
-run_classification : True
-run_segmentation : True
+run_classification : False
+run_segmentation : False
 run_aggregation : True
 
 # Parameters that are common to certain pipelines:
@@ -70,10 +70,11 @@ num_gpu : 1
 seg_batch_size : 128
 seg_model : 'model_bdappv_seg'
 
-# Postprocessing
-# - compute localization of IRIS and commune : whether the detected installations
-# should be given information on their commune and IRIS. 
-# While IRIS comes from IGN, the administrative splitting of the communes 
-# comes from OSM and can be downloaded from here : 
-# https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/
-# compute_iris : True
+# Aggregation : 
+# - filter building : keep only the installations that are on a building
+# - filter LUT : compute the tilt with the extrernal look up table
+# - constant_kWp : constant linear fit between the 
+
+filter_building : True
+filter_LUT : True
+constant_kWp : False

@@ -24,8 +24,9 @@ parser = argparse.ArgumentParser(description = 'Computation of the accuracy')
 parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
 parser.add_argument('--filename', default = None, help = "name of the RNI to consider", type = str)
 
-parser.add_argument('--evaluation_dir', default = 'evaluation',help = 'location of the ground truth registry', type = str)
-parser.add_argument('--outputs_dir', default = 'data',help = 'where the outputs are stored', type = str)
+parser.add_argument('--source_dir', default = '/data/GabrielKasmi/data/rni', help = 'location of the ground truth registry', type = str)
+parser.add_argument('--evaluation_dir', default = 'evaluation',help = 'where the results are stored', type = str)
+parser.add_argument('--outputs_dir', default = 'data',help = 'where the detection outputs are stored', type = str)
 
 
 args = parser.parse_args()
@@ -50,7 +51,7 @@ if not os.path.isdir(args.evaluation_dir):
 
 # Load the RNI
 
-target_path = os.path.join(args.evaluation_dir, filename)
+target_path = os.path.join(args.source_dir, filename)
 
 RNI = json.load(open(target_path))
 
@@ -58,10 +59,6 @@ RNI = json.load(open(target_path))
 # load the outputs
 
 aggregation = pd.read_csv(os.path.join(args.outputs_dir, 'aggregated_characteristics_{}.csv'.format(dpt))).set_index('city')
-
-print(aggregation.index)
-
-
 
 """
 Cleans the RNI and returns a clean dataframe
@@ -94,23 +91,28 @@ def refactor_rni(RNI, dpt):
     # compute the installed capacity and number of installations
     not_localized_cap = sum([item['puismaxrac'] for item in not_localized])
     not_localized_count = sum([item['nbinstallations'] for item in not_localized])
-    
+        
     
     # now focus on the installations that are localized on the departement of interest
     # and filter those that do not have a commune
-    rni_baseline, no_commune = [], []
+    rni_baseline, no_commune, missing_keys = [], [], []
 
     for filtered_target in filtered_targets:
         if 'codeinseecommune' in filtered_target.keys():
-            code_commune = filtered_target['codeinseecommune']
-            aggregated_capacity = filtered_target['puismaxrac']
-            installations_count = filtered_target['nbinstallations']
+            
+            if 'puismaxrac' in filtered_target.keys():
+                code_commune = filtered_target['codeinseecommune']
+                aggregated_capacity = filtered_target['puismaxrac']
+                installations_count = filtered_target['nbinstallations']
 
-            values = [code_commune, aggregated_capacity, installations_count]
-            rni_baseline.append(values)
+                values = [code_commune, aggregated_capacity, installations_count]
+                rni_baseline.append(values)
+            else: 
+                missing_keys.append(filtered_target)
 
         else:
             no_commune.append(filtered_target)
+            
     no_commune_cap = sum([item['puismaxrac'] for item in no_commune])
     no_commune_count = sum([item['nbinstallations'] for item in no_commune])
     
@@ -158,7 +160,7 @@ def compute_metrics(table):
     
     """
     
-    table['APE'] = np.abs((table['target_kWp'] - table['est_kWp']) / (table['target_kWp']))
+    table['APE'] = np.abs((table['target_kWp'] - table['est_kWp']) / (table['target_kWp'])) * 100
     table['AE'] = np.abs(table['target_kWp'] - table['est_kWp'])
     table['ratio'] = table['est_kWp'] / table['target_kWp']
     
@@ -174,10 +176,10 @@ def compute_metrics(table):
     table['mean_target'] = table['target_kWp'] / table['target_count']
     table['mean_est'] = table['est_kWp'] / table['est_count']
     
-    table['mean_AE'] =  table['mean_est'] - table['mean_target']
-
+    table['mean_AE'] = table['mean_target'] - table['mean_est']
+    table['mean_APE'] = - ((table['mean_target'] - table['mean_est']) / table['mean_target']) * 100
     
-    table['deviation'] = (table['target_count'] - table['est_count']) / table['target_count']
+    table['deviation'] = - ((table['target_count'] - table['est_count']) / table['target_count']) * 100
     
     return table
 
@@ -202,6 +204,12 @@ def compare(reference, outputs):
     # add the number of communes w/o detection and w/o reference in the dataframe
     stats['no_detection'] = len(no_detection)
     stats['no_reference'] = len(no_reference)
+    
+    stats['missing_count'] = sum(reference['count'][no_detection].values)
+    stats['missing_kWp'] = sum(reference['kWc'][no_detection].values)
+    
+    stats['excess_count'] = sum(outputs['count'][no_reference].values)
+    stats['excess_kWp'] = sum(outputs['kWp'][no_reference].values)
 
     # compute the metrics
     stats = compute_metrics(stats)
@@ -227,8 +235,8 @@ def main():
 
     # save the results
     stats['stats'].to_csv(os.path.join(args.evaluation_dir, 'results_{}.csv'.format(dpt)))
-    print('Location for which no detection is made :', stats['no_detection'])
-    print('Location for which no reference is recorded :', stats['no_reference'])
+    #print('Location for which no detection is made :', stats['no_detection'])
+    #print('Location for which no reference is recorded :', stats['no_reference'])
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ and returns the aggregated capacities
 
 """
 from distutils.command.config import config
+from lib2to3.pgen2 import driver
 import sys
 sys.path.append('../src')
 
@@ -17,6 +18,7 @@ import postprocessing_helpers
 import geojson
 import pandas as pd
 import concurrent
+import tqdm
 
 
 """
@@ -92,14 +94,28 @@ class Aggregation():
         self.temp_dir = configuration.get('temp_dir')
         self.aux_dir = configuration.get('aux_dir')
         self.outputs_dir = configuration.get('outputs_dir')
+        self.img_dir = configuration.get('source_images_dir')
 
+        # arguments
         self.dpt = dpt
+
+        # parameters
+        self.building = configuration.get('filter_building')
+        self.lut = configuration.get('filter_LUT')
+        self.constant = configuration.get('constant_kWp')
 
 
     def initialize(self):
         '''
         initializes the characterization module
         '''
+
+        print('Converting the raw masks into panel characteristics...')
+        print(""" Parameters for the conversion have been set as follows : \n
+        - Filter by building : {}
+        - Impute a tilt using the look up table : {}
+        - Use a single coefficient to infer the installed capacity : {}
+        """.format(self.building, self.lut, self.constant))
 
         # load and prepare the lookup table
         lut = json.load(open(os.path.join(self.aux_dir, "look_up_table.json")))
@@ -122,35 +138,65 @@ class Aggregation():
         """
         installations = []
 
-        print('Converting the raw masks into panel characteristics...')
-
         def f(array):
-            installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes))
+            installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
             return None
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(f, arrays['features'])
+        print('Extracting the characteristics from the geojson file...')
 
-        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon'])
+        #with concurrent.futures.ThreadPoolExecutor() as executor:
+        #    executor.map(f, arrays['features'])
 
+        for array in tqdm.tqdm(arrays['features']):
+            installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
+
+
+        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name'])
+        
         print('Characteristics extraction completed.')
         
         return df
 
-    def filter_installations(self, df):
+    def filter_installations(self, df, communes):
         """
         filter the installations based on their characteristics
         """
+
+        print('Filtering the installations...')
 
         # remove the implausible installed capacities and capacities above 36 kWc
         # a first estimate is the hard coded minimum from BDPV (very conservative)
         minimum = 0.141000
         df = df[(df['kWp'] > minimum) & (df['kWp'] < 36.1)] 
 
-        # remove installations that are not on a building
-        #filtered_installations = ... TODO
+        if not self.building:
 
-        return df
+            print('Filtering complete.')
+
+            return df
+        
+        else:
+
+            # convert the dataframe 
+            annotations = postprocessing_helpers.reshape_dataframe(df)
+
+            tiles_list = list(annotations.keys()) # subset of tiles on which there is an installation
+
+            # buildings : open the file with all the buildings
+            buildings = json.load(open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt))))
+                    
+            # sort the buildings by tile
+            sorted_buildings = postprocessing_helpers.assign_building_to_tiles(tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt)
+
+            # return a filtered dataframe where 
+            # - the kWp is merged, as well as the surface
+            # - installations that are not on a building are removed
+            df_out = postprocessing_helpers.filter_installations(df, annotations, sorted_buildings, communes)
+
+            print('Filtering complete.')
+
+  
+            return df_out
 
     def export(self, filtered_installations):
         """
@@ -191,7 +237,7 @@ class Aggregation():
         characteristics = self.characterize(arrays, lut, communes)
 
         # filter based on the installed capacities
-        filtered_installations = self.filter_installations(characteristics)
+        filtered_installations = self.filter_installations(characteristics, communes)
 
         # save the outputs
         self.export(filtered_installations)
