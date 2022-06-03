@@ -52,6 +52,8 @@ def return_surface_id(projected_area, surface_categories):
     to the suface cluster
     """
 
+    surface_id = None
+
     for surface_key in surface_categories.keys():
         lb, ub = surface_categories[surface_key]
         if projected_area <= ub and projected_area > lb:
@@ -84,7 +86,7 @@ def return_latitude_and_longitude_ids(center, latitude_categories, longitude_cat
             
     return lat_id, lon_id
 
-def compute_characteristics(array, lut, communes, use_lut, constant):
+def compute_characteristics(array, installation_id, lut, communes, use_lut, constant):
     """
     array is a geogson object
     its characteristics are extracted and we return a list with :
@@ -234,7 +236,7 @@ def compute_characteristics(array, lut, communes, use_lut, constant):
     lat_id, lon_id = return_latitude_and_longitude_ids(center, latitude_categories, longitude_categories)
     
     # access the lut to get a tilt estimation
-    if use_lut : 
+    if use_lut and (surface_id is not None): 
         tilt = lut[str(surface_id)][lon_id][lat_id]
     else: 
         tilt = 0 # otherwise directly consider the projected surface
@@ -245,7 +247,7 @@ def compute_characteristics(array, lut, communes, use_lut, constant):
 
     # compute the installed capacity based on the 
     # surface cluster and the estimated surface
-    if not constant:
+    if not constant and (surface_id is not None):
         installed_capacity = estimated_surface * regression_coefficients[surface_id]
     else:
         installed_capacity = estimated_surface * constant_coef
@@ -258,7 +260,7 @@ def compute_characteristics(array, lut, communes, use_lut, constant):
     tile_name = array['properties']['tile']
     
     # return everything    
-    return [estimated_surface, tilt, installed_capacity, city_code, lat, lon, tile_name]
+    return [estimated_surface, tilt, installed_capacity, city_code, lat, lon, tile_name, installation_id]
 
 
 def filter_installations(df, annotations, sorted_buildings, communes):
@@ -337,21 +339,22 @@ def filter_installations(df, annotations, sorted_buildings, communes):
             # city and tilt : should be the same
             city = df.loc[corresponding_indices[0]]['city'] #all values should be the same
 
-            if np.isnan(city): # retrieve manually the coordinates if the coordinate is a nan
+            if pd.isna(city): # retrieve manually the coordinates if the coordinate is a nan
                 city = retrieve_city_code((coordinates[1], coordinates[0]), communes)
 
             tilt = df.loc[corresponding_indices[0]]['tilt'] #all values should be the same
             
             tile_name = df.loc[corresponding_indices[0]]['tile_name']
+            id_installation = df.loc[corresponding_indices[0]]['id_installation']
 
             # values to be added    
-            values = [aggregated_surface, tilt, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name]
+            values = [aggregated_surface, tilt, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name, id_installation]
 
         # add the merged values in the dictionnary
         filtered_installations.append(values)
 
     # convert the dictionnary to a dataframe
-    filtered_df = pd.DataFrame(filtered_installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name'])
+    filtered_df = pd.DataFrame(filtered_installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
 
     return filtered_df
 
@@ -429,10 +432,12 @@ def reshape_dataframe(df):
 
     annotations = {tile : {} for tile in tiles_list}
 
-    for id_installation in tqdm.tqdm(df.index):
+    for i in tqdm.tqdm(df.index):
 
-        coordinates = df['lon'][id_installation], df['lat'][id_installation]
-        tile = df["tile_name"][id_installation]
+        coordinates = df['lon'][i], df['lat'][i]
+        tile = df["tile_name"][i]
+        id_installation = df['id_installation'][i]
+
 
         annotations[tile][id_installation] = {}
 

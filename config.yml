@@ -18,6 +18,7 @@
 #            are stored
 
 source_images_dir : "/data/GabrielKasmi/data/ign/D069_2020"
+#source_images_dir : "/data/GabrielKasmi/IGN_TEMP/D059_2018"
 model_dir : 'models'
 
 source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021/CONTOURS-IRIS_2-1__SHP__FRA_2021-01-01/CONTOURS-IRIS/'
@@ -75,6 +76,6 @@ seg_model : 'model_bdappv_seg'
 # - filter LUT : compute the tilt with the extrernal look up table
 # - constant_kWp : constant linear fit between the 
 
-filter_building : True
+filter_building : False
 filter_LUT : True
-constant_kWp : False
+constant_kWp : True

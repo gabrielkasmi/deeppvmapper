@@ -147,11 +147,11 @@ class Aggregation():
         #with concurrent.futures.ThreadPoolExecutor() as executor:
         #    executor.map(f, arrays['features'])
 
-        for array in tqdm.tqdm(arrays['features']):
-            installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
+        for i, array in tqdm.tqdm(enumerate(arrays['features'])):
+            installations.append(postprocessing_helpers.compute_characteristics(array, i, lut, communes, self.lut, self.constant))
 
 
-        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name'])
+        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
         
         print('Characteristics extraction completed.')
         
