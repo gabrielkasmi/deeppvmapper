@@ -11,6 +11,7 @@ from fiona import collection
 import pandas as pd
 import os
 import json
+import geojson
 
 
 """
@@ -539,3 +540,60 @@ def compute_tiles_coordinates(tiles_dir):
             items[name] = coords
 
     return items
+
+
+def associate_characteristics_to_pv_polygons(characteristics, arrays, data_dir, dpt):
+    """
+    puts the information contained in the dataframe back into 
+    the geojson for plotting
+    """
+    
+    
+    features = []
+    
+    # get the list of ids
+    installation_ids = characteristics['installation_id'].values
+
+    # extract the information in the dataframe and return it in the 
+    # geosjon
+    
+    features = []
+    for installation_id in installation_ids :
+        
+        array = arrays['features'][installation_id]
+        
+        table = characteristics[characteristics["installation_id"] == installation_id]
+
+        city = table['city'].values.item()
+        surface = table['surface'].values.item() 
+        tilt = table['tilt'].values.item()
+        kWp = table['kWp'].values.item()
+        
+        # properties of the installation
+        if pd.isna(city):
+            city = 'nan'
+        else:
+            city = int(city)
+        
+        properties = {
+            'city' : city,
+            'surface' : float(surface),
+            'tilt' : float(tilt),
+            'kWp' : float(kWp)
+
+        }
+        
+        # coordinates
+        coordinates = array['geometry']['coordinates']
+        
+        #append to the feature list
+        
+        features.append(geojson.Feature(geometry=geojson.Polygon(coordinates), properties=properties))
+ 
+    feature_collection = geojson.FeatureCollection(features)    
+    
+    with open(os.path.join(data_dir, 'arrays_characteristics_{}.geojson'.format(dpt)), 'w') as f:
+        geojson.dump(feature_collection, f)
+        
+    return None
+    

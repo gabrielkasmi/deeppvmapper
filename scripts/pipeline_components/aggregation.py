@@ -165,8 +165,8 @@ class Aggregation():
         print('Filtering the installations...')
 
         # remove the implausible installed capacities and capacities above 36 kWc
-        # a first estimate is the hard coded minimum from BDPV (very conservative)
-        minimum = 0.141000
+        # a first estimate is the minimum surface of a module (1.7 sq. m.)
+        minimum = 1.7
         df = df[(df['kWp'] > minimum) & (df['kWp'] < 36.1)] 
 
         if not self.building:
@@ -200,8 +200,11 @@ class Aggregation():
 
     def export(self, filtered_installations):
         """
-        exports the file as two files : 
-        - the .csv of the proto registry
+        exports the file as three files : 
+        - the .csv of the registry
+        - the aggregated characteristics : that merge the characteristics by city
+        - an updated geojson file which restricts to the filtered installations and includes 
+        the estimated characteristics of the underlying polygon
         """
         # full registry
         filtered_installations.to_csv(os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt)), index = False)
@@ -222,6 +225,13 @@ class Aggregation():
         aggregated = pd.concat([aggregated_capacity, installations_count, means], axis=1)
         aggregated = aggregated[['count', 'kWp', 'avg_surface', 'avg_kWp', 'lat', 'lon']] # reorder the columns.
         aggregated.to_csv(os.path.join(self.outputs_dir, 'aggregated_characteristics_{}.csv'.format(self.dpt)))
+
+        # updated geojson with the characteristics
+        # open the characteristics and arrays files
+        characteristics = pd.read_csv(os.path.join(self.outputs_dir, "characteristics_{}.csv".format(self.dpt)))
+        arrays = geojson.load(open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt))))
+
+        postprocessing_helpers.associate_characteristics_to_pv_polygons(characteristics, arrays, self.outputs_dir, self.dpt)
         
         return None
 
