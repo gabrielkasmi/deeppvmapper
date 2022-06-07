@@ -76,6 +76,6 @@ seg_model : 'model_bdappv_seg'
 # - filter LUT : compute the tilt with the extrernal look up table
 # - constant_kWp : constant linear fit between the 
 
-filter_building : False
+filter_building : True
 filter_LUT : True
-constant_kWp : True
+constant_kWp : False

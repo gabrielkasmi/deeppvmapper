@@ -346,7 +346,7 @@ def filter_installations(df, annotations, sorted_buildings, communes):
             tilt = df.loc[corresponding_indices[0]]['tilt'] #all values should be the same
             
             tile_name = df.loc[corresponding_indices[0]]['tile_name']
-            id_installation = df.loc[corresponding_indices[0]]['id_installation']
+            id_installation = df.loc[corresponding_indices[0]]['installation_id']
 
             # values to be added    
             values = [aggregated_surface, tilt, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name, id_installation]
@@ -437,7 +437,7 @@ def reshape_dataframe(df):
 
         coordinates = df['lon'][i], df['lat'][i]
         tile = df["tile_name"][i]
-        id_installation = df['id_installation'][i]
+        id_installation = df['installation_id'][i]
 
 
         annotations[tile][id_installation] = {}
