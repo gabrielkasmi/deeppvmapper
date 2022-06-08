@@ -12,6 +12,8 @@ import pandas as pd
 import os
 import json
 import geojson
+import math
+import itertools
 
 
 """
@@ -597,3 +599,86 @@ def associate_characteristics_to_pv_polygons(characteristics, arrays, data_dir, 
         
     return None
     
+
+def merge_duplicates(characteristics):
+    """
+    removes the duplicate entries and merge
+    the remaining installations
+    """
+    
+    def check_coordinate(coord, rel_tol = 1e-6):
+        """checks whether the coordinates in the array coord
+        are close (up to rel_to). Returns a dictionnary 
+        with the closeness (or not) of all the pairwise combinations
+        """
+
+        if len(coord) == 2:
+            # if only two items to check, directly compare them
+            combinations = {
+                (coord[0], coord[1]) : math.isclose(coord[0], coord[1], rel_tol = rel_tol)
+            }
+
+        else: # otherwise consider all pairwise combinations        
+
+            combinations = {}
+            for x in itertools.combinations(coord, 2):
+                combinations[x] = math.isclose(x[0], x[1], rel_tol = rel_tol)
+    
+        return combinations
+    
+    # remove duplicates
+    characteristics = characteristics.drop_duplicates()
+    
+    installation_ids = characteristics['installation_id'].values
+    
+    
+    for installation_id in installation_ids : 
+        
+        table = characteristics[characteristics['installation_id'] == installation_id]
+        if table.shape[0] > 1:# if more than one observation is attached to the id
+            
+            # consider the latitude and longitude
+            lats = table['lat'].values
+            
+            # see whether pairwise combinations are equal or not
+            combinations = check_coordinate(lats, rel_tol = 1e-5)
+
+            # loop over the combinations
+            # and if two latitudes are close enough, check the longitudes
+            # and if the longitudes are close as well, create a new entry
+            # append it to the main frame and remove the two former 
+            # entries.
+            for combination in combinations.keys():
+
+                i,j = table[table['lat'] == combination[0]].index.item(), table[table['lat'] == combination[1]].index.item() 
+
+                if combinations[combination]: # if both latitudes are identical, check the longitudes as well                 
+                    
+                    coords = table.loc[i,'lon'], table.loc[j, 'lon']
+
+                    long_combination = check_coordinate(coords, rel_tol = 1e-4) 
+
+                    if long_combination[coords]: # both latitude and longitude are the same, so we
+                                                 # can merge the installations
+
+                            surface = table['surface'].sum()
+                            city = table.loc[i, 'city']
+                            tilt = table.loc[i,'tilt']
+                            kWp = table['kWp'].sum()
+
+                            lat, lon = table.loc[i, 'lat'], table.loc[i, 'lon']
+
+                            tile_name = table.loc[i, 'tile_name']
+
+
+                            # create a new entry
+                            merged_installation = [surface, tilt, kWp, city, lat, lon, tile_name, installation_id]
+
+                            new = pd.DataFrame([merged_installation], columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
+
+                            # append it to the dataframe and remove two former rows
+                            characteristics = characteristics.drop(labels=[i,j], axis=0)
+                            
+                            characteristics = pd.concat([characteristics, new], ignore_index = True)
+                  
+    return characteristics

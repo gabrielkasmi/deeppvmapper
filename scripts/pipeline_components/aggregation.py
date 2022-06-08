@@ -207,7 +207,8 @@ class Aggregation():
         the estimated characteristics of the underlying polygon
         """
         # full registry
-        filtered_installations = filtered_installations.drop_duplicates() # remove the potential duplicates in the dataframe
+        filtered_installations = postprocessing_helpers.merge_duplicates(filtered_installations) # remove the duplicates of the dataframe
+
         filtered_installations.to_csv(os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt)), index = False)
 
         # aggregated capacities computed for comparison
