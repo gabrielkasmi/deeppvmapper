@@ -17,13 +17,13 @@
 # - data : the name of the directory in which the final output (.geojson file)
 #            are stored
 
-source_images_dir : "/data/GabrielKasmi/data/ign/D034_2018"
-#source_images_dir : "/data/GabrielKasmi/IGN_TEMP/D044_2020"
+# source_images_dir : "/data/GabrielKasmi/data/ign/D034_2018"
+source_images_dir : "/data/GabrielKasmi/IGN_TEMP/D001_2018"
 model_dir : 'models'
 
 source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021/CONTOURS-IRIS_2-1__SHP__FRA_2021-01-01/CONTOURS-IRIS/'
 source_commune_dir : '/data/GabrielKasmi/data/communes'
-source_topo_dir : "/data/GabrielKasmi/data/ign/TOPO/D069_2021" 
+source_topo_dir : "/data/GabrielKasmi/data/ign/TOPO/D001_2021" 
 
 temp_dir : 'temp'
 aux_dir: 'aux'
@@ -34,8 +34,8 @@ outputs_dir : 'data'
 # Parameters for the main pipeline script 
 # - run_xx.py : True if one want to run specific parts of the pipeline, False otherwise
 
-run_classification : False
-run_segmentation : False
+run_classification : True
+run_segmentation : True
 run_aggregation : True
 
 # Parameters that are common to certain pipelines:
@@ -43,7 +43,8 @@ run_aggregation : True
 # - departement_number : the departement number, used in the postprocessing and main script.
 
 patch_size : 299
-
+device : 'cuda'
+    
 # Parameters that are specific to certain pipelines
 
 # Classification
@@ -53,7 +54,6 @@ patch_size : 299
 #               positives (that are not located on buildings) are filtered out
 # - cls_model : the name of the model to look for in the folder.
 
-device : 'cuda'
 cls_batch_size : 512
 cls_threshold : 0.4
 cls_model : 'model_bdappv_cls'
