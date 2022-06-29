@@ -12,6 +12,8 @@ from shapely import geometry
 import gdal
 import glob
 import cv2
+from fiona import collection
+
 
 
 
@@ -503,3 +505,32 @@ def convert_annotations_to_pseudo_mask(annotations_list, tile, source_image_dir)
         #output_mask = np.zeros((10,10))
 
     return merged_masks
+
+
+"""
+computes the coordinates of the tiles
+"""
+def compute_tiles_coordinates(tiles_dir):
+    """
+    returns a dictionnary of tiles (and their coordinates)
+    if the latter are in the covered tiles. 
+    """
+
+    # location of the file with the power plants
+    dnsSHP = glob.glob(tiles_dir + "/**/dalles.shp", recursive = True)
+
+    # dictionnary
+    items = {}
+
+    # loop over the elements of the file
+    with collection(dnsSHP[0], 'r') as input: 
+        for shapefile_record  in tqdm.tqdm(input):
+
+            name = shapefile_record["properties"]["NOM"][2:-4]
+            coords = shapefile_record["geometry"]['coordinates']
+                        
+            path = glob.glob(tiles_dir + "/**/{}".format(name), recursive = True)
+                    
+            items[name] = coords
+
+    return items

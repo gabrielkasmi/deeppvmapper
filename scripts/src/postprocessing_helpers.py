@@ -232,6 +232,8 @@ def compute_characteristics(array, installation_id, lut, communes, use_lut, cons
     # compute the projected area
     projected_area = area(array['geometry'])
     
+    # here retrieve the tile name and load the corresponding MNS Tile.
+    
     # based on the projected area, get the surface id to access the LUT
     surface_id = return_surface_id(projected_area, surfaces_categories)
     

@@ -234,8 +234,13 @@ class Segmentation():
             for polygon in merged_polygons:
                 merged_coordinates[tile][index] = polygon
                 index += 1
+                
+                
+        # save here the raw file with pixel and LAMB93 coordinates.
+        # Direct conversion to retrieve the MNS.
+        
 
-
+        
         # convert this dictionnary as a .geojson file
         data_handlers.export_to_geojson(merged_coordinates, self.dpt, self.outputs_dir)
                 
