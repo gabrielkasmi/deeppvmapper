@@ -1,6 +1,5 @@
 ### Todo 
 
-- si classification complète, segmentation bug (car pas de dossier temp/segmentation : à régler pour pouvoir passer a postprocessing ensuite.
 - aux.py : lance une alerte s'il n'y a pas des fichiers liés au département
 - config : install w/ cudatoolkit  - actuellement ne fonctionne pas 
 - nombre de tuiles à procéder (somme pour tous les départements, passer à une somme par département)
@@ -15,7 +14,7 @@ An automated pipeline for large scale detection of solar arrays in France. Detec
 
 ### Data and models
 
-To replicate the results, you'll need to download the data and the models
+To replicate the results, you'll need to download the data and the models 
 
 #### Data
 
@@ -27,7 +26,7 @@ The data needed for the pipeline is the following :
 
 #### Models
 
-The model weights can be downloaded here.
+The model weights can be downloaded [here](https://cloud.mines-paristech.fr/index.php/s/qKrZyWCjAoNb43U).
 
 ### Set-up 
 
