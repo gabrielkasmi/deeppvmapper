@@ -52,7 +52,7 @@ Once evaluation has been completed, you can evaluate the accuracy of the registr
 
 ```python
 ./evaluate.py --dpt={the number of the departement} --filename={filename} --source_dir={source_dir}
-
+```
 to evaluate the registry. In this command, `source_dir` corresponds to the directory where the RNI is located and `filename` corresponds to the name of the RNI file downloaded.
 
 
