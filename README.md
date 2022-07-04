@@ -48,11 +48,12 @@ Once auxiliary files are computed, the main script can be launched. Type `./main
 
 ### Evaluating the accuracy
 
-Once evaluation has been completed, you can evaluate the accuracy of the registry against the <i> Registre national d'installations (RNI) </i>. The RNI can be downloaded [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9). Select the year corresponding to the year the orthoimages were released. <b> Please download the RNI under `.json` format </b>.
+Once evaluation has been completed, you can evaluate the accuracy of the registry against the <i> Registre national d'installations (RNI) </i>. The RNI can be downloaded [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9). Select the year corresponding to the year the orthoimages were released. <b> Please download the RNI under `.json` format </b>. Then type
 
-Type `./evaluate.py --dpt={the number of the departement} --filename={filename} --source_dir={source_dir}` to evaluate the registry.
+```python
+./evaluate.py --dpt={the number of the departement} --filename={filename} --source_dir={source_dir}
 
-In the command below, `source_dir` corresponds to the directory where the RNI is located and `filename` corresponds to the name of the RNI file downloaded.
+to evaluate the registry. In this command, `source_dir` corresponds to the directory where the RNI is located and `filename` corresponds to the name of the RNI file downloaded.
 
 
 ## License and citation
