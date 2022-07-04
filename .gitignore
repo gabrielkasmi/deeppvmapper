@@ -147,5 +147,5 @@ dmypy.json
 
 /models
 *.html
-*.ipynb
+
 .DS_Store
