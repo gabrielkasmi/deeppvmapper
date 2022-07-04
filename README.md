@@ -57,4 +57,6 @@ to evaluate the registry. In this command, `source_dir` corresponds to the direc
 
 
 ## License and citation
-This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
+This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
+
+Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">Star</a> us ! 
