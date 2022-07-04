@@ -49,4 +49,4 @@ Once auxiliary files are computed, the main script can be launched. Type `./main
 
 
 ## License and citation
-This software is provided under GPL-3.0 license.
+This software is provided under [GPL-3.0 license.](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
