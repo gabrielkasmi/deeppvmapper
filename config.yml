@@ -17,8 +17,8 @@
 # - data : the name of the directory in which the final output (.geojson file)
 #            are stored
 
-source_images_dir : "/data/GabrielKasmi/data/ign/D069_2020"
-#source_images_dir : "/data/GabrielKasmi/IGN_TEMP/D007_2020"
+#source_images_dir : "/data/GabrielKasmi/data/ign/D069_2020"
+source_images_dir : "/data/GabrielKasmi/IGN_TEMP/D007_2020"
 model_dir : 'models'
 
 source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021/CONTOURS-IRIS_2-1__SHP__FRA_2021-01-01/CONTOURS-IRIS/'

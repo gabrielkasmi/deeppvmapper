@@ -70,8 +70,12 @@ def refactor_rni(RNI, dpt):
     registered in the departement of interest
     """
     
-    if not isinstance(dpt, str): # convert the departement number as a str
-        dpt = str(dpt)
+    if dpt < 10:
+        if not isinstance(dpt, str):
+            dpt = '0' + str(dpt)
+    else:
+        if not isinstance(dpt, str): # convert the departement number as a str
+            dpt = str(dpt)
     
     # first filtering : retain only aggregated small installations
     targets = [rni['fields'] for rni in RNI if rni['fields']['nominstallation'] == 'Agrégation des installations de moins de 36KW']
@@ -192,7 +196,7 @@ def compare(reference, outputs):
     """
 
     stats = reference.merge(outputs, left_index=True, right_index=True)
-    
+        
     # record the indices for which either no detection is made or no installatinos are recorded
     no_detection = [index for index in reference.index.values if not index in outputs.index.values]
     no_reference = [index for index in outputs.index.values if not index in reference.index.values]
