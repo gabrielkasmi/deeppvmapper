@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(description = 'Computation of the accuracy')
 parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
 parser.add_argument('--filename', default = None, help = "name of the RNI to consider", type = str)
 
-parser.add_argument('--source_dir', default = '/data/GabrielKasmi/data/rni', help = 'location of the ground truth registry', type = str)
+parser.add_argument('--source_dir', default = '../data/rni', help = 'location of the ground truth registry', type = str)
 parser.add_argument('--evaluation_dir', default = 'evaluation',help = 'where the results are stored', type = str)
 parser.add_argument('--outputs_dir', default = 'data',help = 'where the detection outputs are stored', type = str)
 
