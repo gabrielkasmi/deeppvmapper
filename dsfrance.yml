@@ -1,19 +1,25 @@
 name: dsfrance
 channels:
-  - pytorch
-  - conda-forge
   - defaults
 dependencies:
   - fiona
   - pandas
-  - Pillow
-  - pytorch
+  - pillow
   - torchvision
-  - scikit-image
-  - tqdm
-  - conda-forge::geojson
-  - conda-forge::folium
-  - pyproj
+  - pytorch
   - cudatoolkit
-  - pip:
-  - opencv-python
+  - scikit-image
+  - ipykernel
+  - tqdm
+  - geojson
+  - folium
+  - ipywidgets
+  - matplotlib
+  - tensorboard
+  - statsmodels
+  - plotly
+  - torchmetrics
+  - descartes
+  - wget
+  - pyshp
+prefix: /data/GabrielKasmi/miniconda3/envs/dsfrance
