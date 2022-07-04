@@ -14,8 +14,7 @@ To replicate the results, you'll need to download the data and the models
 The data needed for the pipeline is the following :
 - <u> The aerial images </u>, which can be downloaded [here](https://geoservices.ign.fr/bdortho)
 - <u> The topological data </u>, which can be downloaded [here](https://geoservices.ign.fr/bdtopo)
-- <u> The IRIS and Commune data </u>, which can be downloaded [here](https://geoservices.ign.fr/contoursiris) and [here](https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/)
-- <u> The surface models </u>
+- <u> The city data </u>, which can be downloaded here [here](https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/)
 
 #### Models
 
@@ -47,6 +46,14 @@ Before running the pipeline, you'll need to generate the auxiliary files. These 
 
 Once auxiliary files are computed, the main script can be launched. Type `./main.py --dpt={the number of the departement}` to run the registry on your desired department.
 
+### Evaluating the accuracy
+
+Once evaluation has been completed, you can evaluate the accuracy of the registry against the <i> Registre national d'installations (RNI) </i>. The RNI can be downloaded [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9). Select the year corresponding to the year the orthoimages were released. <b> Please download the RNI under `.json` format </b>.
+
+Type `./evaluate.py --dpt={the number of the departement} --filename={filename} --source_dir={source_dir}` to evaluate the registry.
+
+In the command below, `source_dir` corresponds to the directory where the RNI is located and `filename` corresponds to the name of the RNI file downloaded.
+
 
 ## License and citation
-This software is provided under [GPL-3.0 license.](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
+This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
