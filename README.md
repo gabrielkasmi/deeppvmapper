@@ -1,13 +1,6 @@
-### Todo 
+# "DeepSolar" France
 
-- aux.py : lance une alerte s'il n'y a pas des fichiers liés au département
-- config : install w/ cudatoolkit  - actuellement ne fonctionne pas 
-- nombre de tuiles à procéder (somme pour tous les départements, passer à une somme par département)
-- sortie de la segmentation : polygones (avec application du seuil ou ensemble de masques non seuillés (à ranger dans un dossier /masks) sur lequel on applique ensuite l'algorithme de Edun et al ? 
-
-# DeepSolar France
-
-An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN)
+An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937).
 
 ## Overview
 ## Usage
@@ -56,3 +49,4 @@ Once auxiliary files are computed, the main script can be launched. Type `./main
 
 
 ## License and citation
+This software is provided under GPL-3.0 license.
