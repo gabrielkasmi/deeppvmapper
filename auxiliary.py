@@ -272,16 +272,16 @@ def main():
             json.dump(plants_locations, f, indent = 2)
 
     # Computation for the IRIS : 
-    if not os.path.exists(os.path.join(aux_dir, 'iris_{}.json'.format(args.dpt))):
+#    if not os.path.exists(os.path.join(aux_dir, 'iris_{}.json'.format(args.dpt))):
 
-        print('Filtering the IRIS attached to departement {}...'.format(args.dpt))
-        iris_location = data_handlers.get_iris(source_iris_dir, args.dpt)
+#        print('Filtering the IRIS attached to departement {}...'.format(args.dpt))
+#        iris_location = data_handlers.get_iris(source_iris_dir, args.dpt)
 
         # save the file
-        print('Computation complete. Saving the file.')
+#        print('Computation complete. Saving the file.')
 
-        with open(os.path.join(aux_dir, 'iris_{}.json'.format(args.dpt)), 'w') as f:
-            json.dump(iris_location, f, indent=2)
+#        with open(os.path.join(aux_dir, 'iris_{}.json'.format(args.dpt)), 'w') as f:
+#            json.dump(iris_location, f, indent=2)
 
         print('Done.')
 

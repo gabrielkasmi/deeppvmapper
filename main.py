@@ -94,7 +94,12 @@ def main():
     # If it is the case, stop the script and tell the user to 
     # run auxiliary inference first.
     if not os.listdir(aux_dir):
-        print('No outputs found in the auxiliary directory. Run aux.py before running the main script.')
+        print('Auxiliary directory not found. Run auxiliary.py before running the main script.')
+        raise ValueError
+
+    # also check that the files corresponding to the departements exist. Otherwise raise an error
+    if not os.path.exists(os.path.join(aux_dir, "buildings_locations_{}.json".format(args.dpt))):
+        print('No auxiliary files associated to the directory found in the {} directory. run auxiliary.py before running the main script.'.format(aux_dir))
         raise ValueError
 
     # - - - - - - - STEP 1 - - - - - - -  
