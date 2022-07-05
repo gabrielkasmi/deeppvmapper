@@ -1,6 +1,9 @@
 # "DeepSolar" France
 
-An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937).
+An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937). We propose a large scale evaluation metric based on the <i> Registre national d'installations (RNI) </i> that enables you to measure the accuracy of the PV detection city-wise.
+
+This repository is the source repository for the following publications: 
+- G. Kasmi, L. Dubus, P. Blanc, Y.-M. Saint-Drenan, "DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping", submitted at the [MACLEAN workshop @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0)
 
 ## Overview
 ## Usage
@@ -57,4 +60,6 @@ to evaluate the registry. In this command, `source_dir` corresponds to the direc
 
 
 ## License and citation
-This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
+This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
+
+Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">star</a> us ! 
