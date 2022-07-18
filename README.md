@@ -63,4 +63,27 @@ to evaluate the registry. In this command, `source_dir` corresponds to the direc
 ## License and citation
 This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
 
+Citation: 
+
+```
+@misc{https://doi.org/10.48550/arxiv.2207.07466,
+  doi = {10.48550/ARXIV.2207.07466},
+  
+  url = {https://arxiv.org/abs/2207.07466},
+  
+  author = {Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), Signal Processing (eess.SP), FOS: Computer and information sciences, FOS: Computer and information sciences, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering},
+  
+  title = {DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+
+```
+
 Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">star</a> us ! 
