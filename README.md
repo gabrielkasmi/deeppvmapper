@@ -66,22 +66,13 @@ This software is provided under [GPL-3.0 license](https://github.com/gabrielkasm
 Citation: 
 
 ```
-@misc{https://doi.org/10.48550/arxiv.2207.07466,
+@article{kasmi2022deepsolar,
   doi = {10.48550/ARXIV.2207.07466},
-  
   url = {https://arxiv.org/abs/2207.07466},
-  
-  author = {Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},
-  
-  keywords = {Computer Vision and Pattern Recognition (cs.CV), Signal Processing (eess.SP), FOS: Computer and information sciences, FOS: Computer and information sciences, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering},
-  
-  title = {DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping},
-  
+  author = {Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},  
+  title = {{DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping}},
   publisher = {arXiv},
-  
   year = {2022},
-  
-  copyright = {Creative Commons Attribution 4.0 International}
 }
 
 ```
