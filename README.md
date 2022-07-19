@@ -1,5 +1,7 @@
 # "DeepSolar" France
 
+[![DOI](https://zenodo.org/badge/428337790.svg)](https://zenodo.org/badge/latestdoi/428337790)
+
 An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937). We propose a large scale evaluation metric based on the <i> Registre national d'installations (RNI) </i> that enables you to measure the accuracy of the PV detection city-wise.
 
 This repository is the source repository for the following publications: 
@@ -61,9 +63,12 @@ to evaluate the registry. In this command, `source_dir` corresponds to the direc
 
 
 ## License and citation
+
+### License
+
 This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
 
-Citation: 
+### Citation: 
 
 ```
 @article{kasmi2022deepsolar,
