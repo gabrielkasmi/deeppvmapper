@@ -1,6 +1,12 @@
 # "DeepSolar" France
 
-An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937).
+[![DOI](https://zenodo.org/badge/428337790.svg)](https://zenodo.org/badge/latestdoi/428337790)
+
+An automated pipeline for large scale detection of solar arrays in France. Detection is based on an Inception v3 model initially pretrained for DeepSolar Germany and performed on aerial images released by the Institut national de l'information géographique et forestière (IGN). The starting point of this work is the [3D-PV-Locator of Mayer et. al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937). We propose a large scale evaluation metric based on the <i> Registre national d'installations (RNI) </i> that enables you to measure the accuracy of the PV detection city-wise.
+
+This repository is the source repository for the following publications: 
+- Kasmi, G., et al. (2022). <i> DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping </i>. [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0). [http://arxiv.org/abs/2207.07466](http://arxiv.org/abs/2207.07466).
+
 
 ## Overview
 ## Usage
@@ -57,4 +63,23 @@ to evaluate the registry. In this command, `source_dir` corresponds to the direc
 
 
 ## License and citation
-This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE).
+
+### License
+
+This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
+
+### Citation: 
+
+```
+@article{kasmi2022deepsolar,
+  doi = {10.48550/ARXIV.2207.07466},
+  url = {https://arxiv.org/abs/2207.07466},
+  author = {Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},  
+  title = {{DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping}},
+  publisher = {arXiv},
+  year = {2022},
+}
+
+```
+
+Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">star</a> us ! 
