@@ -14,7 +14,7 @@ Photovoltaic (PV) energy is key to mitigating the current energy crisis. However
 
 Our detection is summarized by the following the following, based on [3D-PV-Locator](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937):
 
-<img src="https://github.com/gabrielkasmi/dsfrance/blob/main/figs/flowchart.png", width=500px>
+<img src="https://github.com/gabrielkasmi/dsfrance/blob/main/figs/flowchart.png" width=500px>
 
 The installations' characteristics that we extract are the following: surface, tilt, installed capacity. In order to assess the accuracy of the estimation of the installed capacity over the whole deployment area, we introduce a metric based on the <i> registre national d'installations </i> (RNI). This measure consists in reaggregating the installations's installed capacities for each city and to compare the aggregation with the reference value. The main advantage of this approach is that it is unsupervised, fast to compute and available over the whole territory of deployment. This accuracy tracking tool enables practitioner to monitor all the outputs produced by the algorithm, thus improving its accountability.
 
