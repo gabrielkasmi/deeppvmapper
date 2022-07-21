@@ -85,4 +85,4 @@ filter_building : True
 filter_LUT : True
 constant_kWp : False
 
-look_up_table_dir : "look_up_table_dir" 
+look_up_table_dir : "" 
