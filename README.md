@@ -26,7 +26,7 @@ The installations' characteristics that we extract are the following: surface, t
 
 To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our [Zenodo repository](). 
 
-If you want to run the model over new <i> départements </i>, you can download the aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
+This repository contains all the necessary data to run the pipeline over a small area of 600 km². If you want to run the pipeline over larger areas, you'll only have to download the corresponding aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
 
 ### Set-up 
 
@@ -44,7 +44,9 @@ conda env create --file dsfrance.yml
 conda activate dsfrance
 ```
 
-Then, we recommend that you follow our `hands-on.ipynb` notebook, located in the folder `notebooks`. This notebook will present you how to set up the configuration file, run the initialization script, the main pipeline and the evaluation script. This notebook maps an area of approximately 600 km². You can also directly run the scripts from the terminal, without going through the notebook.
+### Replication
+
+We recommend that you follow our `hands-on.ipynb` notebook, located in the folder `notebooks`. This notebook will present you how to set up the configuration file, run the initialization script, the main pipeline and the evaluation script. This notebook maps an area of approximately 600 km². You can also directly run the scripts from the terminal, without going through the notebook.
 
 ### Evaluating the accuracy
 
