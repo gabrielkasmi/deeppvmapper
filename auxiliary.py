@@ -42,13 +42,17 @@ Extracted from their own folder :
 # Arguments
 parser = argparse.ArgumentParser(description = 'Auxiliary files for the large scale detection pipeline')
 
-parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
+parser.add_argument('--dpt', default = None, help = "Department to proceed")
 
 args = parser.parse_args()
 
 
 if args.dpt is not None:
     dpt = args.dpt
+    
+    if isinstance(dpt, str):
+        dpt = int(dpt)
+    
 else:
     print('Please input a departement number to run the pipeline.')
     raise ValueError
@@ -63,7 +67,6 @@ with open(config, 'rb') as f:
 aux_dir = configuration.get('aux_dir')
 
 # source directories for the auxiliary outputs
-source_iris_dir = configuration.get('source_iris_dir') 
 source_commune_dir = configuration.get('source_commune_dir') 
 source_topo_dir = configuration.get('source_topo_dir') 
 source_images_dir = configuration.get('source_images_dir')
@@ -300,9 +303,9 @@ def main():
         print('Done.')
 
     # MNS of the departement
-    print('Extracting the MNS of the departement ...')
-    get_associated_mns(aux_dir, source_images_dir)
-    print('Done.')
+    # print('Extracting the MNS of the departement ...')
+    # get_associated_mns(aux_dir, source_images_dir)
+    # print('Done.')
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ import json
 import pandas as pd
 import numpy as np
 import os
+import yaml
 
 """
 Computes the accuracy by comparing the outputs of the detection model
@@ -30,6 +31,15 @@ parser.add_argument('--outputs_dir', default = 'data',help = 'where the detectio
 
 
 args = parser.parse_args()
+
+# Load the configuration file
+config = 'config.yml'
+
+with open(config, 'rb') as f:
+    configuration = yaml.load(f, Loader=yaml.FullLoader)
+
+# Get the folders from the configuration file
+outputs_dir = configuration.get('outputs_dir')
 
 
 if args.dpt is not None:
@@ -58,7 +68,7 @@ RNI = json.load(open(target_path))
 
 # load the outputs
 
-aggregation = pd.read_csv(os.path.join(args.outputs_dir, 'aggregated_characteristics_{}.csv'.format(dpt))).set_index('city')
+aggregation = pd.read_csv(os.path.join(outputs_dir, 'aggregated_characteristics_{}.csv'.format(dpt))).set_index('city')
 
 """
 Cleans the RNI and returns a clean dataframe

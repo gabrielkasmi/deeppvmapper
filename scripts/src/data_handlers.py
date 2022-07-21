@@ -227,6 +227,10 @@ def get_communes(source_commune_dir, dpt):
     
     Remark : coordinates are in the decimal format (long, lat)
     """
+    
+    if isinstance(dpt, str):
+        dpt = int(dpt)
+    
     dnsSHP = glob.glob(source_commune_dir + "/**/communes-20210101.shp", recursive = True)
 
     commune = {}

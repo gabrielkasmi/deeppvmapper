@@ -375,34 +375,41 @@ def sort_polygons(polygons, source_images_dir):
             for shapefile_record  in input:
 
                 tile = shapefile_record['properties']['NOM'][2:-4]             
-                raw_polygons[tile] = {}
 
                 # open the tile and get its geographical properties in order to 
                 # convert the LAMB93 coordinates into px coordinates wrt the upper
                 # left corner of the image
-                ds = gdal.Open(glob.glob(source_images_dir + "/**/{}.jp2".format(tile),recursive = True)[0]) # open the image
+                path_to_image = glob.glob(source_images_dir + "/**/{}.jp2".format(tile),recursive = True)
+                
+                if path_to_image:
+                    raw_polygons[tile] = {}
 
-                # get the geographical characteristics
-                geotransform  = ds.GetGeoTransform() 
+                    ds = gdal.Open(path_to_image[0]) # open the image
 
-                # Create a polygon from the tile
-                Tile = Polygon(shapefile_record['geometry']['coordinates'][0]) 
+                    # get the geographical characteristics
+                    geotransform  = ds.GetGeoTransform() 
 
-                for image in polygons.keys():
-                    for polygon_id in polygons[image].keys():
+                    # Create a polygon from the tile
+                    Tile = Polygon(shapefile_record['geometry']['coordinates'][0]) 
 
-                        annotation = polygons[image][polygon_id]
+                    for image in polygons.keys():
+                        for polygon_id in polygons[image].keys():
 
-                        if annotation.shape[0] > 2:
+                            annotation = polygons[image][polygon_id]
 
-                            Annotation = Polygon(annotation)
+                            if annotation.shape[0] > 2:
 
-                            if Tile.contains(Annotation):
+                                Annotation = Polygon(annotation)
 
-                                raw_polygons[tile][polygon_id] = {}
+                                if Tile.contains(Annotation):
 
-                                raw_polygons[tile][polygon_id]['LAMB93'] = annotation.tolist()
-                                raw_polygons[tile][polygon_id]['PX'] = np.array([lamb_to_px(an, geotransform) for an in annotation]).tolist()
+                                    raw_polygons[tile][polygon_id] = {}
+
+                                    raw_polygons[tile][polygon_id]['LAMB93'] = annotation.tolist()
+                                    raw_polygons[tile][polygon_id]['PX'] = np.array([lamb_to_px(an, geotransform) for an in annotation]).tolist()
+                else:
+                    continue
+                        
 
     # once completed, remove the empty keys
     old_keys = list(raw_polygons.keys())

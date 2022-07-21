@@ -95,6 +95,7 @@ class Aggregation():
         self.aux_dir = configuration.get('aux_dir')
         self.outputs_dir = configuration.get('outputs_dir')
         self.img_dir = configuration.get('source_images_dir')
+        self.lut_dir = configuration.get('look_up_table_dir')
 
         # arguments
         self.dpt = dpt
@@ -118,7 +119,7 @@ class Aggregation():
         """.format(self.building, self.lut, self.constant))
 
         # load and prepare the lookup table
-        lut = json.load(open(os.path.join(self.aux_dir, "look_up_table.json")))
+        lut = json.load(open(os.path.join(self.lut_dir, "look_up_table.json")))
 
         # load and prepare the communes directory for matching the installations
         # with the communes.

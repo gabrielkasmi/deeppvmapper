@@ -17,12 +17,11 @@
 # - data : the name of the directory in which the final output (.geojson file)
 #            are stored
 
-source_images_dir : "/data/GabrielKasmi/data/ign/D069_2020"
+source_images_dir : ""
 model_dir : 'models'
 
-source_iris_dir : '/data/GabrielKasmi/data/ign/IRIS_2021/CONTOURS-IRIS_2-1__SHP__FRA_2021-01-01/CONTOURS-IRIS/'
-source_commune_dir : '/data/GabrielKasmi/data/communes'
-source_topo_dir : "/data/GabrielKasmi/data/ign/TOPO/D069_2021" 
+source_commune_dir : ''
+source_topo_dir : "" 
 
 temp_dir : 'temp'
 aux_dir: 'aux'
@@ -49,7 +48,7 @@ device : 'cuda'
 # Preprocessing
 # tiles_list : the list of tiles to proceed. By default it is set to None, but it is edited in the 
 # tutorial to speed-up the execution of the tutorial
-tiles_list : None
+tiles_list : 
 
 
 # Classification
@@ -79,8 +78,11 @@ seg_model : 'model_bdappv_seg'
 # Aggregation : 
 # - filter building : keep only the installations that are on a building
 # - filter LUT : compute the tilt with the extrernal look up table
-# - constant_kWp : constant linear fit between the 
+# - constant_kWp : constant linear fit between the surface and installed capacity
+# - look_up_table_dir : the diectory where the look up table is located.
 
 filter_building : True
 filter_LUT : True
 constant_kWp : False
+
+look_up_table_dir : "look_up_table_dir" 

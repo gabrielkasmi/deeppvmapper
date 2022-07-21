@@ -22,7 +22,7 @@ import shutil
 
 
 
-def initialize_tiles_list(source_dir, dpt):
+def initialize_tiles_list(source_dir, target_tiles ,dpt):
     """
     returns a dictionnary where each key is the tile name
     and each value is set to False, meaning that none of the 
@@ -30,17 +30,22 @@ def initialize_tiles_list(source_dir, dpt):
     """
 
     tiles_list = {}
+    
+    if target_tiles is None: # if we do not input a specific list of tiles to proceed, go for all of them.
+    
+        dnsSHP = glob.glob(source_dir + "/**/dalles.shp", recursive = True) 
 
-    dnsSHP = glob.glob(source_dir + "/**/dalles.shp", recursive = True) 
+        if not dnsSHP:
+            print("Error, the shape file could not be found.")
+            raise ValueError
 
-    if not dnsSHP:
-        print("Error, the shape file could not be found.")
-        raise ValueError
-        
-    with collection(dnsSHP[0], 'r') as input: # look for the tile that contains the point
-        for shapefile_record  in input:
-            name = shapefile_record["properties"]["NOM"][2:-4]
-            tiles_list[name] = False
+        with collection(dnsSHP[0], 'r') as input: # look for the tile that contains the point
+            for shapefile_record  in input:
+                name = shapefile_record["properties"]["NOM"][2:-4]
+                tiles_list[name] = False
+    else:
+        for tile in target_tiles:
+            tiles_list[tile] = False
 
 
     print('There are {} tiles for the departement {}.'.format(len(tiles_list), dpt))
@@ -70,6 +75,7 @@ class TilesTracker():
         self.source_dir = configuration.get('source_images_dir')
         self.temp_dir = configuration.get("temp_dir")
         self.dpt = dpt
+        self.tiles_list = configuration.get("tiles_list")
 
         # initialize the temporary directory if the latter does not exist.
         if not os.path.isdir(self.temp_dir):
@@ -101,7 +107,7 @@ class TilesTracker():
 
         else: # if the file does not exist create it in all cases.
 
-            tiles_list = initialize_tiles_list(self.source_dir, self.dpt)
+            tiles_list = initialize_tiles_list(self.source_dir, self. tiles_list, self.dpt)
             with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
                 json.dump(tiles_list, f, indent = 2)
 
