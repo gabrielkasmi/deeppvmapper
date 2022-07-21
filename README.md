@@ -12,7 +12,7 @@ Photovoltaic (PV) energy is key to mitigating the current energy crisis. However
 
 ### Approach
 
-Our detection is summarized by the following the following, based on [3D-PV-Locator](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937):
+Our detection is summarized by the following diagram, based on [3D-PV-Locator](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937):
 
 <p align="center">
 <img src="https://github.com/gabrielkasmi/dsfrance/blob/main/figs/flowchart.png" width=700px>
