@@ -60,14 +60,11 @@ This software is provided under [GPL-3.0 license](https://github.com/gabrielkasm
 
 ```
 @article{kasmi2022deepsolar,
-  doi = {10.48550/ARXIV.2207.07466},
-  url = {https://arxiv.org/abs/2207.07466},
-  author = {Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},  
-  title = {{DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping}},
-  publisher = {arXiv},
-  year = {2022},
+  title={DeepSolar tracker: towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping},
+  author={Kasmi, Gabriel and Dubus, Laurent and Blanc, Philippe and Saint-Drenan, Yves-Marie},
+  journal={arXiv preprint arXiv:2207.07466},
+  year={2022}
 }
-
 ```
 
 Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">star</a> us ! 
