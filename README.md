@@ -22,7 +22,7 @@ The installations' characteristics that we extract are the following: surface, t
 
 ### Data
 
-To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our [Zenodo repository](https://zenodo.org/record/6862675). 
+To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our [Zenodo repository](https://zenodo.org/record/6862675) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675).
 
 This repository contains all the necessary data to run the pipeline over a small area of 600 km². If you want to run the pipeline over larger areas, you'll only have to download the corresponding aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
 
