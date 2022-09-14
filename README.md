@@ -1,4 +1,4 @@
-Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping
+# Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping
 
 Accepted for the [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0). Access the paper [here](http://arxiv.org/abs/2207.07466).
 
