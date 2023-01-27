@@ -10,7 +10,7 @@ The latest version of the Zenodo repository is accessible here : [![DOI](https:/
 This algorithm is used in the following papers:
 * "Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping", accepted for the [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0).
   * Access the paper here : [https://arxiv.org/abs/2207.07466](https://arxiv.org/abs/2207.07466)
-  * Stable code corresponding to the papier : [https://github.com/gabrielkasmi/deeppvmapper/tree/workshop](https://github.com/gabrielkasmi/deeppvmapper/tree/workshop)
+  * Stable code corresponding to the paper : [https://github.com/gabrielkasmi/deeppvmapper/tree/workshop](https://github.com/gabrielkasmi/deeppvmapper/tree/workshop)
   * Stable repository corresponding to the paper : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675)
 
 ## Approach
