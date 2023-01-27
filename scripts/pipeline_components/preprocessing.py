@@ -22,12 +22,13 @@ import shutil
 
 
 
-def initialize_tiles_list(source_dir, target_tiles ,dpt):
+def initialize_tiles_list(source_dir, target_tiles, dpt):
     """
     returns a dictionnary where each key is the tile name
     and each value is set to False, meaning that none of the 
     tiles have yet been proceeded.
     """
+
 
     tiles_list = {}
     
@@ -44,6 +45,8 @@ def initialize_tiles_list(source_dir, target_tiles ,dpt):
                 name = shapefile_record["properties"]["NOM"][2:-4]
                 tiles_list[name] = False
     else:
+
+
         for tile in target_tiles:
             tiles_list[tile] = False
 

@@ -164,7 +164,6 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
         center of the thumbnail)
         """
 
-
         # retrieve the location of the image
         dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
 
@@ -185,6 +184,7 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
                         dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
 
             ds=gdal.Open(dnsJP2) # open the image
+
 
             # get the geographical characteristics
             geotransform  = ds.GetGeoTransform() # keep the wrapped variable

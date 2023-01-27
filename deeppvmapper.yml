@@ -1,6 +1,7 @@
-name: dsfrance
+name: deeppvmapper
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - fiona
   - pandas
@@ -11,15 +12,20 @@ dependencies:
   - scikit-image
   - ipykernel
   - tqdm
-  - geojson
-  - folium
   - ipywidgets
   - matplotlib
   - tensorboard
   - statsmodels
   - plotly
-  - torchmetrics
   - descartes
   - wget
   - pyshp
-prefix: /data/GabrielKasmi/miniconda3/envs/dsfrance
+  - jupyter
+  - pip:
+    - geojson
+    - torchmetrics
+    - folium
+    - opencv-python
+    - pyproj
+    - area
+prefix: /data/GabrielKasmi/miniconda3/envs/deeppvmapper

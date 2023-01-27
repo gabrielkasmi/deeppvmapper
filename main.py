@@ -69,7 +69,7 @@ def main():
 
     run_segmentation = configuration.get('run_segmentation')
 
-    run_characterization = configuration.get('run_characterization')
+    #run_characterization = configuration.get('run_characterization')
     
     run_aggregation = configuration.get('run_aggregation')
     
@@ -86,9 +86,10 @@ def main():
     # the outputs directory stores the results of teh model
     # the temp directory stores the temporary outputs and is erased at the end of inference.
 
+
     outputs_dir = configuration.get('outputs_dir')
     aux_dir = configuration.get('aux_dir')
-    temp_dir = configuration.get('temp_dir')
+    #temp_dir = configuration.get('temp_dir')
 
     # Check that the aux directory is not empty. 
     # If it is the case, stop the script and tell the user to 
@@ -109,6 +110,7 @@ def main():
 
         # Initialize the tiles tracker helper, that will keep track of the 
         # tiles that have been completed and those that still need to be proceeded
+
         tiles_tracker = preprocessing.TilesTracker(configuration, dpt, force = args.force) 
 
         i = 0
@@ -124,7 +126,7 @@ def main():
             # 3) Update the list of tiles that have been processed 
             # 4) remove the negative images
 
-            i += 1
+            #i += 1
 
             print('Starting pre processing...')
 
