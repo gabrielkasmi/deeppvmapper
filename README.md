@@ -67,4 +67,6 @@ This software is provided under [GPL-3.0 license](https://github.com/gabrielkasm
 }
 ```
 
-Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/dsfrance" data-icon="octicon-star" aria-label="Star gabrielkasmi/dsfrance on GitHub">star</a> us ! 
+Like this work ? Do not hesitate to star us ! 
+<!-- Place this tag where you want the button to render. -->
+<a class="github-button" href="https://github.com/gabrielkasmi/deeppvmapper" data-icon="octicon-star" aria-label="Star gabrielkasmi/deeppvmapper on GitHub">Star</a> 
