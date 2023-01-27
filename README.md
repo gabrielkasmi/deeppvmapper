@@ -1,6 +1,3 @@
-<!-- Place this tag in your head or just before your close body tag. -->
-<script async defer src="https://buttons.github.io/buttons.js"></script>
-
 # Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping
 
 Accepted for the [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0). Access the paper [here](http://arxiv.org/abs/2207.07466).
@@ -70,6 +67,4 @@ This software is provided under [GPL-3.0 license](https://github.com/gabrielkasm
 }
 ```
 
-Like this work ? Do not hesitate to star us ! 
-<!-- Place this tag where you want the button to render. -->
-<a class="github-button" href="https://github.com/gabrielkasmi/deeppvmapper" data-icon="octicon-star" aria-label="Star gabrielkasmi/deeppvmapper on GitHub">Star</a> 
+Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/deeppvmapper" data-icon="octicon-star" aria-label="Star gabrielkasmi/deeppvmapper on GitHub">star</a> us ! 
