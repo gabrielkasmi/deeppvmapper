@@ -1,14 +1,19 @@
-# Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping
-
-Accepted for the [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0). Access the paper [here](http://arxiv.org/abs/2207.07466).
+# DeepPVMapper
 
 ## Overview
 
-### Motivation
+DeepPVMapper is an deep learning-based mapping algorithm developped to map rooftop PV installations over France. This algorithm is still under development and the repository hosts the latest release of the algorithm.
 
-Photovoltaic (PV) energy is key to mitigating the current energy crisis. However, distributed PV generation, which amounts to half of the PV energy generation, makes it increasingly difficult for transmission system operators (TSOs) to balance the load and supply and avoid grid congestions. Indeed, in the absence of measurements, estimating the distributed PV generation is tough. In recent years, many remote sensing-based approaches have been proposed to map distributed PV installations. However, to be applicable in industrial settings, one needs to assess the accuracy of the mapping over the whole deployment area. We build on existing work to propose an automated PV registry pipeline. This pipeline automatically generates a dataset recording all distributed PV installations' location, area, installed capacity, and tilt angle. It only requires aerial orthoimagery and topological data, both of which are freely accessible online. In order to assess the accuracy of the registry, we propose an unsupervised method based on the <i> Registre national d'installation </i> (RNI), that centralizes all individual PV systems aggregated at communal level, enabling practitioners to assess the accuracy of the registry and eventually remove outliers. We deploy our model on 9 French <i> départements </i> covering more than 50 000 square kilometers, providing the largest mapping of distributed PV panels with this level of detail to date. We then demonstrate how practitioners can use our unsupervised accuracy assessment method to assess the accuracy of the outputs. In particular, we show how it can easily identify outliers in the detections. Overall, our approach paves the way for a safer integration of deep learning-based pipelines for remote PV mapping. 
+The latest version of the Zenodo repository is accessible here : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814)
 
-### Approach
+
+This algorithm is used in the following papers:
+* "Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping", accepted for the [Workshop on Machine Learning for Earth Observation @ECML-PKDD 2022](https://sites.google.com/view/maclean22/people?authuser=0).
+  * Access the paper here : [https://arxiv.org/abs/2207.07466](https://arxiv.org/abs/2207.07466)
+  * Stable code corresponding to the papier : [https://github.com/gabrielkasmi/deeppvmapper/tree/workshop](https://github.com/gabrielkasmi/deeppvmapper/tree/workshop)
+  * Stable repository corresponding to the paper : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675)
+
+## Approach
 
 Our detection is summarized by the following diagram, based on [3D-PV-Locator](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937):
 
@@ -22,7 +27,7 @@ The installations' characteristics that we extract are the following: surface, t
 
 ### Data
 
-To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our [Zenodo repository](https://zenodo.org/record/6862675) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675).
+To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our Zenodo repository (see the latest release above)
 
 This repository contains all the necessary data to run the pipeline over a small area of 600 km². If you want to run the pipeline over larger areas, you'll only have to download the corresponding aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
 
