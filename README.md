@@ -2,7 +2,7 @@
 
 ## Overview
 
-DeepPVMapper is an deep learning-based mapping algorithm developped to map rooftop PV installations over France. This algorithm is still under development and the repository hosts the latest release of the algorithm.
+DeepPVMapper is a deep learning-based mapping algorithm developped to map rooftop PV installations over France. This algorithm is still under development and the repository hosts the latest release of the algorithm.
 
 The latest version of the Zenodo repository is accessible here : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814)
 
