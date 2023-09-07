@@ -21,7 +21,7 @@ Our detection is summarized by the following diagram, based on [3D-PV-Locator](h
 <img src="https://github.com/gabrielkasmi/dsfrance/blob/main/figs/flowchart.png" width=700px>
 </p>
 
-The installations' characteristics that we extract are the following: surface, tilt, installed capacity. In order to assess the accuracy of the estimation of the installed capacity over the whole deployment area, we introduce a metric based on the <i> registre national d'installations </i> (RNI). This measure consists in reaggregating the installations's installed capacities for each city and to compare the aggregation with the reference value. The main advantage of this approach is that it is unsupervised, fast to compute and available over the whole territory of deployment. This accuracy tracking tool enables practitioner to monitor all the outputs produced by the algorithm, thus improving its accountability. We trained our classification and segmentation models on a new training database called BDAPPV, which you can access here : [https://arxiv.org/abs/2209.03726](https://arxiv.org/abs/2209.03726)
+The installations' characteristics that we extract are the following: surface, tilt, installed capacity. In order to assess the accuracy of the estimation of the installed capacity over the whole deployment area, we introduce a metric based on the <i> registre national d'installations </i> (RNI). This measure consists in reaggregating the installations's installed capacities for each city and to compare the aggregation with the reference value. The main advantage of this approach is that it is unsupervised, fast to compute and available over the whole territory of deployment. This accuracy tracking tool enables practitioner to monitor all the outputs produced by the algorithm, thus improving its accountability. We trained our classification and segmentation models on a new training database called BDAPPV, which you can access [here](https://www.nature.com/articles/s41597-023-01951-4).
 
 ## Usage
 
@@ -29,22 +29,22 @@ The installations' characteristics that we extract are the following: surface, t
 
 To replicate the results, you'll need to download the data and the models' weights. This can be downloaded on our Zenodo repository (see the latest release above)
 
-This repository contains all the necessary data to run the pipeline over a small area of 600 km². If you want to run the pipeline over larger areas, you'll only have to download the corresponding aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
+This repository contains all the necessary data to run the pipeline over a small area of 120 km². If you want to run the pipeline over larger areas, you'll only have to download the corresponding aerial images [here](https://geoservices.ign.fr/bdortho) and the topological data [here](https://geoservices.ign.fr/bdtopo). Also make sure to download the RNI for the correct year, accessible [here](https://www.data.gouv.fr/fr/datasets/?q=Registre%20national%20des%20installations%20de%20production%20d%27%C3%A9lectricit%C3%A9).
 
 ### Set-up 
 
 Clone the repository and enter it. 
 
 ```python
-git clone https://github.com/gabrielkasmi/dsfrance.git
-cd dsfrance
+git clone https://github.com/gabrielkasmi/deeppvmapper.git
+cd deeppvmapper
 ```
 
 Then, create the environment :
 
 ```python
-conda env create --file dsfrance.yml
-conda activate dsfrance
+conda env create --file deeppvmapper.yml
+conda activate deeppvmapper
 ```
 
 ### Replication
