@@ -57,6 +57,7 @@ class PostProcessing():
         self.source_images_dir = configuration.get("source_images_dir")
         self.outputs_dir = configuration.get('outputs_dir')
         self.results_dir= configuration.get('geo_dir')
+        self.aux_dir = configuration.get('aux_dir')
         self.source_iris_dir = configuration.get('source_iris_dir')
         self.source_commune_dir = configuration.get("source_commune_dir")
 
@@ -85,27 +86,14 @@ class PostProcessing():
         """
 
         # List of buildings
-        if not os.path.exists(os.path.join(self.outputs_dir, 'buildings_locations_{}.json'.format(self.dpt))):
 
-            print('Computing the location of the buildings...')
-            buildings_locations = data_handlers.get_buildings_locations(self.bd_topo_path)
-
-            # save the file
-            print('Computation complete. Saving the file.')
-
-            with open(os.path.join(self.outputs_dir, 'buildings_locations_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(buildings_locations, f, indent=2)
-
-            print('Done.')
-
-        else:
             # open the existing file 
-            print('Opening the buildings_locations_{}.json file... This can take some time...'.format(self.dpt))
-            buildings_locations = json.load(open(os.path.join(self.outputs_dir, 'buildings_locations_{}.json'.format(self.dpt))))
-            print('File buildings_locations_{}.json loaded.'.format(self.dpt))        
+        print('Opening the buildings_locations_{}.json file... This can take some time...'.format(self.dpt))
+        buildings_locations = json.load(open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt))))
+        print('File buildings_locations_{}.json loaded.'.format(self.dpt))        
 
         # Plants localization
-        if not os.path.exists(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt))):
+        if not os.path.exists(os.path.join(self.aux_dir, 'plants_locations_{}.json'.format(self.dpt))):
 
             # List of power plants
             print('Extracting the localization of the power plants...')
@@ -113,20 +101,20 @@ class PostProcessing():
 
             # Saving the file
 
-            with open(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt)), 'w') as f:
+            with open(os.path.join(self.aux_dir, 'plants_locations_{}.json'.format(self.dpt)), 'w') as f:
                 json.dump(plants_locations, f, indent = 2)
 
             print("Done.")
         else:
             # open the existing file
-            plants_locations = json.load(open(os.path.join(self.outputs_dir, 'plants_locations_{}.json'.format(self.dpt))))
+            plants_locations = json.load(open(os.path.join(self.aux_dir, 'plants_locations_{}.json'.format(self.dpt))))
             print('File plants_locations_{}.json loaded.'.format(self.dpt))        
 
         # IRIS and commune : to be done only if the user has specified it.
         if self.compute_iris:
 
             # Computation for the IRIS : 
-            if not os.path.exists(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt))):
+            if not os.path.exists(os.path.join(self.aux_dir, 'iris_{}.json'.format(self.dpt))):
 
                 print('Filtering the IRIS attached to departement {}...'.format(self.dpt))
                 iris_location = data_handlers.get_iris(self.source_iris_dir, self.dpt)
@@ -134,7 +122,7 @@ class PostProcessing():
                 # save the file
                 print('Computation complete. Saving the file.')
 
-                with open(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt)), 'w') as f:
+                with open(os.path.join(self.aux_dir, 'iris_{}.json'.format(self.dpt)), 'w') as f:
                     json.dump(iris_location, f, indent=2)
 
                 print('Done.')
@@ -142,11 +130,11 @@ class PostProcessing():
             else:
                 # open the existing file 
                 print('Opening the iris_{}.json file... This can take some time...'.format(self.dpt))
-                iris_location = json.load(open(os.path.join(self.outputs_dir, 'iris_{}.json'.format(self.dpt))))
+                iris_location = json.load(open(os.path.join(self.aux_dir, 'iris_{}.json'.format(self.dpt))))
                 print('File loaded.')
 
             # Same for the commune
-            if not os.path.exists(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt))):
+            if not os.path.exists(os.path.join(self.aux_dir, 'communes_{}.json'.format(self.dpt))):
 
                 print('Filtering the communes attached to departement {}...'.format(self.dpt))
                 communes_location = data_handlers.get_communes(self.source_commune_dir, self.dpt)
@@ -154,7 +142,7 @@ class PostProcessing():
                 # save the file
                 print('Computation complete. Saving the file.')
 
-                with open(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt)), 'w') as f:
+                with open(os.path.join(self.aux_dir, 'communes_{}.json'.format(self.dpt)), 'w') as f:
                     json.dump(communes_location, f, indent=2)
 
                 print('Done.')
@@ -162,7 +150,7 @@ class PostProcessing():
             else:
                 # open the existing file 
                 print('Opening the communes_{}.json file... This can take some time...'.format(self.dpt))
-                communes_location = json.load(open(os.path.join(self.outputs_dir, 'communes_{}.json'.format(self.dpt))))
+                communes_location = json.load(open(os.path.join(self.aux_dir, 'communes_{}.json'.format(self.dpt))))
                 print('File loaded.')
 
         else: # Iris and commune are None.
@@ -285,15 +273,15 @@ class PostProcessing():
                     tmp[tile][building].append(array.tolist())
 
 
-        print(tmp.keys())
+        #print(tmp.keys())
 
-        tile = list(tmp.keys())[0]
+        #tile = list(tmp.keys())[0]
 
-        print(tmp[tile].keys())
+        #print(tmp[tile].keys())
 
-        item = list(tmp[tile].keys())[0]
+        #item = list(tmp[tile].keys())[0]
 
-        print(tmp[tile][item])
+        #print(tmp[tile][item])
 
         
         with open(os.path.join(self.outputs_dir, 'tmp_rooftop.json'), 'w') as f:

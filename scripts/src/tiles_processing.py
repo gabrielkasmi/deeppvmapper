@@ -20,6 +20,9 @@ import tqdm
 import gdal
 import cv2
 from shapely.geometry import Polygon
+import geopandas as gpd
+import concurrent
+from filtering import filter_locations, open_tile
 
 """
 Expresses a point on a thumbnail (e.g. (120,225)) as a coordinate 
@@ -157,80 +160,142 @@ At the rightmost and lowermost edges, patches overlap if
 the patch size is not a factor of the width/height of the 
 tile.
 """
-def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
-        """
-        Crops the input impage into thumbnails of a given inputed size.
-        Returns the thumbnail names (cooresponding to the coordinates of the 
-        center of the thumbnail)
-        """
+def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size, building_in_tiles, parameters):
+    """
+    """
 
-        # retrieve the location of the image
-        dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
+    ds = open_tile(folder, tile_name)
 
-        # create the destination directory 
-        destination_directory = os.path.join(target_folder, tile_name)
+    # create the destination directory 
+    destination_directory = os.path.join(target_folder, tile_name)
 
-        # creates the directory if the latter does not already exists
-        if not os.path.isdir(destination_directory):
-            os.mkdir(destination_directory)
+    # creates the directory if the latter does not already exists
+    if not os.path.isdir(destination_directory):
+        os.mkdir(destination_directory)
 
-        if dnsSHP: # if the list is not empty, then look for the shapefile of the tile
-
-            with collection(dnsSHP[0], "r") as input:
-                for shapefile_record  in input:
-                    if shapefile_record['properties']['NOM'][2:-4] == tile_name:
-                        dns=shapefile_record['properties']['NOM'][2:] #open the corresponding tile
-
-                        dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
-
-            ds=gdal.Open(dnsJP2) # open the image
-
-
-            # get the geographical characteristics
-            geotransform  = ds.GetGeoTransform() # keep the wrapped variable
-            ulx, xres, xskew, uly, yskew, yres  = geotransform 
-
-            width, height = ds.RasterXSize, ds.RasterYSize
-        
-            # number of steps to the left and to the right that will be needed 
-
-            x_shifts, y_shifts = int(width / patch_size) + 1, int(height / patch_size) + 1
-
-
-            # set up the rightmost and lowermost boundaries. The center cannot be 
-            # farther than those points
-
-            x_max, y_max = width - (patch_size / 2), height - (patch_size / 2)
-
-            # initialize the row number
-            row = -1
-
-            for i in tqdm.tqdm(range(x_shifts * y_shifts)): # loop over the tile to extract the thumbnails
-
-
-                if i % x_shifts == 0:
-                    row += 1
-
-                xNN = min((patch_size / 2) + patch_size * (i % x_shifts), x_max)
-                yNN = min((patch_size / 2) + patch_size * row, y_max)
-    
-                    
-                xOffset=xNN-(patch_size/2) # upper left corner (x coordinate)
-                yOffset=yNN-(patch_size/2) # upper left corner (y coordinate)
+        # get the geographical characteristics
+        geotransform  = ds.GetGeoTransform() # keep the wrapped variable
+        ulx, xres, _, uly, _, yres  = geotransform 
                 
+        R0=ds.GetRasterBand(1)
+        G0=ds.GetRasterBand(2)
+        B0=ds.GetRasterBand(3)
 
-                R0=ds.GetRasterBand(1)
-                G0=ds.GetRasterBand(2)
-                B0=ds.GetRasterBand(3)
+    # get the coordinates of the buildings on this tile
 
-                R = R0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
-                G = G0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
-                B = B0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+    # compute the mesh of coordinates (in pixels)
+    coordinates, _ = filter_locations(ds, tile_name, building_in_tiles, parameters)
+    # generate the thumbnails - iterate over the coordinates list
 
-                img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * yres) + '.tif'    
+    # to go faster
+    for coord in tqdm.tqdm(coordinates):
+        xNN, yNN = coord
 
-                # save the image as a geotiff
-                save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, os.path.join(destination_directory,img_name))
+        # corners of the image
+        xOffset=xNN-(patch_size/2) # upper left corner (x coordinate)
+        yOffset=yNN-(patch_size/2) # upper left corner (y coordinate)
+
+        # corresponding bands
+        R = R0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+        G = G0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+        B = B0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+
+        # image name
+        img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * yres) + '.tif'  
+
+        # save the image  
+        save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, os.path.join(destination_directory,img_name))  
+
+
+def translate_thumbnail_point_to_geo(point, tile):
+    """
+    translates the position on a tile in a coordinate in Lambert93
+    the input is the tile
+    """
+    
+    # express the coordinates in terms of pixels on the tile
+    x, y = point # coordinates
+
+    ulx, xres, _, uly, _, yres = tile.GetGeoTransform()
+     
+    x_final = x * xres + ulx
+    y_final = y * yres + uly
+
+    return x_final, y_final
+
+# def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size):
+#         """
+#         Crops the input impage into thumbnails of a given inputed size.
+#         Returns the thumbnail names (cooresponding to the coordinates of the 
+#         center of the thumbnail)
+#         """
+# 
+#         # retrieve the location of the image
+#         dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
+# 
+#         # create the destination directory 
+#         destination_directory = os.path.join(target_folder, tile_name)
+# 
+#         # creates the directory if the latter does not already exists
+#         if not os.path.isdir(destination_directory):
+#             os.mkdir(destination_directory)
+# 
+#         if dnsSHP: # if the list is not empty, then look for the shapefile of the tile
+# 
+#             with collection(dnsSHP[0], "r") as input:
+#                 for shapefile_record  in input:
+#                     if shapefile_record['properties']['NOM'][2:-4] == tile_name:
+#                         dns=shapefile_record['properties']['NOM'][2:] #open the corresponding tile
+# 
+#                         dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
+# 
+#             ds=gdal.Open(dnsJP2) # open the image
+# 
+#             # get the geographical characteristics
+#             geotransform  = ds.GetGeoTransform() # keep the wrapped variable
+#             ulx, xres, xskew, uly, yskew, yres  = geotransform 
+# 
+#             width, height = ds.RasterXSize, ds.RasterYSize
+#         
+#             # number of steps to the left and to the right that will be needed 
+# 
+#             x_shifts, y_shifts = int(width / patch_size) + 1, int(height / patch_size) + 1
+# 
+# 
+#             # set up the rightmost and lowermost boundaries. The center cannot be 
+#             # farther than those points
+# 
+#             x_max, y_max = width - (patch_size / 2), height - (patch_size / 2)
+# 
+#             # initialize the row number
+#             row = -1
+# 
+#             for i in tqdm.tqdm(range(x_shifts * y_shifts)): # loop over the tile to extract the thumbnails
+# 
+# 
+#                 if i % x_shifts == 0:
+#                     row += 1
+# 
+#                 xNN = min((patch_size / 2) + patch_size * (i % x_shifts), x_max)
+#                 yNN = min((patch_size / 2) + patch_size * row, y_max)
+#     
+#                     
+#                 xOffset=xNN-(patch_size/2) # upper left corner (x coordinate)
+#                 yOffset=yNN-(patch_size/2) # upper left corner (y coordinate)
+#                 
+# 
+#                 R0=ds.GetRasterBand(1)
+#                 G0=ds.GetRasterBand(2)
+#                 B0=ds.GetRasterBand(3)
+# 
+#                 R = R0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+#                 G = G0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+#                 B = B0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
+# 
+#                 img_name = str(ulx + xNN * xres) + '-' + str(uly + yNN * yres) + '.tif'    
+# 
+#                 # save the image as a geotiff
+#                 save_geotiff(R,G,B, xNN, yNN, patch_size, geotransform, os.path.join(destination_directory,img_name))
 
 """
 Small helpers that returns the thumbnail as a geotiff file.

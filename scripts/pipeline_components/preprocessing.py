@@ -226,6 +226,8 @@ class PreProcessing():
         self.temp_dir = configuration.get('temp_dir')
         self.thumbnails_dir = os.path.join(self.temp_dir, "classification")
 
+        self.aux_dir = configuration.get('aux_dir')
+
         # Parameters for this part
         self.patch_size = configuration.get('patch_size')
         self.count = count
@@ -239,6 +241,23 @@ class PreProcessing():
 
         # number of tiles to proceed (cannot be greated than the len of the tiles_list)
         self.count = min(len(list(self.tiles_list.keys())), count) 
+
+        # building in tiles 
+        if not os.path.exists(
+            os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(dpt))
+        ):
+            print('No sorted buildings file found in {} for dpt {}. Make sure to run auxiliary.py before the main pipeline.'.format(self.aux_dir, dpt))
+            raise ValueError
+        self.building_in_tiles = json.load(open(
+            os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(dpt))
+        ))
+        
+        # parameters 
+        self.parameters = {
+            'buffer' : 5, # buffer around the buildings
+            'size'   : configuration.get('patch_size'),
+            'step'   : configuration.get('step_size')
+        }
 
 
 
@@ -255,8 +274,8 @@ class PreProcessing():
 
         def f(tile) : # Local function to be put in the threadpoolexecutor
             print('Processing tile {}...'.format(tile))
-            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)
-
+            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size, self.building_in_tiles, self.parameters)
+        
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(f, tiles_batch)
 

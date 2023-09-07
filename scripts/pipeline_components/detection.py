@@ -34,6 +34,8 @@ from torch.utils.data import DataLoader
 import numpy as np
 import torchvision
 
+import torch.nn as nn
+
 class Detection():
 
     """
@@ -80,6 +82,19 @@ class Detection():
         model_name = self.model_name + '.pth'
 
         model = torch.load(os.path.join(self.model_dir, model_name), map_location = device)
+
+        # # to remove
+        # def torchmodify(name) :
+        #     a=name.split('.')
+        #     for i,s in enumerate(a) :
+        #         if s.isnumeric() :
+        #             a[i]="_modules['"+s+"']"
+        #     return '.'.join(a)
+        # #import torch.nn as nn
+        # for name, module in model.named_modules() :
+        #     if isinstance(module,nn.GELU) :
+        #         exec('model.'+torchmodify(name)+'=nn.GELU()')
+# 
         # model.to(device)
         model.eval()
 

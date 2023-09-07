@@ -184,11 +184,8 @@ class Aggregation():
             tiles_list = list(annotations.keys()) # subset of tiles on which there is an installation
 
             # buildings : open the file with all the buildings
-            buildings = json.load(open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt))))
+            sorted_buildings = json.load(open(os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(self.dpt))))
                     
-            # sort the buildings by tile
-            sorted_buildings = postprocessing_helpers.assign_building_to_tiles(tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt)
-
             # return a filtered dataframe where 
             # - the kWp is merged, as well as the surface
             # - installations that are not on a building are removed

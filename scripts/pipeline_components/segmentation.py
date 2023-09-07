@@ -269,4 +269,4 @@ class Segmentation():
 
         # once segmentation is complete, remove the directory containing the thumbnails
         # to segment
-        shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))
+        # shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))

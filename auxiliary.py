@@ -18,6 +18,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import wget
+import glob
 
 """
 Script that generates the auxiliary outputs needed throughout the pipeline. 
@@ -188,7 +189,39 @@ def get_associated_mns(aux_dir, source_images_dir):
             target_directory = os.path.join(dpt_mns_dir, tile_name)
             plt.imsave(target_directory, full_tile)
 
+def initialize_tiles_list(source_dir, target_tiles):
+    """
+    returns a dictionnary where each key is the tile name
+    and each value is set to False, meaning that none of the 
+    tiles have yet been proceeded.
+    """
 
+    tiles_list = {}
+    
+    if target_tiles is None: # if we do not input a specific list of tiles to proceed, go for all of them.
+    
+        dnsSHP = glob.glob(source_dir + "/**/dalles.shp", recursive = True) 
+
+        if not dnsSHP:
+            print("Error, the shape file could not be found.")
+            raise ValueError
+
+        with collection(dnsSHP[0], 'r') as input: # look for the tile that contains the point
+            for shapefile_record  in input:
+                name = shapefile_record["properties"]["NOM"][2:-4]
+                tiles_list[name] = False
+    else:
+
+
+        for tile in target_tiles:
+            tiles_list[tile] = False
+
+    return tiles_list
+
+
+# compute the tiles list
+# for which we will sort the building locations.
+tiles_list = initialize_tiles_list(source_images_dir, configuration.get('tiles_list'))
 
 """
 computes the MNS of a tile
@@ -249,18 +282,23 @@ def compute_mns(tile_coords):
 def main():
 
     # buildings
-    if not os.path.exists(os.path.join(aux_dir, 'buildings_locations_{}.json'.format(args.dpt))):
+    if not os.path.exists(os.path.join(aux_dir, 'sorted_buildings_{}.json'.format(args.dpt))):
 
         print('Computing the location of the buildings...')
         buildings_locations = data_handlers.get_buildings_locations(source_topo_dir)
+        sorted_buildings = data_handlers.assign_building_to_tiles(tiles_list, buildings_locations, source_images_dir)
+
+        # sort the buildings by tile
+        # postprocessing_helpers.assign_building_to_tiles(tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt)
 
         # save the file
         print('Computation complete. Saving the file.')
 
-        with open(os.path.join(aux_dir, 'buildings_locations_{}.json'.format(args.dpt)), 'w') as f:
-            json.dump(buildings_locations, f, indent=2)
+        with open(os.path.join(aux_dir, 'sorted_buildings_{}.json'.format(args.dpt)), 'w') as f:
+            json.dump(sorted_buildings, f, indent=2)
 
         print('Done.')
+
 
     # power plants
     if not os.path.exists(os.path.join(aux_dir, 'plants_locations_{}.json'.format(args.dpt))):
