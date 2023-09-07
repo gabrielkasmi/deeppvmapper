@@ -17,11 +17,11 @@
 # - data : the name of the directory in which the final output (.geojson file)
 #            are stored
 
-source_images_dir : "../deeppvmapper/source/IGN_ORTHO_2020_69"
-model_dir : '../deeppvmapper/source/WEIGHTS'
+source_images_dir : ""
+model_dir : ''
 
-source_commune_dir : '../deeppvmapper/source/COMMUNES_2021'
-source_topo_dir : "../deeppvmapper/source/IGN_TOPO_2021_69" 
+source_commune_dir : ''
+source_topo_dir : "" 
 
 temp_dir : 'temp'
 aux_dir: 'aux'
@@ -41,7 +41,7 @@ run_aggregation : True
 # - departement_number : the departement number, used in the postprocessing and main script.
 
 patch_size : 224
-step_size : 168 # the step size (in pixels) between two thumbnail centers
+step_size : 137 # the step size (in pixels) between two thumbnail centers
 device : 'cuda'
     
 # Parameters that are specific to certain pipelines
@@ -84,14 +84,11 @@ tiles_list :
 # - cls_model : the name of the model to look for in the folder.
 
 cls_batch_size : 256
-# cls_threshold : 0.27 # 0.4
-# cls_model : 'model_spectral'
 
-# cls_threshold : 0.51
-# cls_model : "model_oracle"
+cls_threshold : 0.51
+cls_model : "model_oracle"
 
-cls_threshold : 0.60
-cls_model : 'model_convnext'
+
 
 # Segmentation
 # - seg_batch_size : the size of the segmentation batch size
@@ -116,4 +113,4 @@ filter_building : False
 filter_LUT : True
 constant_kWp : False
 
-look_up_table_dir : "../deeppvmapper/source/LOOK_UP_TABLE" 
+look_up_table_dir : "" 
