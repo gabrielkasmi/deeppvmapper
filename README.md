@@ -4,7 +4,7 @@
 
 DeepPVMapper is a deep learning-based mapping algorithm developped to map rooftop PV installations over France. This algorithm is still under development and the repository hosts the latest release of the algorithm.
 
-The latest version of the Zenodo repository is accessible here : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814)
+The latest version of the Zenodo repository with the data necessary for the replication of the results is accessible here : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814)
 
 
 This algorithm is used in the following papers:
@@ -14,8 +14,8 @@ This algorithm is used in the following papers:
   * Stable repository corresponding to the paper : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675)
 
 * "DeepPVMapper: reliable and scalable remote sensing of rooftop photovoltaic installations"
-  * Stable code corresponding to the paper: [![DOI](https://zenodo.org/badge/428337790.svg)](https://zenodo.org/badge/latestdoi/428337790)
-  * Stable repository corresponding to the paper: [https://github.com/gabrielkasmi/deeppvmapper/tree/pscc](https://github.com/gabrielkasmi/deeppvmapper/tree/pscc)
+  * Stable code corresponding to the paper: [https://github.com/gabrielkasmi/deeppvmapper/tree/pscc](https://github.com/gabrielkasmi/deeppvmapper/tree/pscc)
+  * Stable repository corresponding to the paper: [![DOI](https://zenodo.org/badge/428337790.svg)](https://zenodo.org/badge/latestdoi/428337790)
 
 ## Approach
 
