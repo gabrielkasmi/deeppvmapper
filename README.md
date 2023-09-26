@@ -13,6 +13,10 @@ This algorithm is used in the following papers:
   * Stable code corresponding to the paper : [https://github.com/gabrielkasmi/deeppvmapper/tree/workshop](https://github.com/gabrielkasmi/deeppvmapper/tree/workshop)
   * Stable repository corresponding to the paper : [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6862675.svg)](https://doi.org/10.5281/zenodo.6862675)
 
+* "DeepPVMapper: reliable and scalable remote sensing of rooftop photovoltaic installations"
+  * Stable code corresponding to the paper: [![DOI](https://zenodo.org/badge/428337790.svg)](https://zenodo.org/badge/latestdoi/428337790)
+  * Stable repository corresponding to the paper: [https://github.com/gabrielkasmi/deeppvmapper/tree/pscc](https://github.com/gabrielkasmi/deeppvmapper/tree/pscc)
+
 ## Approach
 
 Our detection is summarized by the following diagram, based on [3D-PV-Locator](https://www.sciencedirect.com/science/article/abs/pii/S0306261921016937):
