@@ -31,18 +31,27 @@ def retrieve_city_code(center, communes):
     
     code = None
     
-    
     for commune in communes.keys():
 
-        raw_coords = np.array(communes[commune]['coordinates'])
-        if raw_coords.shape[0] == 1:# filter the communes that have a correct dimension
-        
-            coords = raw_coords.squeeze(0)
-            Coords = Polygon(coords)
-        
-            if Coords.contains(Center):
-                code = communes[commune]['properties']['code_insee']
-                break
+        try:
+            raw_coords = np.array(communes[commune]['coordinates'])
+            if raw_coords.shape[0] == 1:# filter the communes that have a correct dimension
+            
+                coords = raw_coords.squeeze(0)
+                Coords = Polygon(coords)
+            
+                if Coords.contains(Center):
+                    code = communes[commune]['properties']['code_insee']
+                    break
+        except: # this case, we are in a multipolygon
+            for subset in communes[commune]['coordinates']:
+                raw_coords = np.array(subset)
+                if raw_coords.shape[0] == 1:
+                    coords = raw_coords.squeeze(0)
+                    Coords = Polygon(coords)
+
+                    if Coords.contains(Center):
+                        code = communes[commune]['properties']['code_insee']
             
     return code
 
