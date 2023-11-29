@@ -176,6 +176,9 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size, 
         # get the geographical characteristics
         geotransform  = ds.GetGeoTransform() # keep the wrapped variable
         ulx, xres, _, uly, _, yres  = geotransform 
+
+        # get the size of the tile
+        width, height = ds.RasterXSize, ds.RasterYSize
                 
         R0=ds.GetRasterBand(1)
         G0=ds.GetRasterBand(2)
@@ -185,15 +188,30 @@ def generate_thumbnails_from_tile(folder, target_folder, tile_name, patch_size, 
 
     # compute the mesh of coordinates (in pixels)
     coordinates, _ = filter_locations(ds, tile_name, building_in_tiles, parameters)
+
     # generate the thumbnails - iterate over the coordinates list
 
     # to go faster
     for coord in tqdm.tqdm(coordinates):
+
+        # unwrap the coordinates
         xNN, yNN = coord
 
         # corners of the image
         xOffset=xNN-(patch_size/2) # upper left corner (x coordinate)
         yOffset=yNN-(patch_size/2) # upper left corner (y coordinate)
+
+        # check that the implied dimensions will lie in the boundaries of
+        # the tile
+        # if the margin is negative, the edge of the thumbnail is outside
+        # the tile. 
+        # we add it (i.e., move to the left) in this case. 
+        x_margin = xOffset + patch_size - width
+        xOffset += min(x_margin, 0) 
+
+        # same on Y
+        y_margin = yOffset + patch_size - width
+        yOffset += min(y_margin, 0) 
 
         # corresponding bands
         R = R0.ReadAsArray(xOffset, yOffset, patch_size, patch_size)
