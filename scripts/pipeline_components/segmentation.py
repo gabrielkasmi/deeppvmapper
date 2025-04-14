@@ -171,6 +171,10 @@ class Segmentation():
 
         # Inference loop
         for data in tqdm.tqdm(inference_data):
+            
+            # modifier ici pour prendre en compte plusieurs modèles.
+            # faire en sorte d'avoir pour chaque image un ensemble de masques et prendre l'union des masques
+            # pour générer la détection finale
 
             with torch.no_grad():
 
@@ -181,6 +185,8 @@ class Segmentation():
                 predictions = predicted['out']
                 # min-max scaling
                 predictions = (predictions - torch.min(predictions)) / (torch.max(predictions) - torch.min(predictions) + 0.000000001)
+                
+                # faire passer plusieurs modèles ici pour sommer les masques. Doit marcher pareil si n = 1
 
                 binary_outputs = (predictions >= self.threshold).long().squeeze(1).detach().cpu().numpy()
                 outputs.append(binary_outputs)   
@@ -269,4 +275,4 @@ class Segmentation():
 
         # once segmentation is complete, remove the directory containing the thumbnails
         # to segment
-        # shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))
+        shutil.rmtree(os.path.join(self.temp_dir, 'segmentation'))

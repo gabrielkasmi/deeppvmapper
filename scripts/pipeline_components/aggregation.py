@@ -6,8 +6,6 @@ the script takes the arrays geojson file as input
 and returns the aggregated capacities
 
 """
-from distutils.command.config import config
-from lib2to3.pgen2 import driver
 import sys
 sys.path.append('../src')
 
@@ -17,9 +15,8 @@ import json
 import postprocessing_helpers
 import geojson
 import pandas as pd
-import concurrent
 import tqdm
-
+import joblib
 
 """
 helper that saves the outputs in a file name stored
@@ -96,14 +93,24 @@ class Aggregation():
         self.outputs_dir = configuration.get('outputs_dir')
         self.img_dir = configuration.get('source_images_dir')
         self.lut_dir = configuration.get('look_up_table_dir')
+        self.models_dir = configuration.get('model_dir')
 
         # arguments
         self.dpt = dpt
 
         # parameters
         self.building = configuration.get('filter_building')
-        self.lut = configuration.get('filter_LUT')
-        self.constant = configuration.get('constant_kWp')
+        self.random_forest_tilt = configuration.get('random_forest_tilt')
+        self.rf_scaler_tilt = configuration.get('rf_scaler_tilt')
+        self.random_forest_ic = configuration.get('random_forest_ic')
+        self.rf_scaler_ic = configuration.get('rf_scaler_ic')
+
+        # parameters
+        self.constant_tilt = configuration.get("constant_tilt")
+        self.efficiency = configuration.get('efficiency')
+        self.method_tilt = configuration.get('tilt_method')
+        self.method_azimuth = configuration.get('azimuth_method')
+        self.method_ic = configuration.get('installed_capacity_method')
 
 
     def initialize(self):
@@ -114,9 +121,10 @@ class Aggregation():
         print('Converting the raw masks into panel characteristics...')
         print(""" Parameters for the conversion have been set as follows : \n
         - Filter by building : {}
-        - Impute a tilt using the look up table : {}
-        - Use a single coefficient to infer the installed capacity : {}
-        """.format(self.building, self.lut, self.constant))
+        - Method to infer the tilt : {}
+        - Method to infer the azimuth : {}
+        - Method to infer the installed capacity : {}
+        """.format(self.building, self.method_tilt, self.method_azimuth, self.method_ic))
 
         # load and prepare the lookup table
         lut = json.load(open(os.path.join(self.lut_dir, "look_up_table.json")))
@@ -127,6 +135,13 @@ class Aggregation():
 
         # open the main file arrays.geojson
         arrays = geojson.load(open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt))))
+
+        # initialize the random forest
+        self.rf_tilt = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.random_forest_tilt)))
+        self.scaler_tilt = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.rf_scaler_tilt)))
+
+        self.rf_ic = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.random_forest_ic)))
+        self.scaler_ic = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.rf_scaler_ic)))
 
         return arrays, lut, communes
 
@@ -139,21 +154,34 @@ class Aggregation():
         """
         installations = []
 
-        def f(array):
-            installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
-            return None
+        #def f(array):
+        #    installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
+        #    return None
 
         print('Extracting the characteristics from the geojson file...')
 
         #with concurrent.futures.ThreadPoolExecutor() as executor:
         #    executor.map(f, arrays['features'])
 
+        # define the dictionnary of parameters
+        p = {
+            'constant_tilt'      : self.constant_tilt,
+            'method_tilt'        : self.method_tilt,
+            'random_forest_tilt' : (self.rf_tilt, self.scaler_tilt),
+            'method_azimuth'     : self.method_azimuth,
+            'random_forest_ic'   : (self.rf_ic, self.scaler_ic),
+            'efficiency'         : self.efficiency,
+            'method_ic'          : self.method_ic
+        }
+
+
         for i, array in tqdm.tqdm(enumerate(arrays['features'])):
-            installations.append(postprocessing_helpers.compute_characteristics(array, i, lut, communes, self.lut, self.constant))
+
+            installations.append(postprocessing_helpers.compute_characteristics(array, i, lut, communes, p))
 
 
-        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
-        
+
+        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'azimuth', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
         print('Characteristics extraction completed.')
         
         return df
@@ -181,11 +209,15 @@ class Aggregation():
             # convert the dataframe 
             annotations = postprocessing_helpers.reshape_dataframe(df)
 
+
             tiles_list = list(annotations.keys()) # subset of tiles on which there is an installation
 
             # buildings : open the file with all the buildings
-            sorted_buildings = json.load(open(os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(self.dpt))))
+            buildings = json.load(open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt))))
                     
+            # sort the buildings by tile
+            sorted_buildings = postprocessing_helpers.assign_building_to_tiles(tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt)
+            
             # return a filtered dataframe where 
             # - the kWp is merged, as well as the surface
             # - installations that are not on a building are removed
@@ -204,9 +236,9 @@ class Aggregation():
         - an updated geojson file which restricts to the filtered installations and includes 
         the estimated characteristics of the underlying polygon
         """
+
         # full registry
         filtered_installations = postprocessing_helpers.merge_duplicates(filtered_installations) # remove the duplicates of the dataframe
-
         filtered_installations.to_csv(os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt)), index = False)
 
         # aggregated capacities computed for comparison
@@ -251,4 +283,3 @@ class Aggregation():
 
         # save the outputs
         self.export(filtered_installations)
-

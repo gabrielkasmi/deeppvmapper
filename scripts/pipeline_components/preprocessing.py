@@ -22,19 +22,21 @@ import shutil
 
 
 
-def initialize_tiles_list(source_dir, target_tiles, dpt):
+def initialize_tiles_list(source_dir, target_tiles ,dpt):
     """
     returns a dictionnary where each key is the tile name
     and each value is set to False, meaning that none of the 
     tiles have yet been proceeded.
     """
 
-
     tiles_list = {}
     
     if target_tiles is None: # if we do not input a specific list of tiles to proceed, go for all of them.
+
+        print(source_dir)
     
         dnsSHP = glob.glob(source_dir + "/**/dalles.shp", recursive = True) 
+        print(source_dir)
 
         if not dnsSHP:
             print("Error, the shape file could not be found.")
@@ -45,12 +47,12 @@ def initialize_tiles_list(source_dir, target_tiles, dpt):
                 name = shapefile_record["properties"]["NOM"][2:-4]
                 tiles_list[name] = False
     else:
+        tiles_list = {tile : False for tile in target_tiles}
 
 
-        for tile in target_tiles:
-            tiles_list[tile] = False
+    # only display the remaining number of tiles for the département.
 
-
+   
     print('There are {} tiles for the departement {}.'.format(len(tiles_list), dpt))
     return tiles_list
 
@@ -128,7 +130,10 @@ class TilesTracker():
         proceeded_tiles = json.load(open(os.path.join(self.temp_dir, "raw_detection_results.json")))
         completed_tiles = list(proceeded_tiles.keys())
 
-        print("{} tiles have beed proceeded.".format(len(completed_tiles)))
+        # display only the number of tiles proceeded in the current departement
+        str_dpt = '0' + str(self.dpt) if self.dpt < 10 else str(self.dpt)
+
+        print("{}/{} tiles completed for departement {}".format(len([t for t in completed_tiles if t[:2] == str_dpt]),len(self.tiles_list.keys()),self.dpt))
 
         for tile in completed_tiles: # loop over the tiles for which the approximate coordinates 
                                      # have been computed
@@ -172,7 +177,7 @@ class TilesTracker():
                 folders += 1
                 shutil.rmtree(os.path.join(thumbnails_dir, tile))
 
-        print("{} folders have beed deleted.".format(folders))
+        print("{} folders deleted.".format(folders))
 
     def completed(self):
         """checks whether the tiles_list still contains 
@@ -226,8 +231,6 @@ class PreProcessing():
         self.temp_dir = configuration.get('temp_dir')
         self.thumbnails_dir = os.path.join(self.temp_dir, "classification")
 
-        self.aux_dir = configuration.get('aux_dir')
-
         # Parameters for this part
         self.patch_size = configuration.get('patch_size')
         self.count = count
@@ -241,23 +244,6 @@ class PreProcessing():
 
         # number of tiles to proceed (cannot be greated than the len of the tiles_list)
         self.count = min(len(list(self.tiles_list.keys())), count) 
-
-        # building in tiles 
-        if not os.path.exists(
-            os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(dpt))
-        ):
-            print('No sorted buildings file found in {} for dpt {}. Make sure to run auxiliary.py before the main pipeline.'.format(self.aux_dir, dpt))
-            raise ValueError
-        self.building_in_tiles = json.load(open(
-            os.path.join(self.aux_dir, 'sorted_buildings_{}.json'.format(dpt))
-        ))
-        
-        # parameters 
-        self.parameters = {
-            'buffer' : 5, # buffer around the buildings
-            'size'   : configuration.get('patch_size'),
-            'step'   : configuration.get('step_size')
-        }
 
 
 
@@ -274,8 +260,8 @@ class PreProcessing():
 
         def f(tile) : # Local function to be put in the threadpoolexecutor
             print('Processing tile {}...'.format(tile))
-            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size, self.building_in_tiles, self.parameters)
-        
+            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(f, tiles_batch)
 

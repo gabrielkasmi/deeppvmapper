@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from tempfile import tempdir
 import numpy as np
 from area import area
 from shapely.geometry import Point, Polygon
@@ -14,6 +15,8 @@ import json
 import geojson
 import math
 import itertools
+import matplotlib.pyplot as plt
+import cv2 as cv
 
 
 """
@@ -31,10 +34,26 @@ def retrieve_city_code(center, communes):
     
     code = None
     
+    
     for commune in communes.keys():
 
-        try:
-            raw_coords = np.array(communes[commune]['coordinates'])
+        # handle the multipolygons
+        raw_coords = communes[commune]["coordinates"]
+
+        if len(raw_coords) > 1:
+
+            for rc in raw_coords:
+                if np.array(rc).shape[0] == 1:# filter the communes that have a correct dimension
+                    coords = np.array(rc).squeeze(0)
+                    Rc = Polygon(coords)
+
+                    if Rc.contains(Center):
+                        code = communes[commune]['properties']['code_insee']
+                        break
+
+        else:
+            raw_coords = np.array(raw_coords).squeeze(0)
+            
             if raw_coords.shape[0] == 1:# filter the communes that have a correct dimension
             
                 coords = raw_coords.squeeze(0)
@@ -43,15 +62,6 @@ def retrieve_city_code(center, communes):
                 if Coords.contains(Center):
                     code = communes[commune]['properties']['code_insee']
                     break
-        except: # this case, we are in a multipolygon
-            for subset in communes[commune]['coordinates']:
-                raw_coords = np.array(subset)
-                if raw_coords.shape[0] == 1:
-                    coords = raw_coords.squeeze(0)
-                    Coords = Polygon(coords)
-
-                    if Coords.contains(Center):
-                        code = communes[commune]['properties']['code_insee']
             
     return code
 
@@ -66,8 +76,10 @@ def return_surface_id(projected_area, surface_categories):
 
     surface_id = None
 
+
     for surface_key in surface_categories.keys():
         lb, ub = surface_categories[surface_key]
+
         if projected_area <= ub and projected_area > lb:
             surface_id = surface_key
             break
@@ -98,22 +110,26 @@ def return_latitude_and_longitude_ids(center, latitude_categories, longitude_cat
             
     return lat_id, lon_id
 
-def compute_characteristics(array, installation_id, lut, communes, use_lut, constant):
+
+def compute_tilt(geometry, lut, rf, scaler, constant, method):
     """
-    array is a geogson object
-    its characteristics are extracted and we return a list with :
-    
-    surface, tilt, code insee, installed capacity, lat, lon
-    
+    computes the tilt angle of an installation. Methods incorporated so far:
+
+    - constant : imputes the average value specified by the user
+    - look_up_table : imputes a value based on a look up table
+    - random_forest : imputes a value based on a RF regressor
+
+
     args : 
-    - array : an item of the geojson
-    - lut : the lookup table 
-    - communes : a json with the communes of the current departement
+
+    - geometry : the array['geometry'] item of the installation
+    - lut : the look up table
+    - constant: the constant tilt to be passed as value
+    - rf : the random forest
+    - scaler : the scaler for the random forest
     """
-    
-    # helper dictionnaries
-    # hard coded
-    # auxiliary dictionnaries to access the values of the look-up table
+
+    # Coefficients correspondance for the look up table
     longitude_categories = {
         0: [-5.587941812553222, -5.282510198057422],
      1: [-5.282510198057422, -4.977078583561623],
@@ -218,54 +234,261 @@ def compute_characteristics(array, installation_id, lut, communes, use_lut, cons
     }
 
     surfaces_categories = {
-        0: [7.347880794884119e-16, 15.556349186104047],
+        0: [-0.1e-6, 15.556349186104047],
      1: [15.556349186104047, 18.186533479473212],
      2: [18.186533479473212, 20.84507910184295],
-     3: [20.84507910184295, 3987.75426296126]}
+     3: [20.84507910184295, 1e6]}
 
-    regression_coefficients = {
-        0: 0.14746518407829015,
-     1: 0.1422389858867244,
-     2: 0.13350621534945112,
-     3: 0.13179292212903068}
 
-    constant_coef = 0.13207496765309207
+    coordinates =  np.array(geometry['coordinates']).squeeze(0) # coordinates - corresponds to the array extracted.
+    center = np.mean(coordinates, axis = 0) # center of the installation
+    projected_area = area(geometry)
 
+    if method == "constant":
+
+        return constant
+
+    if method == 'lut':
+
+        # compute the coefficients to access the look up table
+        surface_id = return_surface_id(projected_area, surfaces_categories) 
+        lat_id, lon_id = return_latitude_and_longitude_ids(center, latitude_categories, longitude_categories)
+
+
+        return lut[str(surface_id)][lon_id][lat_id]
+
+    if method == 'random_forest':
+
+        lon, lat = center
+
+        df_values = pd.DataFrame([[lat, lon, projected_area]], columns = ['lat', 'lon', 'proj_surf'])
+        X_fit = scaler.transform(df_values)
+
+        return rf.predict(X_fit)[0]
+
+    else:
+        print('Unknown method imputed for the tilt estimation.')
+        raise ValueError
+
+
+def compute_azimuth(coordinates, method):
+    """ 
+    computes the azimuth of the installation. methods implemented so far:
+    hough (+bb)
+
+    args
+    - coordinates : the np.array of coordinates
+    - masks path : the path where the masks are stored
+    - method : the type of method
+    """
+
+    if method == 'hough':
+
+        # generate a mask mask from the arrays in the temp/masks directory
+        cnt = generate_mask(coordinates)
+        return BB_timing(cnt)
+
+    else:
+        print('Unknown method imputed for the azimuth estimation.')
+        raise ValueError
+
+
+def generate_mask(coordinates):
+    """
+    generates a mask by computing a local grid
+    around the mask. 
+    
+    used as input for the Hough method
+    """
+
+        
+    # helper functions
+    def gps_to_lambert(coord):
+        (long, lat) = coord
+        transformer = Transformer.from_crs("epsg:4326", "epsg:2154")
+        x,y = transformer.transform(lat, long)
+        return (x,y)
+
+    def convert_to_pixel(ulx, uly, coords):
+
+        xres, yres = 0.2, 0.2
+
+        coords[:,0] = (coords[:,0] - ulx) / xres
+        coords[:,1] = (coords[:,1] - uly) / yres
+
+        return coords.astype(int)
+    
+    # conver the mask into lambert coordiantes
+    coords_lamb = np.array([gps_to_lambert(c) for c in coordinates])
+
+    # define the bounding box, which itself will define the number of pixels
+    offset = 2
+    left, top = int(np.min(coords_lamb[:,0])) - offset, int(np.min(coords_lamb[:,1])) - offset
+
+    coordinates = convert_to_pixel(left, top, coords_lamb)    
+    
+    return coordinates
+
+
+def BB_timing(cnt):
+
+    """
+    computes the bounding box from the contour, obtained from 
+    the conversion to pixel coordinates of the image.
+
+    Speeds up the computations compared to the case where the method
+    is implemented from segmentation masks.
+
+    Adapted from Y. Tremenbert
+    """
+
+    # make it match the shape of a typical open cv contour.
+    cnt = np.expand_dims(cnt, axis = 1)
+
+    # Get rotated BndRect
+    rect = cv.minAreaRect(cnt)
+    box = cv.boxPoints(rect)
+    box = np.int0(box)
+    # Infer associated lengths and angles
+    x0, y0 = box[0][0], box[0][1]
+    x2, y2 = box[2][0], box[2][1]
+    x3, y3 = box[3][0], box[3][1]
+    lengths = [np.sqrt((x3-x0)**2+(y3-y0)**2), np.sqrt((x3-x2)**2+(y3-y2)**2)]
+    orientations = [-np.arctan2((x3-x0),(y3-y0))*180/np.pi, -np.arctan2((x3-x2),(y3-y2))*180/np.pi]
+    likely_phi = - orientations[np.argmin(lengths)]
+    
+    return likely_phi
+
+
+def compute_installed_capacity(coordinates, surface, tilt, efficiency, p, rf, scaler, method):
+    """
+    computes the installed capacity
+    implemented methods : 
+
+    - linear : constant linear fit
+    - clustered_linear : clustered linear fit
+    - quadratic : quadratic regression
+    - random_forest : random forest implementation
+
+    args : 
+    coordinates : 
+    surface : the *projected surface*
+    tilt : the estimated tilt
+    efficiency : the efficiency parameter in case of a linear fit
+    rf, scaler : the random forest and the scaler
+    p : a dictionnary that contains the parameters of the clustered regression
+        and quadratic regression
+    method : the method to be used
+    """
+
+    if method == "linear":
+        
+        real_surface = surface / np.cos(tilt * np.pi / 180)
+        return real_surface * efficiency
+
+    if method == "clustered_linear":
+
+        # extract the dictionnaries that contain the regression coefficients
+        surfaces_categories, regression_coefficients = p['surfaces_categories'], p['regression_coefficients']
+
+        # compute the real surface
+        real_surface = surface / np.cos(tilt * np.pi / 180)
+
+        surface_id = return_surface_id(surface, surfaces_categories)
+        
+        if surface_id is not None:
+            
+            return real_surface * regression_coefficients[surface_id]
+        else: # if the surface is not in the boundaries, set a value such that the installation will be discarded. 
+            return 0.
+
+    if method == "quadratic":
+
+        # quadratic coefficients is a np.array with the two regression coefficients
+
+        quadratic_coefficients = p['quadratic_coefficients']       
+
+        # compute the real surface
+        real_surface = surface / np.cos(tilt * np.pi / 180)
+
+        return np.dot(np.array([real_surface, real_surface**2]), quadratic_coefficients)
+
+    if method == "random_forest":
+
+        # compute the center of the polygon
+        center = np.mean(coordinates, axis = 0)
+        lon, lat = center
+
+        df_values = pd.DataFrame([[lat, lon, surface, tilt]], columns = ['lat', 'lon', 'proj_surf', 'tilt'])
+        X_fit = scaler.transform(df_values)
+
+        return rf.predict(X_fit)[0]
+
+def compute_characteristics(array, installation_id, lut, communes, p):
+    """
+    array is a geogson object
+    its characteristics are extracted and we return a list with :
+    
+    surface, tilt, code insee, installed capacity, lat, lon
+    
+    args : 
+    - array : an item of the geojson
+    - lut : the lookup table 
+    - communes : a json with the communes of the current departement
+    - temp_dir : the directory of temporary outputs
+    - p : a dictionnary of parameters
+    """
+
+    constant_tilt = p['constant_tilt'] # extract the constant tilt value
+    method_tilt = p['method_tilt'] # extract the chosent method for tilt
+    rf, scaler = p['random_forest_tilt'] # extract the random forest and scaler for the tilt
+
+    method_azimuth = p['method_azimuth'] # chosen method for the azimuth
+
+    efficiency = p['efficiency'] # the value of the efficiency
+    method_ic = p['method_ic']
+    rf_ic, scaler_ic = p['random_forest_ic']
+
+    
     
     # extract the values
     coordinates = np.array(array['geometry']['coordinates']).squeeze(0) # array of coordinates (of the polygon)
     center = np.mean(coordinates, axis = 0) # barycenter of the array
     # extract latitude and longitude from the center
     lon, lat = center
-    
-    # compute the projected area
-    projected_area = area(array['geometry'])
-    
-    # here retrieve the tile name and load the corresponding MNS Tile.
-    
-    # based on the projected area, get the surface id to access the LUT
-    surface_id = return_surface_id(projected_area, surfaces_categories)
-    
-    # get the latitude and longitude codes
-    lat_id, lon_id = return_latitude_and_longitude_ids(center, latitude_categories, longitude_categories)
-    
-    # access the lut to get a tilt estimation
-    if use_lut and (surface_id is not None): 
-        tilt = lut[str(surface_id)][lon_id][lat_id]
-    else: 
-        tilt = 0 # otherwise directly consider the projected surface
-    
+
+
+    #### TILT computation
+    tilt = compute_tilt(array['geometry'], lut, rf, scaler, constant_tilt, method_tilt)
+
+
+    ### SURFACE computation
     # based on the tilt and the projected surface, compute
     # the "real" surface
+    # compute the projected area
+    projected_area = area(array['geometry'])    
     estimated_surface = projected_area / np.cos(tilt * np.pi / 180)
 
-    # compute the installed capacity based on the 
-    # surface cluster and the estimated surface
-    if not constant and (surface_id is not None):
-        installed_capacity = estimated_surface * regression_coefficients[surface_id]
-    else:
-        installed_capacity = estimated_surface * constant_coef
-    
+    ### AZIMUTH computation
+    azimuth = compute_azimuth(coordinates, method_azimuth)
+
+    ### INSTALLED CAPACITY computation
+    # define the dictionnary of parameters
+
+    # hard coded values for the clustered linear regression
+    surfaces_categories = {0: [0, 20.886516629316457], 1: [20.886516629316457, 24.9038016107337], 2: [24.9038016107337, 30.06039115705773], 3: [30.06039115705773, 5000]}
+    regression_coefficients = {0: 0.1588534217908767, 1: 0.124406296756714, 2: 0.10930903461834848, 3: 0.09946834214084056}
+    quadratic_coefficients = np.array([1.21262809e-01, 8.96808844e-06])
+
+
+    params = {
+        'surfaces_categories'   : surfaces_categories,
+        'regression_coefficients' : regression_coefficients,
+        "quadratic_coefficients" : quadratic_coefficients
+    }
+
+    installed_capacity = compute_installed_capacity(coordinates, projected_area, tilt, efficiency, params, rf_ic, scaler_ic, method_ic)
+   
     # finally, get the commune code
     # returns None if the installation does not lie in the departement of interest.
     city_code = retrieve_city_code(center, communes)
@@ -274,7 +497,7 @@ def compute_characteristics(array, installation_id, lut, communes, use_lut, cons
     tile_name = array['properties']['tile']
     
     # return everything    
-    return [estimated_surface, tilt, installed_capacity, city_code, lat, lon, tile_name, installation_id]
+    return [estimated_surface, tilt, azimuth, installed_capacity, city_code, lat, lon, tile_name, installation_id]
 
 
 def filter_installations(df, annotations, sorted_buildings, communes):
@@ -296,7 +519,9 @@ def filter_installations(df, annotations, sorted_buildings, communes):
 
     for tile in target_tiles:
 
+
         for building_id in sorted_buildings[tile].keys():
+
 
             building = sorted_buildings[tile][building_id]['coordinates'] # get the coordinates
             Building = Polygon(building) # convert as polygon
@@ -357,18 +582,19 @@ def filter_installations(df, annotations, sorted_buildings, communes):
                 city = retrieve_city_code((coordinates[1], coordinates[0]), communes)
 
             tilt = df.loc[corresponding_indices[0]]['tilt'] #all values should be the same
+            azimuth = df.loc[corresponding_indices[0]]['azimuth']
             
             tile_name = df.loc[corresponding_indices[0]]['tile_name']
             id_installation = df.loc[corresponding_indices[0]]['installation_id']
 
             # values to be added    
-            values = [aggregated_surface, tilt, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name, id_installation]
+            values = [aggregated_surface, tilt, azimuth, aggregated_capacity, city, coordinates[0], coordinates[1], tile_name, id_installation]
 
         # add the merged values in the dictionnary
         filtered_installations.append(values)
 
     # convert the dictionnary to a dataframe
-    filtered_df = pd.DataFrame(filtered_installations, columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
+    filtered_df = pd.DataFrame(filtered_installations, columns = ['surface', 'tilt', 'azimuth' ,'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
 
     return filtered_df
 
@@ -539,6 +765,9 @@ def compute_tiles_coordinates(tiles_dir):
 
     # location of the file with the power plants
     dnsSHP = glob.glob(tiles_dir + "/**/dalles.shp", recursive = True)
+    
+#    print('coucou')
+#    print(tiles_dir)
 
     # dictionnary
     items = {}
@@ -581,6 +810,7 @@ def associate_characteristics_to_pv_polygons(characteristics, arrays, data_dir, 
         surface = table['surface'].values.item() 
         tilt = table['tilt'].values.item()
         kWp = table['kWp'].values.item()
+        azimuth = table['azimuth'].values.item()
         
         # properties of the installation
         if pd.isna(city):
@@ -592,6 +822,7 @@ def associate_characteristics_to_pv_polygons(characteristics, arrays, data_dir, 
             'city' : city,
             'surface' : float(surface),
             'tilt' : float(tilt),
+            'azimuth' : float(azimuth),
             'kWp' : float(kWp)
 
         }
@@ -600,7 +831,6 @@ def associate_characteristics_to_pv_polygons(characteristics, arrays, data_dir, 
         coordinates = array['geometry']['coordinates']
         
         #append to the feature list
-        
         features.append(geojson.Feature(geometry=geojson.Polygon(coordinates), properties=properties))
  
     feature_collection = geojson.FeatureCollection(features)    
@@ -675,17 +905,16 @@ def merge_duplicates(characteristics):
                             surface = table['surface'].sum()
                             city = table.loc[i, 'city']
                             tilt = table.loc[i,'tilt']
+                            azim = table.loc[i,'azimuth']
                             kWp = table['kWp'].sum()
 
                             lat, lon = table.loc[i, 'lat'], table.loc[i, 'lon']
-
                             tile_name = table.loc[i, 'tile_name']
 
-
                             # create a new entry
-                            merged_installation = [surface, tilt, kWp, city, lat, lon, tile_name, installation_id]
+                            merged_installation = [surface, tilt, kWp, azim, city, lat, lon, tile_name, installation_id]
 
-                            new = pd.DataFrame([merged_installation], columns = ['surface', 'tilt', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
+                            new = pd.DataFrame([merged_installation], columns = ['surface', 'tilt', 'azimuth' ,'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
 
                             # append it to the dataframe and remove two former rows
                             characteristics = characteristics.drop(labels=[i,j], axis=0)

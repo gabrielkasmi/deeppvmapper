@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from fiona import collection
+import tqdm
+import glob
+import numpy as np
+
+from shapely.geometry import Point, Polygon
+import itertools
 from pyproj import Transformer
 import cv2
 import geojson
 import os
-import itertools
-import glob
-from fiona import collection
-import gdal
-from shapely.geometry import Point, Polygon
-import geopandas as gpd
-import numpy as np
-import tqdm
+
+
+
 """
 helper that will convert the departement as a str properly.
 """
@@ -121,91 +123,6 @@ def get_relevant_tiles(data_path, covered_tiles):
                             items[name]['coordinates'].append((x0,y0))
 
             return items
-
-
-def open_tile(folder, tile_name):
-
-    dnsSHP = glob.glob(folder + "/**/dalles.shp", recursive = True)
-
-    with collection(dnsSHP[0], "r") as input:
-        for shapefile_record  in input:
-
-            if shapefile_record['properties']['NOM'][2:-4] == tile_name:
-                dns=shapefile_record['properties']['NOM'][2:] #open the corresponding tile
-
-                dnsJP2=glob.glob(folder + "/**/" + dns,recursive = True)[0]
-
-    return gdal.Open(dnsJP2)
-
-"""
-Assign building to tiles 
-Similar to the function found in the postprocessing helpers. 
-Optimized version.
-"""
-def assign_building_to_tiles(tiles_list, buildings_locations, source_images_dir):
-    """
-    assigns the buildings to the tiles
-
-    optimized version
-    """
-    
-    buildings =  {}
-
-    # convert the buildings as a dataframe
-    gpd_buildings = gpd.GeoSeries([
-        Polygon(np.array(buildings_locations[k]['coordinates'])) for k in buildings_locations.keys()
-    ])
-    poly_gdf = gpd.GeoDataFrame({'geometry': gpd_buildings})
-
-
-    for tile_name in tqdm.tqdm(tiles_list):
-
-        buildings[tile_name] = {}
-
-        # open the tile
-        ds = open_tile(source_images_dir, tile_name)
-
-        # get the info on the tiles
-
-        # define the boundaries of the tile
-        left, xres, _, top, _, yres = ds.GetGeoTransform()
-        width, height = ds.RasterXSize, ds.RasterYSize
-
-        # define the boundaries (in Lamb93)
-        right = left + (width * xres)
-        bottom = top + (height * yres)
-
-        boundaries = Polygon(np.array([
-            [left, top],
-            [right, top],
-            [right, bottom],
-            [left, bottom],
-        ]))
-
-        # create a dataframe
-        gpd_tile = gpd.GeoSeries([
-            boundaries
-        ])
-
-        # compute the overlay
-
-        tile_gdf = gpd.GeoDataFrame({'geometry': gpd_tile})
-
-        filtered = gpd.overlay(poly_gdf, tile_gdf, how='intersection')
-
-        for i, polygon in enumerate(filtered['geometry']):
-
-            if polygon.type == "MultiPolygon":
-                polygon = polygon.convex_hull
-
-            x,y = polygon.exterior.coords.xy
-            coords = [[i,j] for i,j in zip(x,y)]
-            buildings[tile_name][i] = {
-                'coordinates' : coords,
-                'building_type' : None
-            }
-
-    return buildings
 
 
 """

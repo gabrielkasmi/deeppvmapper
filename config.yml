@@ -5,7 +5,6 @@
 # Directories :
 # - path/to/source/images : the path to the source images
 # - path/to/topo : the path to the BDTOPO
-# - path/to/iris : the path to the IRIS dataset, used in the postprocessing step.
 # - path/to/communes : the path to the geographic information of the communes, used in the
 #                      postprocessing step.
 # - path/to/model : the path to the model that will be used for detection.
@@ -16,17 +15,19 @@
 # 
 # - data : the name of the directory in which the final output (.geojson file)
 #            are stored
+# - carbon_dir : the path where the records of the energy consumption when 
+#                running the pipeline are stored
 
-source_images_dir : ""
-model_dir : ''
+source_images_dir :
+model_dir :
 
-source_commune_dir : ''
-source_topo_dir : "" 
+source_commune_dir : 
+source_topo_dir : 
 
 temp_dir : 'temp'
 aux_dir: 'aux'
 outputs_dir : 'data'
-
+carbon_dir : 'data'
 
 # -------- Parameters --------
 # Parameters for the main pipeline script 
@@ -40,8 +41,7 @@ run_aggregation : True
 # Patch_size : used in the pre processing and the detection steps.
 # - departement_number : the departement number, used in the postprocessing and main script.
 
-patch_size : 224
-step_size : 137 # the step size (in pixels) between two thumbnail centers
+patch_size : 299
 device : 'cuda'
     
 # Parameters that are specific to certain pipelines
@@ -50,30 +50,6 @@ device : 'cuda'
 # tiles_list : the list of tiles to proceed. By default it is set to None, but it is edited in the 
 # tutorial to speed-up the execution of the tutorial
 tiles_list : 
-- 69-2020-0815-6525-LA93-0M20-E080
-- 69-2020-0810-6535-LA93-0M20-E080
-- 69-2020-0830-6535-LA93-0M20-E080
-- 69-2020-0825-6525-LA93-0M20-E080
-- 69-2020-0820-6535-LA93-0M20-E080
-- 69-2020-0835-6525-LA93-0M20-E080
-- 69-2020-0810-6530-LA93-0M20-E080
-- 69-2020-0815-6520-LA93-0M20-E080
-- 69-2020-0820-6530-LA93-0M20-E080
-- 69-2020-0835-6520-LA93-0M20-E080
-- 69-2020-0830-6530-LA93-0M20-E080
-- 69-2020-0825-6520-LA93-0M20-E080
-- 69-2020-0820-6525-LA93-0M20-E080
-- 69-2020-0835-6535-LA93-0M20-E080
-- 69-2020-0830-6525-LA93-0M20-E080
-- 69-2020-0825-6535-LA93-0M20-E080
-- 69-2020-0810-6525-LA93-0M20-E080
-- 69-2020-0815-6535-LA93-0M20-E080
-- 69-2020-0830-6520-LA93-0M20-E080
-- 69-2020-0825-6530-LA93-0M20-E080
-- 69-2020-0820-6520-LA93-0M20-E080
-- 69-2020-0835-6530-LA93-0M20-E080
-- 69-2020-0815-6530-LA93-0M20-E080
-- 69-2020-0810-6520-LA93-0M20-E080
 
 
 # Classification
@@ -83,12 +59,9 @@ tiles_list :
 #               positives (that are not located on buildings) are filtered out
 # - cls_model : the name of the model to look for in the folder.
 
-cls_batch_size : 256
-
-cls_threshold : 0.51
-cls_model : "model_oracle"
-
-
+cls_batch_size : 512
+cls_threshold : 0.4
+cls_model : 'model_bdappv_cls'
 
 # Segmentation
 # - seg_batch_size : the size of the segmentation batch size
@@ -105,12 +78,33 @@ seg_model : 'model_bdappv_seg'
 
 # Aggregation : 
 # - filter building : keep only the installations that are on a building
-# - filter LUT : compute the tilt with the extrernal look up table
-# - constant_kWp : constant linear fit between the surface and installed capacity
+#
+# Characteristics extraction methods:
+# - tilt_method : 'random_forest' or 'lut' or 'constant'. See documentation for explanations
+# - azimuth_method : 'hough'. See documentation for explanations
+# - installed_capacity_method : "random_forest", "linear", "quadratic", "clustered_linear". See documentation for explanations
+#
 # - look_up_table_dir : the diectory where the look up table is located.
+#
+# - random_forest_tilt path to the weights of the RF model for the tilt
+# - random_forest_ic path to the weights of the RF model for the installed capacity
+#
+# - constant_tilt : the value to input as a constant tilt
+# - efficiency : the value to input as a constant coefficient for linear fit of the IC
 
-filter_building : False
-filter_LUT : True
-constant_kWp : False
+filter_building : True
 
-look_up_table_dir : "" 
+tilt_method : 'lut'
+azimuth_method : 'hough'
+installed_capacity_method : "clustered_linear"
+
+look_up_table_dir : "../data/lut" 
+
+random_forest_tilt : 'random_forest_tilt' 
+rf_scaler_tilt : 'rf_scaler_tilt'
+
+random_forest_ic : 'random_forest_ic'
+rf_scaler_ic :  'rf_scaler_ic'
+
+constant_tilt : 27.
+efficiency : 0.13207496765309207

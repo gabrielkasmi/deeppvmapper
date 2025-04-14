@@ -34,8 +34,6 @@ from torch.utils.data import DataLoader
 import numpy as np
 import torchvision
 
-import torch.nn as nn
-
 class Detection():
 
     """
@@ -82,19 +80,6 @@ class Detection():
         model_name = self.model_name + '.pth'
 
         model = torch.load(os.path.join(self.model_dir, model_name), map_location = device)
-
-        # # to remove
-        # def torchmodify(name) :
-        #     a=name.split('.')
-        #     for i,s in enumerate(a) :
-        #         if s.isnumeric() :
-        #             a[i]="_modules['"+s+"']"
-        #     return '.'.join(a)
-        # #import torch.nn as nn
-        # for name, module in model.named_modules() :
-        #     if isinstance(module,nn.GELU) :
-        #         exec('model.'+torchmodify(name)+'=nn.GELU()')
-# 
         # model.to(device)
         model.eval()
 
@@ -112,7 +97,7 @@ class Detection():
         # and potential miscelanneous hidden files and folders.
         tiles_names = [item for item in os.listdir(self.thumbnails_dir) if not (item[-5:] == '.json') | (item[0] == '.')]
 
-        print('There are {} tiles to proceed.'.format(len(tiles_names)))
+        print('There are {} tiles to process.'.format(len(tiles_names)))
         
         # Dictionnary that will contain the raw outputs.
         # Raw outputs are in the form 
@@ -132,7 +117,7 @@ class Detection():
         
         for tile in tiles_names:
 
-            print('Proceeding tile {}...'.format(tile))
+            print('Processing tile {}...'.format(tile))
 
             # access the folder and load the data
             dataset_dir = os.path.join(self.thumbnails_dir, tile)
@@ -146,6 +131,8 @@ class Detection():
             for inputs, names in tqdm.tqdm(inference_data):
 
                 with torch.no_grad():
+                    
+                    # modifier ici pour pouvoir ajouter plusieurs modèles et *sommer* les prédictions
 
                     inputs = inputs.to(device)
                     outputs = F.softmax(model(inputs), dim = 1)[:,1] # Get thee probability to have an array on the image
