@@ -1,47 +1,27 @@
-/* Navigation */
-.navbar {
-    background-color: #2d3748;
+/* Back to Homepage Button */
+.back-button-container {
+    background-color: #f8f9fa;
     padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #e9ecef;
 }
 
-.navbar .container {
-    display: flex;
-    justify-content: space-between;
+.back-btn {
+    display: inline-flex;
     align-items: center;
-}
-
-.nav-brand a {
-    color: white;
+    color: #4a5568;
     text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.nav-tabs {
-    display: flex;
-    gap: 2rem;
-}
-
-.nav-link {
-    color: #cbd5e0;
-    text-decoration: none;
+    font-weight: 500;
     padding: 0.5rem 1rem;
     border-radius: 6px;
     transition: all 0.3s ease;
+    background-color: white;
+    border: 1px solid #d1d5db;
 }
 
-.nav-link:hover {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.active {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.2);
+.back-btn:hover {
+    background-color: #e2e8f0;
+    color: #2d3748;
+    text-decoration: none;
 }
 
 /* Map Header */
