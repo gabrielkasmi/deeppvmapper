@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepPVMapper: Deep Learning for Rooftop PV Mapping</title>
+    
+    <!-- Meta tags for SEO and social sharing -->
+    <meta name="description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. PhD work by Gabriel Kasmi.">
+    <meta name="keywords" content="deep learning, photovoltaic, mapping, computer vision, remote sensing">
+    <meta name="author" content="Gabriel Kasmi">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
+    <meta property="og:title" content="DeepPVMapper: Deep Learning for Rooftop PV Mapping">
+    <meta property="og:description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images.">
+    <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
+    <meta property="twitter:title" content="DeepPVMapper: Deep Learning for Rooftop PV Mapping">
+    <meta property="twitter:description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images.">
+    <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/style.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="title">DeepPVMapper</h1>
+            <p class="subtitle">Deep Learning for Rooftop Photovoltaic System Mapping</p>
+            <div class="authors">
+                <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
+            </div>
+            <div class="affiliations">
+                Université Paris sciences et lettres
+            </div>
+            <div class="links">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="btn">GitHub</a>
+                <a href="https://pastel.hal.science/tel-04909303" target="_blank" class="btn">PhD Thesis</a>
+                <a href="https://arxiv.org/abs/2207.07466" target="_blank" class="btn">Paper</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Abstract -->
+    <section class="abstract">
+        <div class="container">
+            <h2>Abstract</h2>
+            <p>
+                DeepPVMapper is a deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. 
+                This work addresses the challenge of improving the observability of French rooftop photovoltaic installations 
+                through reliable deep learning models. The algorithm works in two stages: first, tiles from aerial imagery 
+                are classified to detect PV panels, then detected regions are segmented to extract precise polygons. 
+                From these polygons and auxiliary data, the system extracts key characteristics including tilt, orientation, 
+                installed power, and surface area of PV installations.
+            </p>
+        </div>
+    </section>
+
+    <!-- Teaser Image -->
+    <section class="teaser">
+        <div class="container">
+            <img src="figs/flowchart.png" alt="DeepPVMapper Algorithm Flowchart" class="teaser-image">
+            <p class="caption">Overview of the DeepPVMapper approach for detecting and characterizing rooftop PV systems</p>
+        </div>
+    </section>
+
+    <!-- Method -->
+    <section class="method">
+        <div class="container">
+            <h2>Method</h2>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        The algorithm processes high-resolution aerial imagery through a two-stage pipeline:
+                    </p>
+                    <ol>
+                        <li><strong>Classification Stage:</strong> Aerial tiles are divided into patches and classified to detect PV panels</li>
+                        <li><strong>Segmentation Stage:</strong> Detected regions are precisely segmented to extract polygon boundaries</li>
+                    </ol>
+                    <p>
+                        The extracted polygons are converted to geolocated GeoJSON files, and system characteristics 
+                        (tilt, orientation, installed power, surface area) are computed using auxiliary data sources. 
+                        The system applies various filters to ensure quality, including restrictions to installations 
+                        under 36 kWc located on rooftops.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results">
+        <div class="container">
+            <h2>Results</h2>
+            <p>
+                The DeepPVMapper system has been validated against the French national registry of installations (RNI), 
+                demonstrating reliable performance in mapping distributed rooftop photovoltaic systems. The algorithm 
+                successfully processes large-scale aerial imagery datasets and generates comprehensive inventories 
+                of PV installations with detailed characteristics.
+            </p>
+        </div>
+    </section>
+
+    <!-- Citation -->
+    <section class="citation">
+        <div class="container">
+            <h2>Citation</h2>
+            <div class="citation-box">
+                <pre><code>@phdthesis{kasmi2024enhancing,
+  title={Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations},
+  author={Kasmi, Gabriel},
+  year={2024},
+  school={Universit{\'e} Paris sciences et lettres}
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- References -->
+    <section class="references">
+        <div class="container">
+            <h2>References</h2>
+            <div class="reference-list">
+                <p><strong>[1]</strong> Kasmi, G. (2024). Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations. PhD Thesis, Université Paris sciences et lettres.</p>
+                <p><strong>[2]</strong> Kasmi, G., Dubus, L., Blanc, P., & Saint-Drenan, Y. M. (2022). Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping. arXiv preprint arXiv:2207.07466.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">GPL-3.0</a>.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="static/js/script.js"></script>
+</body>
+</html> 
