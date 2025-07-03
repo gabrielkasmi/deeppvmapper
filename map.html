@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepPVMapper Interactive Registry - Map</title>
+    
+    <!-- Meta tags -->
+    <meta name="description" content="Interactive map of rooftop photovoltaic installations mapped by DeepPVMapper">
+    <meta name="keywords" content="photovoltaic, map, registry, deep learning, France">
+    <meta name="author" content="Gabriel Kasmi">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/map.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="index.html" class="nav-link">DeepPVMapper</a>
+            </div>
+            <div class="nav-tabs">
+                <a href="index.html" class="nav-link">Project</a>
+                <a href="map.html" class="nav-link active">Interactive Map</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Map Header -->
+    <header class="map-header">
+        <div class="container">
+            <h1>DeepPVMapper Interactive Registry</h1>
+            <p>Explore the mapped rooftop photovoltaic installations across France</p>
+        </div>
+    </header>
+
+    <!-- Map Controls -->
+    <div class="map-controls">
+        <div class="container">
+            <div class="controls-row">
+                <div class="map-filters">
+                    <div class="filter-group">
+                        <label for="region-select">Region:</label>
+                        <select id="region-select">
+                            <option value="">All Regions</option>
+                            <option value="ile-de-france">Île-de-France</option>
+                            <option value="provence-alpes-cote-azur">Provence-Alpes-Côte d'Azur</option>
+                            <option value="occitanie">Occitanie</option>
+                            <option value="nouvelle-aquitaine">Nouvelle-Aquitaine</option>
+                            <option value="auvergne-rhone-alpes">Auvergne-Rhône-Alpes</option>
+                            <option value="hauts-de-france">Hauts-de-France</option>
+                            <option value="grand-est">Grand Est</option>
+                            <option value="bourgogne-franche-comte">Bourgogne-Franche-Comté</option>
+                            <option value="centre-val-de-loire">Centre-Val de Loire</option>
+                            <option value="normandie">Normandie</option>
+                            <option value="bretagne">Bretagne</option>
+                            <option value="pays-de-la-loire">Pays de la Loire</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="power-range">Power Range (kWc):</label>
+                        <select id="power-range">
+                            <option value="">All Powers</option>
+                            <option value="0-3">0-3 kWc</option>
+                            <option value="3-9">3-9 kWc</option>
+                            <option value="9-36">9-36 kWc</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="year-filter">Installation Year:</label>
+                        <select id="year-filter">
+                            <option value="">All Years</option>
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="map-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-installations">0</span>
+                        <span class="stat-label">Total Installations</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-power">0</span>
+                        <span class="stat-label">Total Power (MWc)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="avg-power">0</span>
+                        <span class="stat-label">Avg Power (kWc)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-wrapper">
+        <div id="map" class="map"></div>
+        
+        <!-- Map Legend -->
+        <div class="map-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ff6b6b;"></span>
+                    <span>0-3 kWc</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #4ecdc4;"></span>
+                    <span>3-9 kWc</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #45b7d1;"></span>
+                    <span>9-36 kWc</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">GPL-3.0</a>.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="static/js/map.js"></script>
+</body>
+</html> 
