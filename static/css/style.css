@@ -198,6 +198,35 @@ h2 {
     text-align: left;
 }
 
+/* Validation Stats */
+.validation-stats {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.validation-stats .stat-item {
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+}
+
+.validation-stats .stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.validation-stats .stat-label {
+    font-size: 1rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
 /* Footer */
 .footer {
     background-color: #2d3748;
