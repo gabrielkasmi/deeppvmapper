@@ -9,10 +9,10 @@ function closePopup() {
     document.body.style.overflow = 'auto';
 }
 
-// Initialize popup - hide by default
+// Initialize popup - show by default
 document.addEventListener('DOMContentLoaded', function() {
-    // Hide popup by default
-    document.getElementById('infoPopup').style.display = 'none';
+    // Show popup by default
+    document.getElementById('infoPopup').style.display = 'block';
     
     // Close popup when clicking outside
     const popup = document.getElementById('infoPopup');
@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Also show popup immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('infoPopup').style.display = 'block';
+    });
+} else {
+    document.getElementById('infoPopup').style.display = 'block';
+}
 
 // DeepPVMapper Interactive Map
 class DeepPVMapperMap {

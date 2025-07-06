@@ -1,3 +1,31 @@
+/* Permanent Back Button */
+.permanent-back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.permanent-back-button .back-btn {
+    background-color: rgba(45, 55, 72, 0.9);
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 12px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.permanent-back-button .back-btn:hover {
+    background-color: rgba(45, 55, 72, 1);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: white;
+}
+
 /* Info Button */
 .info-button {
     position: fixed;
@@ -29,7 +57,7 @@
 
 /* Popup Overlay */
 .popup-overlay {
-    display: block;
+    display: block !important;
     position: fixed;
     top: 0;
     left: 0;
