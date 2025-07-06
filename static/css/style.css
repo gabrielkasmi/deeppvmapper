@@ -87,6 +87,89 @@ body {
     transform: translateY(-2px);
 }
 
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 400px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    z-index: 1000;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.dropdown-content::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    text-decoration: none;
+}
+
+.pub-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 4px;
+    color: #2d3748;
+}
+
+.pub-authors {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.pub-year {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    font-weight: 500;
+}
+
 /* Sections */
 section {
     padding: 80px 0;
@@ -262,6 +345,24 @@ h2 {
     .btn {
         width: 200px;
         text-align: center;
+    }
+    
+    .dropdown-content {
+        min-width: 280px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .pub-title {
+        font-size: 0.9rem;
+    }
+    
+    .pub-authors {
+        font-size: 0.8rem;
+    }
+    
+    .pub-year {
+        font-size: 0.75rem;
     }
     
     h2 {

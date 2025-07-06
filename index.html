@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepPVMapper: Deep Learning for Rooftop PV Mapping</title>
+    <title>DeepPVMapper</title>
     
     <!-- Meta tags for SEO and social sharing -->
     <meta name="description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. PhD work by Gabriel Kasmi.">
@@ -40,7 +40,7 @@
     <header class="header">
         <div class="container">
             <h1 class="title">DeepPVMapper</h1>
-            <p class="subtitle">Deep Learning for Rooftop Photovoltaic System Mapping</p>
+            <p class="subtitle">A Remote Sensing-Based Method for Mapping Rooftop Photovoltaic Systems</p>
             <div class="authors">
                 <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
             </div>
@@ -50,7 +50,21 @@
             <div class="links">
                 <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="btn">GitHub</a>
                 <a href="https://pastel.hal.science/tel-04909303" target="_blank" class="btn">PhD Thesis</a>
-                <a href="https://arxiv.org/abs/2207.07466" target="_blank" class="btn">Paper</a>
+                <div class="dropdown">
+                    <button class="btn dropdown-btn">Publications ▼</button>
+                    <div class="dropdown-content">
+                        <a href="https://arxiv.org/abs/2207.07466" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping</span>
+                            <span class="pub-authors">Kasmi, G., Dubus, L., Blanc, P., & Saint-Drenan, Y. M.</span>
+                            <span class="pub-year">2022 • arXiv preprint</span>
+                        </a>
+                        <a href="https://pastel.hal.science/tel-04909303" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations</span>
+                            <span class="pub-authors">Kasmi, G.</span>
+                            <span class="pub-year">2024 • PhD Thesis</span>
+                        </a>
+                    </div>
+                </div>
                 <a href="content/map.html" class="btn">Interactive Map</a>
                 <a href="content/results.html" class="btn">Results</a>
             </div>
@@ -62,12 +76,23 @@
         <div class="container">
             <h2>Abstract</h2>
             <p>
-                DeepPVMapper is a deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. 
-                This work addresses the challenge of improving the observability of French rooftop photovoltaic installations 
-                through reliable deep learning models. The algorithm works in two stages: first, tiles from aerial imagery 
-                are classified to detect PV panels, then detected regions are segmented to extract precise polygons. 
-                From these polygons and auxiliary data, the system extracts key characteristics including tilt, orientation, 
-                installed power, and surface area of PV installations.
+                As the deployment of small-scale rooftop photovoltaic (PV) systems accelerates, transmission system operators (TSOs) 
+                face growing challenges in accessing reliable and comprehensive data on installed PV capacity. 
+                In France, 99% of PV grid connections correspond to rooftop systems connected to distribution networks. 
+                Yet, the accuracy and uncertainty of national PV registries remain undocumented, limiting their use in 
+                critical grid operations. In this context of sustained growth, timely and verifiable data are essential 
+                to ensure forecasting accuracy and secure grid management. We introduce DeepPVMapper, a deep learning 
+                pipeline trained on aerial orthoimagery to detect rooftop PV systems and estimate their installed 
+                capacity, tilt and azimuth angles. Applied at the French national scale, the method identifies over 
+                500,000 installations and generates a geospatial dataset to assess and audit the completeness of 
+                official registries. This study focuses on empirically evaluating the added value of Earth Observation 
+                and deep learning methods in practice. Using spatial aggregation and inter-source consensus metrics, we 
+                analyze how DeepPVMapper outputs align or diverge from the French TSO registry. Results reveal strong 
+                correlations in periurban areas, suggesting that existing registries are generally well-structured at aggregate 
+                scales. However, we also identify persistent gaps in rural zones where EO-based mapping highlights systematic 
+                omissions or errors. This work demonstrates how remote sensing acts as an independent, scalable lens to benchmark 
+                and improve the quality of PV datasets. It contributes to assessing the operational relevance of EO-based tools for 
+                energy system monitoring where direct observability is limited.
             </p>
         </div>
     </section>
