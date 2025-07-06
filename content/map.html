@@ -24,15 +24,30 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-    <!-- Map Header -->
-    <header class="map-header">
-        <div class="container">
-            <h1>Interactive Registry</h1>
-            <div class="links">
-                <a href="../index.html" class="btn">← Back to Homepage</a>
+    <!-- Info Popup Button -->
+    <div class="info-button">
+        <button class="info-btn" onclick="openPopup()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Info Popup -->
+    <div id="infoPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2>Interactive Registry</h2>
+                <button class="close-btn" onclick="closePopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <p>Explore the mapped rooftop photovoltaic installations across France using the DeepPVMapper algorithm.</p>
+                <div class="popup-actions">
+                    <a href="../index.html" class="btn">← Back to Homepage</a>
+                </div>
             </div>
         </div>
-    </header>
+    </div>
 
     <!-- Map Container -->
     <div class="map-wrapper">

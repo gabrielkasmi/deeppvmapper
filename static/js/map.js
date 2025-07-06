@@ -1,3 +1,24 @@
+// Popup functions
+function openPopup() {
+    document.getElementById('infoPopup').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePopup() {
+    document.getElementById('infoPopup').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close popup when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const popup = document.getElementById('infoPopup');
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            closePopup();
+        }
+    });
+});
+
 // DeepPVMapper Interactive Map
 class DeepPVMapperMap {
     constructor() {
