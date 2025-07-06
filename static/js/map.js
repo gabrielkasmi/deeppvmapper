@@ -1,21 +1,30 @@
 // Popup functions
 function openPopup() {
-    document.getElementById('infoPopup').style.display = 'block';
-    document.body.style.overflow = 'hidden';
+    const popup = document.getElementById('infoPopup');
+    if (popup) {
+        popup.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        console.log('Popup opened');
+    }
 }
 
 function closePopup() {
-    document.getElementById('infoPopup').style.display = 'none';
-    document.body.style.overflow = 'auto';
+    const popup = document.getElementById('infoPopup');
+    if (popup) {
+        popup.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        console.log('Popup closed');
+    }
 }
 
-// Initialize popup - show by default
+// Initialize popup functionality
 document.addEventListener('DOMContentLoaded', function() {
+    const popup = document.getElementById('infoPopup');
+    
     // Show popup by default
-    document.getElementById('infoPopup').style.display = 'block';
+    popup.style.display = 'block';
     
     // Close popup when clicking outside
-    const popup = document.getElementById('infoPopup');
     popup.addEventListener('click', function(e) {
         if (e.target === popup) {
             closePopup();
@@ -28,15 +37,20 @@ document.addEventListener('DOMContentLoaded', function() {
             closePopup();
         }
     });
+    
+    // Ensure close button works
+    const closeBtn = document.querySelector('.close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closePopup);
+    }
 });
 
-// Also show popup immediately if DOM is already loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('infoPopup').style.display = 'block';
-    });
-} else {
-    document.getElementById('infoPopup').style.display = 'block';
+// Fallback for immediate execution
+if (document.readyState !== 'loading') {
+    const popup = document.getElementById('infoPopup');
+    if (popup) {
+        popup.style.display = 'block';
+    }
 }
 
 // DeepPVMapper Interactive Map
