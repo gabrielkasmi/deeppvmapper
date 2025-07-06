@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
             closePopup();
         }
     });
+    
+    // Close popup when pressing Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePopup();
+        }
+    });
 });
 
 // Also show popup immediately if DOM is already loaded

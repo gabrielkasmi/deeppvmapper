@@ -57,7 +57,7 @@
 
 /* Popup Overlay */
 .popup-overlay {
-    display: block !important;
+    display: block;
     position: fixed;
     top: 0;
     left: 0;
