@@ -90,23 +90,31 @@ class DeepPVMapperMap {
     }
     
     initFilters() {
-        // Region filter
-        document.getElementById('region-select').addEventListener('change', (e) => {
-            this.filters.region = e.target.value;
-            this.applyFilters();
-        });
+        // Only initialize filters if the elements exist
+        const regionSelect = document.getElementById('region-select');
+        const powerRange = document.getElementById('power-range');
+        const yearFilter = document.getElementById('year-filter');
         
-        // Power range filter
-        document.getElementById('power-range').addEventListener('change', (e) => {
-            this.filters.powerRange = e.target.value;
-            this.applyFilters();
-        });
+        if (regionSelect) {
+            regionSelect.addEventListener('change', (e) => {
+                this.filters.region = e.target.value;
+                this.applyFilters();
+            });
+        }
         
-        // Year filter
-        document.getElementById('year-filter').addEventListener('change', (e) => {
-            this.filters.year = e.target.value;
-            this.applyFilters();
-        });
+        if (powerRange) {
+            powerRange.addEventListener('change', (e) => {
+                this.filters.powerRange = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        if (yearFilter) {
+            yearFilter.addEventListener('change', (e) => {
+                this.filters.year = e.target.value;
+                this.applyFilters();
+            });
+        }
     }
     
     loadSampleData() {
@@ -231,9 +239,20 @@ class DeepPVMapperMap {
         const totalPower = data.reduce((sum, item) => sum + item.properties.power, 0);
         const avgPower = totalInstallations > 0 ? totalPower / totalInstallations : 0;
         
-        document.getElementById('total-installations').textContent = totalInstallations;
-        document.getElementById('total-power').textContent = (totalPower / 1000).toFixed(1);
-        document.getElementById('avg-power').textContent = avgPower.toFixed(1);
+        // Only update stats if the elements exist
+        const totalInstallationsEl = document.getElementById('total-installations');
+        const totalPowerEl = document.getElementById('total-power');
+        const avgPowerEl = document.getElementById('avg-power');
+        
+        if (totalInstallationsEl) {
+            totalInstallationsEl.textContent = totalInstallations;
+        }
+        if (totalPowerEl) {
+            totalPowerEl.textContent = (totalPower / 1000).toFixed(1);
+        }
+        if (avgPowerEl) {
+            avgPowerEl.textContent = avgPower.toFixed(1);
+        }
     }
     
     getRegionName(regionCode) {
