@@ -28,19 +28,14 @@
 .map-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 3rem 0;
+    padding: 1.5rem 0;
     text-align: center;
 }
 
 .map-header h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.map-header p {
-    font-size: 1.2rem;
-    opacity: 0.9;
+    margin: 0;
 }
 
 /* Map Controls */
@@ -112,8 +107,8 @@
 /* Map Wrapper */
 .map-wrapper {
     position: relative;
-    height: calc(100vh - 300px);
-    min-height: 500px;
+    height: calc(100vh - 200px);
+    min-height: 600px;
 }
 
 .map {
@@ -173,7 +168,7 @@
     }
     
     .map-header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
     
     .controls-row {
@@ -190,7 +185,7 @@
     }
     
     .map-wrapper {
-        height: calc(100vh - 400px);
+        height: calc(100vh - 200px);
     }
     
     .map-legend {
