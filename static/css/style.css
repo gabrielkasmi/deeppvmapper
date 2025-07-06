@@ -98,75 +98,65 @@ body {
 }
 
 .dropdown-content {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
     position: absolute;
-    background-color: white;
-    min-width: 400px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    min-width: 350px;
+    border-radius: 12px;
     z-index: 1000;
     top: 100%;
     left: 50%;
-    transform: translateX(-50%);
-    margin-top: 8px;
-    overflow: hidden;
-}
-
-.dropdown-content::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid white;
+    transform: translateX(-50%) translateY(-10px);
+    margin-top: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
 }
 
 .dropdown:hover .dropdown-content {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
 }
 
 .dropdown-item {
     display: block;
-    padding: 16px 20px;
+    padding: 18px 20px;
     text-decoration: none;
     color: #333;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s ease;
-}
-
-.dropdown-item:last-child {
-    border-bottom: none;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 6px;
 }
 
 .dropdown-item:hover {
-    background-color: #f8f9fa;
+    background-color: rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
     text-decoration: none;
 }
 
 .pub-title {
     display: block;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.4;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     color: #2d3748;
 }
 
 .pub-authors {
     display: block;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 2px;
+    font-size: 0.8rem;
+    color: #718096;
+    margin-bottom: 4px;
 }
 
 .pub-year {
     display: block;
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 0.75rem;
+    color: #a0aec0;
     font-weight: 500;
 }
 
