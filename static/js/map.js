@@ -9,8 +9,12 @@ function closePopup() {
     document.body.style.overflow = 'auto';
 }
 
-// Close popup when clicking outside
+// Initialize popup - hide by default
 document.addEventListener('DOMContentLoaded', function() {
+    // Hide popup by default
+    document.getElementById('infoPopup').style.display = 'none';
+    
+    // Close popup when clicking outside
     const popup = document.getElementById('infoPopup');
     popup.addEventListener('click', function(e) {
         if (e.target === popup) {
