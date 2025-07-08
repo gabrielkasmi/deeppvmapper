@@ -134,7 +134,7 @@ body {
     backdrop-filter: blur(8px);
     min-width: 350px;
     border-radius: 8px;
-    z-index: 1000;
+    z-index: 9999;
     top: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(-10px);
