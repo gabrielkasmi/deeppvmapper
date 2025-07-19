@@ -563,16 +563,21 @@ class DeepPVMapperMap {
                         ${showPlots ? `
                         <div class="plots-container">
                             <div class="plot-item">
-                                <h5>Capacity Distribution</h5>
+                                <h5>System size (avg: <span id="avg-capacity-${name.replace(/[^a-zA-Z0-9]/g, '-')}">-</span> kWp)</h5>
                                 <canvas id="capacity-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
                             </div>
                             <div class="plot-item">
-                                <h5>Tilt Angles</h5>
+                                <h5>Tilt Angles (avg: <span id="avg-tilt-${name.replace(/[^a-zA-Z0-9]/g, '-')}">-</span>°)</h5>
                                 <canvas id="tilt-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
                             </div>
                             <div class="plot-item">
                                 <h5>Azimuth (°)</h5>
-                                <canvas id="azimuth-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
+                                <div class="azimuth-plot-container">
+                                    <span class="direction-east">E</span>
+                                    <span class="direction-south">S</span>
+                                    <span class="direction-west">W</span>
+                                    <canvas id="azimuth-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
+                                </div>
                             </div>
                         </div>
                         ` : ''}
@@ -693,6 +698,21 @@ class DeepPVMapperMap {
         
         // Generate sample data (replace with actual data when available)
         const sampleData = this.generateSampleData(properties.number_of_systems);
+        
+        // Calculate averages
+        const avgCapacity = sampleData.capacities.reduce((sum, capacity) => sum + capacity, 0) / sampleData.capacities.length;
+        const avgTilt = sampleData.tilts.reduce((sum, tilt) => sum + tilt, 0) / sampleData.tilts.length;
+        
+        // Update the average values in the titles
+        const avgCapacityElement = document.getElementById(`avg-capacity-${sanitizedName}`);
+        const avgTiltElement = document.getElementById(`avg-tilt-${sanitizedName}`);
+        
+        if (avgCapacityElement) {
+            avgCapacityElement.textContent = avgCapacity.toFixed(1);
+        }
+        if (avgTiltElement) {
+            avgTiltElement.textContent = avgTilt.toFixed(1);
+        }
         
         // Create capacity distribution chart
         this.createCapacityChart(sanitizedName, sampleData.capacities);
@@ -852,13 +872,32 @@ class DeepPVMapperMap {
                     r: {
                         beginAtZero: true,
                         ticks: {
-                            display: false
+                            display: true,
+                            color: 'rgba(45, 55, 72, 0.8)',
+                            font: {
+                                size: 10
+                            },
+                            callback: function(value, index, values) {
+                                // Show count values as ticks
+                                return value;
+                            },
+                            // Offset ticks to avoid overlapping with N tag
+                            backdropPadding: 4,
+                            z: 1,
+                            // Position ticks at an angle to avoid N tag
+                            padding: 8
                         },
                         grid: {
-                            color: 'rgba(45, 55, 72, 0.1)'
+                            color: 'rgba(45, 55, 72, 0.2)',
+                            lineWidth: 1
+                        },
+                        pointLabels: {
+                            display: false
                         }
                     }
-                }
+                },
+                // Rotate the entire chart to offset ticks from N tag
+                rotation: -15
             }
         });
     }
