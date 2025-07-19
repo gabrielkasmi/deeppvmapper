@@ -62,48 +62,46 @@
                 <button class="close-btn" onclick="closePopup()">×</button>
             </div>
             <div class="popup-body">
+                <p>
+                    This map shows the detections of <strong>DeepPVMapper</strong>, 
+                    aggregated at the city level to preserve privacy. Individual 
+                    PV panels are not displayed. The map is optimized for desktop browsing.
+                  </p>
                 
-                <p>This map displays the detections of DeepPVMapper. 
-                    For privacy reasons, we do not disclose the individual 
-                    panels but only the aggregation at the city level. 
-                    This map is optimized for desktop browsing.</p>
+                  <h4>How to Use</h4>
+                  <ul>
+                    <li><strong>Each point is a city</strong>. Click to view detailed 
+                        statistics about detected PV systems.</li>
+                    <li>Use the <strong>search bar</strong> to locate specific cities.</li>
+                  </ul>
                 
-                <h4>How to Use the Map</h4>
-                <p>Each point represents a city. When clicking on it, 
-                    a popup with some statistics regarding the detection 
-                    and the PV systems will appear. You can search for cities
-                    using the search bar.</p>
+                  <h4>Rooftop PV Installations Statistics</h4>
+                  <p>For each city, we display: the <strong>number of detected systems</strong> 
+                    (bottom-coded at 10 per city, as in the RNI), and the 
+                    <strong>total installed capacity</strong> reported in kWp. </p>
+
+                  <p>In cities with <strong>more than 30 systems</strong>, additional plots 
+                    show the distribution of the <strong>installed capacity</strong>, 
+                    <strong>tilt angles</strong> and <strong>azimuth orientations</strong>.</p>
+
+                  <p>We indicate when there are no detections in a city. It may come from 
+                    either DeepPVMapper or the true absence of PV systems.</p>
                 
-                <h4>Available Information</h4>
-                <ul>
-                    <li><strong>Number of detected systems:</strong> We follow the same censoring as 
-                        the RNI and truncate the data at 10 systems per city. 
-                        If there is no recorded system or no detection, we indicate None.</li>
-                    <li><strong>Aggregated installed capacity:</strong> Total estimated installed capacity for the city.</li>
-                    <li><strong>Detection year:</strong> The year the image of that city was taken.</li>
-                </ul>
+                  <h4>Consensus Metrics</h4>
+                  <p>When available, we report metrics comparing DeepPVMapper to RNI data:</p>
+                  <ul>
+                    <li><strong>Pseudo average percentage error (APE)</strong> at the city scale, 
+                        indicating local agreement between the RNI and DeepPVMapper.</li>
+                    <li><strong>Pseudo precision</strong>, <strong>recall</strong>, and 
+                        <strong>F1 score</strong> at the departmental scale.</li>
+                    
+                  </ul>
                 
-                <h4>Advanced Features</h4>
-                <p>When there are more than 30 systems in the city, we additionally 
-                    display the distribution of the installed capacity, tilt angles and azimuth angles 
-                of the PV systems in that city.</p>
-                
-                <h4>Consensus Metrics</h4>
-                <p>We indicate some statistics quantifying the consensus between 
-                    DeepPVMapper and the RNI. We display the pseudo precision, 
-                    recall and F1 score, indicating how aligned DeepPVMapper and the
-                     RNI in terms of estimation of the installed capacity at the 
-                     scale of the department.</p>
-                
-                <p>Whenever available, we also indicate the pseudo average percentage error, 
-                    which indicate how congruent both sources are within the considered city.</p>
-                
-                <p><em>We refer the reader to our main paper for more details 
-                    regarding the construction and the interpretation of the different metrics.</em></p>
-                
-                <p>Feel free to contact me if you have any inquiry or question. 
-                    Click on the info icon on the top left to display this menu.</p>
-                
+                  <p>
+                    📖 <em>See our <a href="">paper</a> for methodology and interpretation details.</em><br>
+                    ℹ️ <em>Click the info icon (top left) to reopen this menu.</em><br>
+                    📧 <em>For questions or feedback, feel free to contact me.</em>
+                  </p>
                 <div class="popup-actions">
                     <button onclick="closePopup()" class="btn">Start Exploring</button>
                 </div>

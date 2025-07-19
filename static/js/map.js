@@ -141,6 +141,22 @@ class DeepPVMapperMap {
         this.init();
     }
     
+    // Helper method to check if a value is valid and numeric
+    isValidNumeric(value) {
+        return value !== null && value !== undefined && value !== 'None' && !isNaN(value);
+    }
+    
+    // Helper method to normalize text for search (remove accents, hyphens, etc.)
+    normalizeText(text) {
+        return text
+            .toLowerCase()
+            .normalize('NFD') // Decompose characters with accents
+            .replace(/[\u0300-\u036f]/g, '') // Remove diacritics (accents)
+            .replace(/[-]/g, ' ') // Replace hyphens with spaces
+            .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+            .trim();
+    }
+    
     init() {
         console.log('Initializing map...');
         this.initMap();
@@ -422,10 +438,16 @@ class DeepPVMapperMap {
                     icon: L.divIcon({
                         className: 'custom-marker',
                         html: '<div class="marker-dot"></div>',
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
                     })
                 });
+                
+                // Debug: Check if marker was created successfully
+                if (!marker) {
+                    console.error('Failed to create marker for:', properties.nom);
+                    return;
+                }
                 
                 // Add hover tooltip
                 const cityName = properties.nom || 'Unknown location';
@@ -438,7 +460,8 @@ class DeepPVMapperMap {
                 });
                 
                 // Add click event for custom popup
-                marker.on('click', () => {
+                marker.on('click', (e) => {
+                    console.log('Marker clicked:', properties.nom, 'at coordinates:', [lat, lng]);
                     this.showCityPopup(properties, [lat, lng]);
                 });
                 
@@ -452,6 +475,11 @@ class DeepPVMapperMap {
                 // Add to cluster
                 this.markerCluster.addLayer(marker);
                 validMarkers++;
+                
+                // Debug: Verify marker was added to cluster
+                if (!this.markerCluster.hasLayer(marker)) {
+                    console.error('Marker not properly added to cluster for:', properties.nom);
+                }
                 
             } catch (markerError) {
                 console.error('Error creating marker for feature', index, ':', markerError);
@@ -474,13 +502,15 @@ class DeepPVMapperMap {
         const f1 = properties.f1_score;
         const departement = properties.departement;
         
+        // Helper function to check if a value is valid and numeric
+        const isValidNumeric = (value) => this.isValidNumeric(value);
+        
         // Check if there are no detections
-        const hasDetections = capacity !== null && capacity !== undefined && capacity !== 'None' && 
-                             numSystems !== null && numSystems !== undefined && numSystems !== 'None';
+        const hasDetections = isValidNumeric(capacity) && isValidNumeric(numSystems);
         
         // Get error color class
         let errorColorClass = '';
-        if (error !== null && error !== undefined && !isNaN(error)) {
+        if (isValidNumeric(error)) {
             const errorValue = parseFloat(error);
             if (errorValue < 15) {
                 errorColorClass = 'error-green';
@@ -495,7 +525,7 @@ class DeepPVMapperMap {
         
         // Get F1 score color class
         let f1ColorClass = '';
-        if (f1 !== null && f1 !== undefined && !isNaN(f1)) {
+        if (isValidNumeric(f1)) {
             const f1Value = parseFloat(f1);
             if (f1Value > 0.6) {
                 f1ColorClass = 'error-green';
@@ -516,9 +546,9 @@ class DeepPVMapperMap {
                     <button class="city-close-btn" onclick="closeCityPopup()">×</button>
                 </div>
                 <div class="city-popup-body">
+                    ${hasDetections ? `
                     <div class="city-section">
-                        <h4>Rooftop PV Installation Statistics</h4>
-                        ${hasDetections ? `
+                        <h4>Rooftop PV Installations Statistics</h4>
                         <div class="city-stats">
                             <div class="stat-item">
                                 <span class="stat-label">Total Installed Capacity</span>
@@ -534,51 +564,48 @@ class DeepPVMapperMap {
                         <div class="plots-container">
                             <div class="plot-item">
                                 <h5>Capacity Distribution</h5>
-                                <canvas id="capacity-chart-${name.replace(/\s+/g, '-')}" width="300" height="120"></canvas>
+                                <canvas id="capacity-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
                             </div>
                             <div class="plot-item">
                                 <h5>Tilt Angles</h5>
-                                <canvas id="tilt-chart-${name.replace(/\s+/g, '-')}" width="300" height="120"></canvas>
+                                <canvas id="tilt-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
                             </div>
                             <div class="plot-item">
                                 <h5>Azimuth (°)</h5>
-                                <canvas id="azimuth-chart-${name.replace(/\s+/g, '-')}" width="300" height="120"></canvas>
+                                <canvas id="azimuth-chart-${name.replace(/[^a-zA-Z0-9]/g, '-')}" width="300" height="120"></canvas>
                             </div>
                         </div>
                         ` : ''}
-                        ` : `
-                        <div class="no-detections">
-                            <p>No detections</p>
-                        </div>
-                        `}
                     </div>
+                    ` : `
+                    <div class="no-detections">
+                        <p>No detections in this city</p>
+                    </div>
+                    `}
                     
-                    ${hasDetections && (error !== null && error !== undefined && !isNaN(error)) || 
-                      (precision !== null && precision !== undefined && !isNaN(precision)) || 
-                      (recall !== null && recall !== undefined && !isNaN(recall)) || 
-                      (f1 !== null && f1 !== undefined && !isNaN(f1)) ? `
+                    ${hasDetections && (isValidNumeric(error) || isValidNumeric(precision) || isValidNumeric(recall) || isValidNumeric(f1)) ? `
                     <div class="city-section">
                         <h4>Consensus Metrics</h4>
                         <div class="city-stats">
-                            ${error !== null && error !== undefined && !isNaN(error) ? `
+                            ${isValidNumeric(error) ? `
                             <div class="stat-item">
                                 <span class="stat-label">APE (city level)</span>
                                 <span class="stat-value ${errorColorClass}">${parseFloat(error).toFixed(1)}%</span>
                             </div>
                             ` : ''}
-                            ${precision !== null && precision !== undefined && !isNaN(precision) ? `
+                            ${isValidNumeric(precision) ? `
                             <div class="stat-item">
                                 <span class="stat-label">Precision (department level)</span>
                                 <span class="stat-value">${parseFloat(precision).toFixed(2)}</span>
                             </div>
                             ` : ''}
-                            ${recall !== null && recall !== undefined && !isNaN(recall) ? `
+                            ${isValidNumeric(recall) ? `
                             <div class="stat-item">
                                 <span class="stat-label">Recall (department level)</span>
                                 <span class="stat-value">${parseFloat(recall).toFixed(2)}</span>
                             </div>
                             ` : ''}
-                            ${f1 !== null && f1 !== undefined && !isNaN(f1) ? `
+                            ${isValidNumeric(f1) ? `
                             <div class="stat-item">
                                 <span class="stat-label">F1 score (department level)</span>
                                 <span class="stat-value ${f1ColorClass}">${parseFloat(f1).toFixed(2)}</span>
@@ -607,6 +634,7 @@ class DeepPVMapperMap {
     }
     
     showCityPopup(properties, coordinates) {
+        console.log('showCityPopup called for:', properties.nom, 'with properties:', properties);
         // Remove existing city popup if any
         this.hideCityPopup();
         
@@ -661,7 +689,7 @@ class DeepPVMapperMap {
     
     generatePlots(properties, popupElement) {
         const name = properties.nom || 'Unknown';
-        const sanitizedName = name.replace(/\s+/g, '-');
+        const sanitizedName = name.replace(/[^a-zA-Z0-9]/g, '-');
         
         // Generate sample data (replace with actual data when available)
         const sampleData = this.generateSampleData(properties.number_of_systems);
@@ -929,7 +957,10 @@ class DeepPVMapperMap {
         // Filter cities that match the query
         this.searchResults = this.allMarkers.filter(markerData => {
             const cityName = markerData.properties.nom || '';
-            return cityName.toLowerCase().includes(query);
+            // Normalize text: remove accents and convert to lowercase
+            const normalizedCityName = this.normalizeText(cityName);
+            const normalizedQuery = this.normalizeText(query);
+            return normalizedCityName.includes(normalizedQuery);
         });
         
         // Display search results
@@ -954,12 +985,12 @@ class DeepPVMapperMap {
         const resultsHTML = limitedResults.map(markerData => {
             const properties = markerData.properties;
             const name = properties.nom || 'Unknown';
+            const departement = properties.departement || '';
             const capacity = properties.installed_capacity;
             const numSystems = properties.number_of_systems;
             
             // Check if there are no detections
-            const hasDetections = capacity !== null && capacity !== undefined && capacity !== 'None' && 
-                                 numSystems !== null && numSystems !== undefined && numSystems !== 'None';
+            const hasDetections = this.isValidNumeric(capacity) && this.isValidNumeric(numSystems);
             
             let statsText;
             if (hasDetections) {
@@ -968,9 +999,11 @@ class DeepPVMapperMap {
                 statsText = 'No detections';
             }
             
+            const displayName = departement ? `${name} (${departement})` : name;
+            
             return `
-                <div class="search-result-item" onclick="window.deepPVMapperMap.focusOnCity('${name}')">
-                    <div class="search-result-name">${name}</div>
+                <div class="search-result-item" onclick="window.deepPVMapperMap.focusOnCity('${name.replace(/'/g, "\\'")}')">
+                    <div class="search-result-name">${displayName}</div>
                     <div class="search-result-stats">${statsText}</div>
                 </div>
             `;
@@ -986,8 +1019,8 @@ class DeepPVMapperMap {
             markerData.marker.setIcon(L.divIcon({
                 className: 'custom-marker',
                 html: '<div class="marker-dot"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
             }));
         });
         
@@ -996,8 +1029,8 @@ class DeepPVMapperMap {
             markerData.marker.setIcon(L.divIcon({
                 className: 'custom-marker search-highlight',
                 html: '<div class="marker-dot search-highlight"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
             }));
         });
     }
@@ -1029,8 +1062,8 @@ class DeepPVMapperMap {
             markerData.marker.setIcon(L.divIcon({
                 className: 'custom-marker',
                 html: '<div class="marker-dot"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
             }));
         });
         
