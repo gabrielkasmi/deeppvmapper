@@ -597,9 +597,9 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    max-width: 700px;
+    max-width: 800px;
     width: 90%;
-    max-height: 80vh;
+    max-height: 90vh;
     transform: scale(0.9);
     transition: transform 0.2s ease;
     overflow: hidden;
@@ -653,8 +653,7 @@
     padding: 18px 22px;
     background: white;
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
 }
 
 .city-section {
@@ -696,6 +695,7 @@
     color: #2c3e50;
     font-weight: 600;
     font-size: 0.85rem;
+    text-transform: none;
 }
 
 .city-stats .stat-value {
@@ -789,7 +789,7 @@
 .direction-east {
     position: absolute;
     top: 50%;
-    right: -5px;
+    right: 10%;
     transform: translateY(-50%);
     font-size: 12px;
     font-weight: 600;
@@ -819,7 +819,7 @@
 .direction-west {
     position: absolute;
     top: 50%;
-    left: -5px;
+    left: 10%;
     transform: translateY(-50%);
     font-size: 12px;
     font-weight: 600;
@@ -997,8 +997,8 @@
     
     .city-popup {
         width: 95%;
-        max-width: 450px;
-        max-height: 85vh;
+        max-width: 500px;
+        max-height: 90vh;
         margin: 10px;
     }
     
@@ -1008,7 +1008,7 @@
     
     .city-popup-body {
         padding: 15px 20px;
-        max-height: 60vh;
+        max-height: none;
     }
     
     .plots-container {
@@ -1031,7 +1031,7 @@
 
     
     .direction-east {
-        right: -4px;
+        right: 8%;
         font-size: 9px;
         padding: 1px 4px;
     }
@@ -1043,7 +1043,7 @@
     }
     
     .direction-west {
-        left: -4px;
+        left: 8%;
         font-size: 9px;
         padding: 1px 4px;
     }
@@ -1119,7 +1119,7 @@
     
     .city-popup {
         width: 98%;
-        max-height: 90vh;
+        max-height: 95vh;
         margin: 5px;
     }
     
@@ -1130,7 +1130,7 @@
     
     .city-popup-body {
         padding: 12px 16px;
-        max-height: 70vh;
+        max-height: none;
     }
     
     .city-section h4 {

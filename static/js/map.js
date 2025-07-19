@@ -594,25 +594,25 @@ class DeepPVMapperMap {
                         <div class="city-stats">
                             ${isValidNumeric(error) ? `
                             <div class="stat-item">
-                                <span class="stat-label">APE (city level)</span>
+                                <span class="stat-label">Error (city level, lower is better)</span>
                                 <span class="stat-value ${errorColorClass}">${parseFloat(error).toFixed(1)}%</span>
                             </div>
                             ` : ''}
                             ${isValidNumeric(precision) ? `
                             <div class="stat-item">
-                                <span class="stat-label">Precision (department level)</span>
+                                <span class="stat-label">Precision (department level, higher is better)</span>
                                 <span class="stat-value">${parseFloat(precision).toFixed(2)}</span>
                             </div>
                             ` : ''}
                             ${isValidNumeric(recall) ? `
                             <div class="stat-item">
-                                <span class="stat-label">Recall (department level)</span>
+                                <span class="stat-label">Recall (department level, higher is better)</span>
                                 <span class="stat-value">${parseFloat(recall).toFixed(2)}</span>
                             </div>
                             ` : ''}
                             ${isValidNumeric(f1) ? `
                             <div class="stat-item">
-                                <span class="stat-label">F1 score (department level)</span>
+                                <span class="stat-label">F1 score (department level, higher is better)</span>
                                 <span class="stat-value ${f1ColorClass}">${parseFloat(f1).toFixed(2)}</span>
                             </div>
                             ` : ''}
@@ -827,7 +827,7 @@ class DeepPVMapperMap {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Count'
+                            text: 'Number of Systems'
                         }
                     },
                     x: {
