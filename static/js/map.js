@@ -887,6 +887,19 @@ class DeepPVMapperMap {
                             // Position ticks at an angle to avoid N tag
                             padding: 8
                         },
+                        // Add axis title like a regular plot
+                        title: {
+                            display: true,
+                            text: 'Number of Systems',
+                            color: 'rgba(45, 55, 72, 0.8)',
+                            font: {
+                                size: 11,
+                                weight: '600'
+                            },
+                            padding: {
+                                top: 10
+                            }
+                        },
                         grid: {
                             color: 'rgba(45, 55, 72, 0.2)',
                             lineWidth: 1
