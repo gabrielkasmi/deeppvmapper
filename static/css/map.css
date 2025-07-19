@@ -1,13 +1,13 @@
-/* Permanent Back Button */
-.permanent-back-button {
+/* Leave Map Button */
+.leave-map-button {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
 }
 
-.permanent-back-button .back-btn {
+.leave-map-button .leave-btn {
     background-color: rgba(45, 55, 72, 0.9);
     color: white;
     text-decoration: none;
@@ -20,11 +20,112 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.permanent-back-button .back-btn:hover {
+.leave-map-button .leave-btn:hover {
     background-color: rgba(45, 55, 72, 1);
     transform: translateY(-2px);
     text-decoration: none;
     color: white;
+}
+
+/* Search Container */
+.search-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: 300px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: rgba(45, 55, 72, 0.95);
+    border-radius: 8px;
+    padding: 8px 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    padding: 8px 0;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-btn, .clear-search-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-btn:hover, .clear-search-btn:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-results {
+    margin-top: 8px;
+    background-color: rgba(45, 55, 72, 0.95);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.search-result-item {
+    padding: 12px 16px;
+    color: white;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-result-name {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.search-result-stats {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.no-results {
+    padding: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-size: 14px;
 }
 
 /* Info Button */
@@ -475,7 +576,201 @@
     background-color: #4a5568;
 }
 
-/* PV Popup Styling */
+/* City Popup Styling */
+.city-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.city-popup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+}
+
+.city-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px 12px 22px;
+    border-bottom: 1px solid #34495e;
+    background: #34495e;
+    border-radius: 12px 12px 0 0;
+}
+
+.city-popup-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.city-close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #bdc3c7;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.city-close-btn:hover {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.city-popup-body {
+    padding: 18px 22px;
+    background: white;
+}
+
+.city-section {
+    margin-bottom: 20px;
+}
+
+.city-section:last-child {
+    margin-bottom: 0;
+}
+
+.city-section h4 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #34495e;
+    padding-bottom: 6px;
+}
+
+.city-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.city-stats .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.city-stats .stat-item:last-child {
+    border-bottom: none;
+}
+
+.city-stats .stat-label {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.city-stats .stat-value {
+    color: #4a5568;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Error color classes */
+.city-stats .stat-value.error-green {
+    color: #38a169;
+    font-weight: 600;
+}
+
+.city-stats .stat-value.error-light-green {
+    color: #68d391;
+    font-weight: 600;
+}
+
+.city-stats .stat-value.error-orange {
+    color: #ed8936;
+    font-weight: 600;
+}
+
+.city-stats .stat-value.error-red {
+    color: #e53e3e;
+    font-weight: 600;
+}
+
+/* Legacy error class for compatibility */
+.city-stats .stat-value.error {
+    color: #e53e3e;
+    font-weight: 600;
+}
+
+.no-detections {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.no-detections p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Plot styling */
+.plots-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 12px;
+    justify-content: space-between;
+}
+
+.plot-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    flex: 1;
+    min-width: 0;
+    pointer-events: none;
+}
+
+.plot-item h5 {
+    margin: 0 0 6px 0;
+    color: #2c3e50;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.plot-item canvas {
+    width: 100% !important;
+    height: 180px !important;
+    pointer-events: none;
+}
+
+/* Legacy PV Popup Styling (keeping for compatibility) */
 .pv-popup {
     font-family: 'Inter', sans-serif;
     min-width: 250px;
@@ -513,6 +808,30 @@
     border: 2px solid white;
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.marker-dot.search-highlight {
+    width: 12px;
+    height: 12px;
+    background-color: #f39c12;
+    border: 3px solid white;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Marker Cluster Customization */
@@ -589,6 +908,76 @@
     
     .popup-body {
         padding: 1.5rem;
+    }
+    
+    .city-popup {
+        width: 95%;
+        max-width: 450px;
+    }
+    
+    .city-popup-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .city-popup-body {
+        padding: 15px 20px;
+    }
+    
+    .plots-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .plot-item {
+        padding: 8px;
+    }
+    
+    .plot-item h5 {
+        font-size: 0.8rem;
+    }
+    
+    .plot-item canvas {
+        height: 140px !important;
+    }
+    
+    .search-container {
+        width: calc(100% - 30px);
+        top: 15px;
+        left: 15px;
+        transform: none;
+    }
+    
+    .leave-map-button {
+        bottom: 15px;
+    }
+    
+    .leave-map-button .leave-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .search-box {
+        padding: 6px 10px;
+    }
+    
+    .search-input {
+        font-size: 13px;
+    }
+    
+    .search-results {
+        max-height: 250px;
+    }
+    
+    .search-result-item {
+        padding: 10px 12px;
+    }
+    
+    .search-result-name {
+        font-size: 13px;
+    }
+    
+    .search-result-stats {
+        font-size: 11px;
     }
     
     .map-legend {
