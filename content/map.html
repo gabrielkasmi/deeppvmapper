@@ -22,6 +22,9 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 </head>
 <body>
     <!-- Permanent Back Button -->
@@ -46,9 +49,49 @@
                 <button class="close-btn" onclick="closePopup()">×</button>
             </div>
             <div class="popup-body">
-                <p>Under construction. The map will be released soon.</p>
+                
+                <p>This map displays the detections of DeepPVMapper. 
+                    For privacy reasons, we do not disclose the individual 
+                    panels but only the aggregation at the city level. 
+                    This map is optimized for desktop browsing.</p>
+                
+                <h4>How to Use the Map</h4>
+                <p>Each point represents a city. When clicking on it, 
+                    a popup with some statistics regarding the detection 
+                    and the PV systems will appear.</p>
+                
+                <h4>Available Information</h4>
+                <ul>
+                    <li><strong>Number of detected systems:</strong> We follow the same censoring as 
+                        the RNI and truncate the data at 10 systems per city. 
+                        If there is no recorded system or no detection, we indicate None.</li>
+                    <li><strong>Aggregated installed capacity:</strong> Total estimated installed capacity for the city.</li>
+                    <li><strong>Detection year:</strong> The year the image of that city was taken.</li>
+                </ul>
+                
+                <h4>Advanced Features</h4>
+                <p>When there are more than 30 systems in the city, we additionally 
+                    display the distribution of the installed capacity, tilt angles and azimuth angles 
+                of the PV systems in that city.</p>
+                
+                <h4>Consensus Metrics</h4>
+                <p>We indicate some statistics quantifying the consensus between 
+                    DeepPVMapper and the RNI. We display the pseudo precision, 
+                    recall and F1 score, indicating how aligned DeepPVMapper and the
+                     RNI in terms of estimation of the installed capacity at the 
+                     scale of the department.</p>
+                
+                <p>Whenever available, we also indicate the pseudo average percentage error, 
+                    which indicate how congruent both sources are within the considered city.</p>
+                
+                <p><em>We refer the reader to our main paper for more details 
+                    regarding the construction and the interpretation of the different metrics.</em></p>
+                
+                <p>Feel free to contact me if you have any inquiry or question. 
+                    Click on the info icon on the top left to display this menu.</p>
+                
                 <div class="popup-actions">
-                    <a href="../index.html" class="btn">← Back to Homepage</a>
+                    <button onclick="closePopup()" class="btn">Start Exploring</button>
                 </div>
             </div>
         </div>
@@ -68,6 +111,28 @@
 
     <!-- JavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <!-- Pako library for gzip decompression -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    <!-- Fallback for pako if CDN fails -->
+    <script>
+        if (typeof pako === 'undefined') {
+            console.log('Primary pako CDN failed, trying fallback...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js';
+            script.onload = function() {
+                console.log('Pako loaded from fallback CDN');
+                // Reinitialize map if needed
+                if (window.deepPVMapperMap) {
+                    window.deepPVMapperMap.init();
+                }
+            };
+            script.onerror = function() {
+                console.error('Failed to load pako from both CDNs');
+            };
+            document.head.appendChild(script);
+        }
+    </script>
     <script src="../static/js/map.js"></script>
 </body>
 </html> 
