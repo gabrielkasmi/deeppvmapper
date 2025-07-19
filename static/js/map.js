@@ -417,14 +417,24 @@ class DeepPVMapperMap {
                     return;
                 }
                 
-                // Create simple marker
+                // Create marker with hover functionality
                 const marker = L.marker([lat, lng], {
                     icon: L.divIcon({
                         className: 'custom-marker',
                         html: '<div class="marker-dot"></div>',
-                        iconSize: [8, 8],
-                        iconAnchor: [4, 4]
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
                     })
+                });
+                
+                // Add hover tooltip
+                const cityName = properties.nom || 'Unknown location';
+                marker.bindTooltip(cityName, {
+                    direction: 'top',
+                    offset: [0, -8],
+                    className: 'marker-tooltip',
+                    permanent: false,
+                    opacity: 0.9
                 });
                 
                 // Add click event for custom popup
@@ -461,8 +471,8 @@ class DeepPVMapperMap {
         const error = properties.error;
         const precision = properties.precision;
         const recall = properties.recall;
-        const f1 = properties.f1;
-        const department = properties.department;
+        const f1 = properties.f1_score;
+        const departement = properties.departement;
         
         // Check if there are no detections
         const hasDetections = capacity !== null && capacity !== undefined && capacity !== 'None' && 
@@ -483,18 +493,31 @@ class DeepPVMapperMap {
             }
         }
         
+        // Get F1 score color class
+        let f1ColorClass = '';
+        if (f1 !== null && f1 !== undefined && !isNaN(f1)) {
+            const f1Value = parseFloat(f1);
+            if (f1Value > 0.6) {
+                f1ColorClass = 'error-green';
+            } else if (f1Value >= 0.5) {
+                f1ColorClass = 'error-orange';
+            } else {
+                f1ColorClass = 'error-red';
+            }
+        }
+        
         // Check if we should show plots (more than 30 systems and has detections)
         const showPlots = hasDetections && numSystems > 30;
         
         return `
             <div class="city-popup">
                 <div class="city-popup-header">
-                    <h3>${name} (${year})</h3>
+                    <h3>${name} (${departement}) - Detection year: ${year}</h3>
                     <button class="city-close-btn" onclick="closeCityPopup()">×</button>
                 </div>
                 <div class="city-popup-body">
                     <div class="city-section">
-                        <h4>PV Installation Statistics</h4>
+                        <h4>Rooftop PV Installation Statistics</h4>
                         ${hasDetections ? `
                         <div class="city-stats">
                             <div class="stat-item">
@@ -506,54 +529,8 @@ class DeepPVMapperMap {
                                 <span class="stat-value">${parseInt(numSystems)}</span>
                             </div>
                         </div>
-                        ` : `
-                        <div class="no-detections">
-                            <p>No detections</p>
-                        </div>
-                        `}
-                    </div>
-                    
-                    ${hasDetections ? `
-                    <div class="city-section">
-                        <h4>Consensus Metrics</h4>
-                        <div class="city-stats">
-                            ${error !== null && error !== undefined && !isNaN(error) ? `
-                            <div class="stat-item">
-                                <span class="stat-label">APE (Detection Error)</span>
-                                <span class="stat-value ${errorColorClass}">${parseFloat(error).toFixed(1)}%</span>
-                            </div>
-                            ` : ''}
-                            ${precision !== null && precision !== undefined && !isNaN(precision) ? `
-                            <div class="stat-item">
-                                <span class="stat-label">Precision</span>
-                                <span class="stat-value">${parseFloat(precision).toFixed(2)}</span>
-                            </div>
-                            ` : ''}
-                            ${recall !== null && recall !== undefined && !isNaN(recall) ? `
-                            <div class="stat-item">
-                                <span class="stat-label">Recall</span>
-                                <span class="stat-value">${parseFloat(recall).toFixed(2)}</span>
-                            </div>
-                            ` : ''}
-                            ${f1 !== null && f1 !== undefined && !isNaN(f1) ? `
-                            <div class="stat-item">
-                                <span class="stat-label">F1 Score</span>
-                                <span class="stat-value">${parseFloat(f1).toFixed(2)}</span>
-                            </div>
-                            ` : ''}
-                            ${department ? `
-                            <div class="stat-item">
-                                <span class="stat-label">Department</span>
-                                <span class="stat-value">${department}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    ${showPlots ? `
-                    <div class="city-section">
-                        <h4>PV Systems Characteristics</h4>
+                        
+                        ${showPlots ? `
                         <div class="plots-container">
                             <div class="plot-item">
                                 <h5>Capacity Distribution</h5>
@@ -567,6 +544,46 @@ class DeepPVMapperMap {
                                 <h5>Azimuth (°)</h5>
                                 <canvas id="azimuth-chart-${name.replace(/\s+/g, '-')}" width="300" height="120"></canvas>
                             </div>
+                        </div>
+                        ` : ''}
+                        ` : `
+                        <div class="no-detections">
+                            <p>No detections</p>
+                        </div>
+                        `}
+                    </div>
+                    
+                    ${hasDetections && (error !== null && error !== undefined && !isNaN(error)) || 
+                      (precision !== null && precision !== undefined && !isNaN(precision)) || 
+                      (recall !== null && recall !== undefined && !isNaN(recall)) || 
+                      (f1 !== null && f1 !== undefined && !isNaN(f1)) ? `
+                    <div class="city-section">
+                        <h4>Consensus Metrics</h4>
+                        <div class="city-stats">
+                            ${error !== null && error !== undefined && !isNaN(error) ? `
+                            <div class="stat-item">
+                                <span class="stat-label">APE (city level)</span>
+                                <span class="stat-value ${errorColorClass}">${parseFloat(error).toFixed(1)}%</span>
+                            </div>
+                            ` : ''}
+                            ${precision !== null && precision !== undefined && !isNaN(precision) ? `
+                            <div class="stat-item">
+                                <span class="stat-label">Precision (department level)</span>
+                                <span class="stat-value">${parseFloat(precision).toFixed(2)}</span>
+                            </div>
+                            ` : ''}
+                            ${recall !== null && recall !== undefined && !isNaN(recall) ? `
+                            <div class="stat-item">
+                                <span class="stat-label">Recall (department level)</span>
+                                <span class="stat-value">${parseFloat(recall).toFixed(2)}</span>
+                            </div>
+                            ` : ''}
+                            ${f1 !== null && f1 !== undefined && !isNaN(f1) ? `
+                            <div class="stat-item">
+                                <span class="stat-label">F1 score (department level)</span>
+                                <span class="stat-value ${f1ColorClass}">${parseFloat(f1).toFixed(2)}</span>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                     ` : ''}
@@ -969,8 +986,8 @@ class DeepPVMapperMap {
             markerData.marker.setIcon(L.divIcon({
                 className: 'custom-marker',
                 html: '<div class="marker-dot"></div>',
-                iconSize: [8, 8],
-                iconAnchor: [4, 4]
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
             }));
         });
         
@@ -1012,8 +1029,8 @@ class DeepPVMapperMap {
             markerData.marker.setIcon(L.divIcon({
                 className: 'custom-marker',
                 html: '<div class="marker-dot"></div>',
-                iconSize: [8, 8],
-                iconAnchor: [4, 4]
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
             }));
         });
         
