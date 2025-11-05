@@ -62,10 +62,6 @@
                 <button class="close-btn" onclick="closePopup()">×</button>
             </div>
             <div class="popup-body">
-                <p style="color: red; font-style: italic;">
-                    ⚠️ This map is currently under construction. While you can explore the interface, 
-                    some features may be limited or unavailable.
-                </p>
                 <p>
                     This map shows the detections of <strong>DeepPVMapper</strong>, 
                     aggregated at the city level to preserve privacy. Individual 
@@ -80,26 +76,43 @@
                   </ul>
                 
                   <h4>Rooftop PV Installations Statistics</h4>
-                  <p>For each city, we display: the <strong>number of detected systems</strong> 
-                    (bottom-coded at 10 per city, as in the RNI), and the 
-                    <strong>total installed capacity</strong> reported in kWp. </p>
-
-                  <p>In cities with <strong>more than 30 systems</strong>, additional plots 
-                    show the distribution of the <strong>installed capacity</strong>, 
-                    <strong>tilt angles</strong> and <strong>azimuth orientations</strong>.</p>
-
-                  <p>We indicate when there are no detections in a city. It may come from 
-                    either DeepPVMapper or the true absence of PV systems.</p>
-                
-                  <h4>Consensus Metrics</h4>
-                  <p>When available, we report metrics comparing DeepPVMapper to RNI data:</p>
+                  <p>
+                    For each city, we display the following information based on the number of detected systems:
+                  </p>
                   <ul>
-                    <li><strong>Pseudo average percentage error (APE)</strong> at the city scale, 
-                        indicating local agreement between the RNI and DeepPVMapper. 
-                        <em>Note: APE is referred to as "Error" on this interface.</em></li>
-                    <li><strong>Pseudo precision</strong>, <strong>recall</strong>, and 
-                        <strong>F1 score</strong> at the departmental scale.</li>
-                    
+                    <li>
+                      <strong>No detections:</strong>
+                      <br>
+                      We indicate if there are no detections in a city (whether from DeepPVMapper or true absence of PV systems).
+                    </li>
+                    <li>
+                      <strong>Between 1 and 10 detections:</strong>
+                      <br>
+                      A message is shown indicating that precise information is not disclosed (to preserve privacy).
+                    </li>
+                    <li>
+                      <strong>At least 10 detections:</strong>
+                      <br>
+                      We display the <strong>number of detected systems</strong> and the <strong>total installed capacity</strong> (in kWp).
+                    </li>
+                    <li>
+                      <strong>More than 30 systems:</strong>
+                      <br>
+                      Additional charts are shown to visualize the distribution of <strong>installed capacity</strong>, <strong>tilt angles</strong>, and <strong>azimuth orientations</strong>.
+                    </li>
+                  </ul>
+                
+                  <h4>Accuracy Metrics</h4>
+                  <p>DeepPVMapper has been manually validated across all departements. 
+                    We report the following metrics, at the departemental scale</p>
+                  <ul>
+                    <li>The <strong>Precision</strong>, which evaluates how many correct 
+                        detections are correct among all detections, 
+                    </li>
+                    <li>The <strong>Recall</strong>, which evaluates how many correct 
+                        detections are correct among all true detections, 
+                    </li>
+                    <li>The <strong>F1 score</strong>, which is the harmonic mean of precision and recall,                    
                   </ul>
                 
                   <p>

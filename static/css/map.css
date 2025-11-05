@@ -658,6 +658,13 @@
 
 .city-section {
     margin-bottom: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.city-section:first-child {
+    padding-top: 0;
+    border-top: none;
 }
 
 .city-section:last-child {

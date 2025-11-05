@@ -146,6 +146,35 @@ class DeepPVMapperMap {
         return value !== null && value !== undefined && value !== 'None' && !isNaN(value);
     }
     
+    // Helper method to convert a value (0-1) to RGB color (red to green colormap)
+    valueToColor(value) {
+        // Clamp value between 0 and 1
+        const clampedValue = Math.max(0, Math.min(1, value));
+        
+        // Red to green colormap with darker green
+        // At 0: red (255, 0, 0)
+        // At 0.5: yellow (255, 255, 0)
+        // At 1: dark green (0, 160, 0)
+        let r, g, b;
+        
+        if (clampedValue < 0.5) {
+            // Red to yellow
+            const t = clampedValue * 2;
+            r = 255;
+            g = Math.round(255 * t);
+            b = 0;
+        } else {
+            // Yellow to dark green
+            const t = (clampedValue - 0.5) * 2;
+            r = Math.round(255 * (1 - t));
+            // Interpolate from 255 (yellow) to 160 (dark green)
+            g = Math.round(255 - (255 - 160) * t);
+            b = 0;
+        }
+        
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+    
     // Helper method to normalize text for search (remove accents, hyphens, etc.)
     normalizeText(text) {
         return text
@@ -496,7 +525,6 @@ class DeepPVMapperMap {
         const capacity = properties.installed_capacity;
         const numSystems = properties.number_of_systems;
         const year = properties.detection_year || 'Unknown';
-        const error = properties.error;
         const precision = properties.precision;
         const recall = properties.recall;
         const f1 = properties.f1_score;
@@ -505,39 +533,25 @@ class DeepPVMapperMap {
         // Helper function to check if a value is valid and numeric
         const isValidNumeric = (value) => this.isValidNumeric(value);
         
-        // Check if there are no detections
-        const hasDetections = isValidNumeric(capacity) && isValidNumeric(numSystems);
+        // Check for truncated case (value is -1)
+        const isTruncated = (capacity === -1 || numSystems === -1) || (capacity === '-1' || numSystems === '-1');
         
-        // Get error color class
-        let errorColorClass = '';
-        if (isValidNumeric(error)) {
-            const errorValue = parseFloat(error);
-            if (errorValue < 15) {
-                errorColorClass = 'error-green';
-            } else if (errorValue < 25) {
-                errorColorClass = 'error-light-green';
-            } else if (errorValue < 50) {
-                errorColorClass = 'error-orange';
-            } else {
-                errorColorClass = 'error-red';
-            }
-        }
+        // Check if there are no detections (None/null)
+        const hasDetections = isValidNumeric(capacity) && isValidNumeric(numSystems) && !isTruncated;
         
-        // Get F1 score color class
-        let f1ColorClass = '';
-        if (isValidNumeric(f1)) {
-            const f1Value = parseFloat(f1);
-            if (f1Value > 0.6) {
-                f1ColorClass = 'error-green';
-            } else if (f1Value >= 0.5) {
-                f1ColorClass = 'error-orange';
-            } else {
-                f1ColorClass = 'error-red';
-            }
-        }
+        // Get colors for precision, recall, and F1 using continuous colormap (0-1, red to green)
+        const getMetricColor = (value) => {
+            if (!isValidNumeric(value)) return '';
+            const numValue = parseFloat(value);
+            return this.valueToColor(numValue);
+        };
+        
+        const precisionColor = getMetricColor(precision);
+        const recallColor = getMetricColor(recall);
+        const f1Color = getMetricColor(f1);
         
         // Check if we should show plots (more than 30 systems and has detections)
-        const showPlots = hasDetections && numSystems > 30;
+        const showPlots = hasDetections && parseInt(numSystems) > 30;
         
         return `
             <div class="city-popup">
@@ -546,7 +560,11 @@ class DeepPVMapperMap {
                     <button class="city-close-btn" onclick="closeCityPopup()">×</button>
                 </div>
                 <div class="city-popup-body">
-                    ${hasDetections ? `
+                    ${isTruncated ? `
+                    <div class="no-detections">
+                        <p>Fewer than 10 systems detected in this city: precise information is not disclosed</p>
+                    </div>
+                    ` : hasDetections ? `
                     <div class="city-section">
                         <h4>Rooftop PV Installations Statistics</h4>
                         <div class="city-stats">
@@ -588,32 +606,26 @@ class DeepPVMapperMap {
                     </div>
                     `}
                     
-                    ${hasDetections && (isValidNumeric(error) || isValidNumeric(precision) || isValidNumeric(recall) || isValidNumeric(f1)) ? `
+                    ${hasDetections && (isValidNumeric(precision) || isValidNumeric(recall) || isValidNumeric(f1)) ? `
                     <div class="city-section">
-                        <h4>Consensus Metrics</h4>
+                        <h4>Accuracy Metrics</h4>
                         <div class="city-stats">
-                            ${isValidNumeric(error) ? `
-                            <div class="stat-item">
-                                <span class="stat-label">Error (city level, lower is better)</span>
-                                <span class="stat-value ${errorColorClass}">${parseFloat(error).toFixed(1)}%</span>
-                            </div>
-                            ` : ''}
                             ${isValidNumeric(precision) ? `
                             <div class="stat-item">
                                 <span class="stat-label">Precision (department level, higher is better)</span>
-                                <span class="stat-value">${parseFloat(precision).toFixed(2)}</span>
+                                <span class="stat-value" style="color: ${precisionColor}; font-weight: 600;">${parseFloat(precision).toFixed(2)}</span>
                             </div>
                             ` : ''}
                             ${isValidNumeric(recall) ? `
                             <div class="stat-item">
                                 <span class="stat-label">Recall (department level, higher is better)</span>
-                                <span class="stat-value">${parseFloat(recall).toFixed(2)}</span>
+                                <span class="stat-value" style="color: ${recallColor}; font-weight: 600;">${parseFloat(recall).toFixed(2)}</span>
                             </div>
                             ` : ''}
                             ${isValidNumeric(f1) ? `
                             <div class="stat-item">
                                 <span class="stat-label">F1 score (department level, higher is better)</span>
-                                <span class="stat-value ${f1ColorClass}">${parseFloat(f1).toFixed(2)}</span>
+                                <span class="stat-value" style="color: ${f1Color}; font-weight: 600;">${parseFloat(f1).toFixed(2)}</span>
                             </div>
                             ` : ''}
                         </div>
@@ -1041,11 +1053,16 @@ class DeepPVMapperMap {
             const capacity = properties.installed_capacity;
             const numSystems = properties.number_of_systems;
             
-            // Check if there are no detections
-            const hasDetections = this.isValidNumeric(capacity) && this.isValidNumeric(numSystems);
+            // Check for truncated case (value is -1)
+            const isTruncated = (capacity === -1 || numSystems === -1) || (capacity === '-1' || numSystems === '-1');
+            
+            // Check if there are no detections (None/null)
+            const hasDetections = this.isValidNumeric(capacity) && this.isValidNumeric(numSystems) && !isTruncated;
             
             let statsText;
-            if (hasDetections) {
+            if (isTruncated) {
+                statsText = 'Less than 10 systems';
+            } else if (hasDetections) {
                 statsText = `${parseFloat(capacity).toFixed(1)} kWp • ${numSystems} systems`;
             } else {
                 statsText = 'No detections';
