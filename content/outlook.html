@@ -8,6 +8,22 @@
     <meta name="description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
     <meta name="author" content="Gabriel Kasmi">
 
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+    <meta property="og:title" content="Related Work · DeepPVMapper">
+    <meta property="og:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+    <meta property="twitter:title" content="Related Work · DeepPVMapper">
+    <meta property="twitter:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+
+    <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
     <link rel="stylesheet" href="../static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -350,7 +366,7 @@
             <div class="work-grid" id="work-grid">
                 <!-- cards injected by script -->
             </div>
-            <p class="no-results" id="no-results">Nothing matches your search.</p>
+            <p class="no-results" id="no-results"></p>
         </div>
     </section>
 
@@ -613,6 +629,7 @@
 
         const grid = document.getElementById('work-grid');
         const noResults = document.getElementById('no-results');
+        noResults.textContent = 'Nothing matches your search.';
         const overlay = document.getElementById('modal-overlay');
         const modalMeta = document.getElementById('modal-meta');
         const modalTitle = document.getElementById('modal-title');
