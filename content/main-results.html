@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registry Audit · DeepPVMapper</title>
+
+    <meta name="description" content="Auditing the reliability of French PV grid-connection registries using DeepPVMapper as an independent remote-sensing ground truth.">
+    <meta name="author" content="Gabriel Kasmi">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .disclaimer {
+            background-color: #fff3cd;
+            border: 1px solid #ffe69c;
+            border-radius: 8px;
+            padding: 18px 24px;
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+            font-size: 0.95rem;
+            color: #664d03;
+            text-align: center;
+        }
+        .section-number {
+            display: inline-block;
+            color: #6c757d;
+            font-weight: 400;
+            margin-right: 10px;
+        }
+        h3.subsection {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #2c3e50;
+            margin: 40px 0 16px 0;
+            text-align: left;
+        }
+        h3.subsection .section-number {
+            font-size: 1.2rem;
+        }
+        .placeholder-box {
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #adb5bd;
+            font-style: italic;
+            margin: 20px 0;
+        }
+        .side-by-side {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .side-by-side figure, .side-by-side .placeholder-box {
+            flex: 1;
+            min-width: 280px;
+            max-width: 480px;
+            text-align: center;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-background"></div>
+        <div class="container">
+            <h1 class="title">Registry Audit</h1>
+            <p class="subtitle">How reliable are PV grid-connection registries?</p>
+            <div class="links">
+                <a href="../index.html" class="btn">← Back to Homepage</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Disclaimer -->
+    <section class="abstract" style="padding-bottom: 0;">
+        <div class="container">
+            <div class="disclaimer">
+                <strong>Preliminary results &mdash; under peer review.</strong> The figures and conclusions presented
+                on this page are drawn from a manuscript currently under review and may be revised before publication.
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 1. Motivation ============ -->
+    <section class="abstract" style="padding-top: 0;">
+        <div class="container">
+            <h2><span class="section-number">1.</span>Motivation</h2>
+            <p>
+                Monitoring the deployment of rooftop PV at national scale requires a reliable census of
+                grid-connected installations. In France, this role is filled by two data sources, both produced by
+                <strong>RTE</strong> (the French transmission system operator): the <strong>RNI</strong>
+                (Registre National des Installations), a public registry of grid-connected power generation
+                facilities compiled jointly with Enedis and the local distribution operators, and RTE's
+                <strong>internal grid-connection data</strong>, which RTE itself treats as its ground truth and uses
+                to produce official statistics on the French PV fleet.
+            </p>
+            <p>
+                But how complete and accurate are these sources, really? This study turns the usual validation logic
+                on its head: instead of using grid-connection data as ground truth to evaluate a remote-sensing
+                method, we use DeepPVMapper's detections &mdash; an independent, remote-sensing-based source &mdash;
+                <strong>as the ground truth to audit the registries themselves</strong>, and we ask, separately,
+                whether the RNI and RTE's internal data are consistent with what we observe from the sky.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 2. Method ============ -->
+    <section class="method">
+        <div class="container">
+            <h2><span class="section-number">2.</span>Method</h2>
+            <div class="method-content">
+                <div class="method-text">
+
+                    <h3 class="subsection"><span class="section-number">2.1</span>From raw detections to corrected, uncertainty-aware estimates</h3>
+                    <p>
+                        The starting point is DeepPVMapper's raw output: a count of detected installations and an
+                        estimated installed capacity for each département. Taken at face value, these counts are
+                        biased &mdash; the pipeline's detection precision and recall vary from one département to
+                        another, so raw detections systematically over- or under-state the true number of
+                        installations depending on local conditions (urban density, roof types, imagery quality,
+                        etc.).
+                    </p>
+                    <p>
+                        We correct for this using the département-level precision and recall measured through manual
+                        validation (see <a href="pipeline.html">Pipeline &mdash; §3.2 Validation</a>), which gives,
+                        for each département, a <strong>corrected (bias-corrected) estimate</strong> of the true
+                        number of installations and the true installed capacity. Because precision and recall are
+                        themselves estimated from a finite validation sample, they carry their own uncertainty
+                        &mdash; modelled as Beta distributions calibrated on the manual annotations (true/false
+                        positives and negatives, see the Pipeline page for the exact construction).
+                    </p>
+                    <p>
+                        Propagating that uncertainty through to the corrected estimate is the role of the
+                        <strong>bootstrap procedure</strong> at the heart of this study: thousands of plausible
+                        precision/recall pairs are drawn from these distributions and each is used to correct the
+                        raw detections, which turns a single point estimate into a full
+                        <strong>bootstrapped distribution</strong> &mdash; and therefore a
+                        <strong>confidence interval</strong> &mdash; around the true value, for every département
+                        (full procedure detailed on the <a href="pipeline.html">Pipeline page</a>).
+                    </p>
+
+                    <h3 class="subsection"><span class="section-number">2.2</span>From distributions to an audit</h3>
+                    <p>
+                        The audit itself follows a simple decision rule: for each département, we check whether the
+                        value reported by a registry (RNI or RTE) falls within the <strong>99% confidence
+                        interval</strong> of our corrected, remote-sensing-based distribution. A registry value that
+                        falls outside this interval signals a likely issue &mdash; either in the registry itself, or
+                        in RTE's underlying grid-connection data &mdash; for that département.
+                    </p>
+                    <p>
+                        This decision rule is only as trustworthy as the confidence intervals it relies on, so
+                        before looking at the audit results themselves, it is worth checking how tight those
+                        intervals actually are. The figure below plots, for each département, the F1-score against
+                        its relative uncertainty: the validation sample was sized precisely to keep this relative
+                        uncertainty under control &mdash; <strong>21.9%</strong> at most. This intermediate check is 
+                        what justifies treating the département-level
+                        confidence intervals &mdash; and hence the audit's conclusions &mdash; as meaningful rather
+                        than artefacts of a noisy validation.
+                    </p>
+                    <figure style="margin: 20px 0; text-align: center;">
+                        <img src="../static/images/assets/uncertainty_vs_f1.webp" alt="F1-score vs. relative uncertainty, by département" style="max-width: 600px; width: 100%; border-radius: 8px;">
+                        <figcaption class="caption">F1-score vs. relative uncertainty in the corrected estimate, by département. The better the accuracy, the lower the relative uncertainty.</figcaption>
+                    </figure>
+                    <p>
+                        With that check in hand, the central figure of the analysis is the one the audit is actually
+                        read off: for each département, the bootstrapped distribution of the corrected estimate,
+                        with the registry's reported value (RNI and/or RTE) overlaid. Whenever that reported value
+                        falls outside the 99% confidence interval, we flag a likely discrepancy &mdash; this is the
+                        figure underlying every result presented in the next section.
+                    </p>
+                    <figure style="margin: 20px 0; text-align: center;">
+                        <img src="../static/images/assets/departemental-distributions.webp" alt="F1-score vs. relative uncertainty, by département" style="max-width: 600px; width: 100%; border-radius: 8px;">
+                        <figcaption class="caption">Bootstrapped distributions of the installed capacity for three départements. The red dotted lines shows the 99% CI.</figcaption>
+                    </figure>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 3. Results ============ -->
+    <section class="results">
+        <div class="container">
+            <h2><span class="section-number">3.</span>Results</h2>
+
+            <h3 class="subsection"><span class="section-number">3.1</span>RNI: watch out for the truncation bias</h3>
+            <p>
+                The RNI fares poorly against our remote-sensing-based estimates. Part of the apparent gap, however,
+                is an artefact of how the comparison is made: the RNI records installations at the
+                <strong>communal level</strong>, but for anonymization purposes, municipalities with fewer than ten
+                systems are not individually reported &mdash; their capacity is simply missing from a naive
+                commune-by-commune comparison. This creates a <strong>truncation bias</strong>: small municipalities,
+                which are numerous and collectively account for a non-negligible share of installed capacity, are
+                systematically dropped, distorting the comparison. Aggregating both sources to the
+                <strong>département level</strong> &mdash; where these unregistered communal capacities can be
+                folded back in and compared against department-level totals &mdash; corrects for this artefact.
+            </p>
+            <figure style="margin: 20px 0; text-align: center;">
+                <img src="../static/images/assets/rni_before_after_correction.webp" alt="RNI vs. remote-sensing estimates, before and after correcting for the communal-level truncation bias" style="max-width: 800px; width: 100%; border-radius: 8px;">
+                <figcaption class="caption">RNI vs. corrected remote-sensing estimates, before and after aggregating to the département level to account for unregistered (anonymized) small municipalities.</figcaption>
+            </figure>
+            <p>
+                Even once this truncation bias is accounted for, a clear <strong>downward bias</strong> remains: the
+                RNI systematically under-records installed capacity relative to our corrected remote-sensing
+                estimates.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">3.2</span>RTE's internal data show a large downward bias</h3>
+            <p>
+                The comparison with RTE's own internal grid-connection data &mdash; the source RTE itself treats as
+                ground truth &mdash; is, if anything, more concerning: it reveals a <strong>large systematic
+                downward bias</strong>, both in absolute terms and relative to the total installed capacity.
+            </p>
+            <p>
+                The figure below summarizes the picture in three panels. The first shows, département by département,
+                the absolute gap between RTE's figures and our corrected estimates, in MWp of installed capacity.
+                Only <strong>6 départements</strong> see RTE overestimate capacity, for a combined
+                <strong>+39.2 MWp</strong> (1.46% of national installed capacity, with a per-département local gap
+                ranging from 26% to 64% of that département's installed capacity). By contrast,
+                <strong>36 départements</strong> &mdash; six times as many &mdash; see RTE underestimate capacity,
+                for a combined <strong>&minus;310.4 MWp</strong> (11.52% of national installed capacity, with local
+                gaps ranging from 16% to 50% of the département's installed capacity). This six-to-one imbalance
+                &mdash; both in the number of départements affected and in the magnitude of the gap &mdash; leaves
+                little ambiguity: RTE's deviations run overwhelmingly in one direction, underestimation. The second
+                and third panels reframe these gaps as a <strong>share of each département's installed
+                capacity</strong>, making this local severity visible directly on the map.
+            </p>
+            <figure style="margin: 20px 0; text-align: center;">
+                <img src="../static/images/assets/rte_year_absolute_over_under.webp" alt="RTE over- and under-estimation of installed PV capacity relative to corrected remote-sensing estimates, by département, in absolute terms (MWp) and as a share of installed capacity" style="max-width: 950px; width: 100%; border-radius: 8px;">
+                <figcaption class="caption">RTE vs. corrected remote-sensing estimates, by département: absolute gap in MWp (left), and the same gap expressed as a share of each département's installed capacity, split between over- (middle) and under-estimations (right).</figcaption>
+            </figure>
+            <p>
+                Netting the two effects out, RTE's internal data <strong>underestimate the true national installed
+                capacity by 10.1%</strong> (&minus;271.2 MWp) &mdash; a gap that is far from negligible for a source
+                treated as ground truth for grid-planning purposes.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">3.3</span>What might explain the bias?</h3>
+            <p>
+                The systematic downward bias documented in RTE data raises the question of its underlying causes.
+                While this study is not designed to identify them, the results provide a basis for informed
+                speculation.
+            </p>
+            <p>
+                Four candidate mechanisms can be considered. <strong>Off-grid installations</strong> are unlikely to
+                account for a significant share of the gap: the near-universal electrification rate in France and
+                the requirement to intervene on the domestic electrical panel make it implausible that detected
+                installations are systematically disconnected from the grid. <strong>Declaration delays and data
+                losses</strong> are the most plausible candidates &mdash; a dynamic pattern more suggestive of
+                accumulating reporting lags than of a fixed structural gap. <strong>Deliberate
+                non-declaration</strong> cannot be excluded but remains untestable with the data available here.
+            </p>
+            <p>
+                The role of <strong>local distribution operators (ELDs)</strong> appears to be a contributing factor
+                rather than the primary driver. The correlation between ELD presence and data discrepancy is
+                geographically visible and statistically documented, but remains modest and sensitive to a small
+                number of outliers.
+            </p>
+            <p>
+                Preliminary evidence suggests that the deployment of <strong>smart meters (Linky)</strong>, ongoing
+                since 2024, may be associated with a reduction in the RTE&ndash;RNI discrepancy. This remains a
+                temporal correlation at this stage; establishing causality would require a dedicated longitudinal
+                analysis.
+            </p>
+            <p>
+                More broadly, the existence of systematic underregistration appears to be consistent with
+                assessments from practitioners in the field. The contribution of this work is not to reveal the
+                phenomenon, but to <strong>quantify it at national and départment scale</strong>, and to provide a
+                <strong>reproducible methodology</strong> for monitoring it over time.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

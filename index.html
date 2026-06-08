@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepPVMapper</title>
-    
+
     <!-- Meta tags for SEO and social sharing -->
     <meta name="description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. PhD work by Gabriel Kasmi.">
     <meta name="keywords" content="deep learning, photovoltaic, mapping, computer vision, remote sensing">
     <meta name="author" content="Gabriel Kasmi">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
@@ -26,36 +26,72 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="static/css/style.css">
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .reveal-group {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal-group.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
-
 
     <!-- Header -->
     <header class="header">
         <div class="header-background"></div>
         <div class="container">
             <h1 class="title">DeepPVMapper</h1>
-            <p class="subtitle">A Remote Sensing-Based Method for Mapping Rooftop Photovoltaic Systems.<br><i>This page is under construction.</i></p>
+            <p class="subtitle">Open source deep learning for remote sensing of rooftop solar at national scale</p>
             <div class="authors">
                 <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="Gabriel Kasmi on LinkedIn" style="display: inline-flex; vertical-align: middle; margin-left: 8px; opacity: 0.6; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+                    </svg>
+                </a>
             </div>
             <div class="affiliations">
                 Mines Paris - PSL University and RTE France
             </div>
-            
+
             <div class="links">
+                <a href="content/pipeline.html" class="btn">Pipeline</a>
                 <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="btn">GitHub</a>
-                <a href="https://pastel.hal.science/tel-04909303" target="_blank" class="btn">PhD Thesis</a>
                 <div class="dropdown">
-                    <a href="#" class="btn dropdown-btn">Papers ▼</a>
+                    <a href="#" class="btn dropdown-btn">Map ▼</a>
                     <div class="dropdown-content">
-                        <a href="https://arxiv.org/abs/2207.07466" target="_blank" class="dropdown-item">
+                        <a href="content/map.html" class="dropdown-item">
+                            <span class="pub-title">Interactive Map</span>
+                            <span class="pub-authors">Browse the 520k+ detected rooftop PV systems</span>
+                        </a>
+                        <a href="https://doi.org/10.5281/zenodo.18630258" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Download the data</span>
+                            <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18630258.svg" alt="DOI" style="margin-top: 4px; height: 20px;">
+                        </a>
+                    </div>
+                </div>
+                <a href="content/main-results.html" class="btn">Registry Audit</a>
+                <a href="content/outlook.html" class="btn">Related Work</a>
+                <div class="dropdown">
+                    <a href="#" class="btn dropdown-btn">Publications ▼</a>
+                    <div class="dropdown-content">
+                        <a href="https://theses.fr/2024UPSLM027" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations</span>
+                            <span class="pub-authors">Gabriel Kasmi</span>
+                            <span class="pub-year">2024 • PhD Thesis, Université Paris sciences et lettres</span>
+                        </a>
+                        <a href="https://arxiv.org/pdf/2207.07466" target="_blank" class="dropdown-item">
                             <span class="pub-title">Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping</span>
                             <span class="pub-authors">Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan</span>
                             <span class="pub-year">2022 • MACLEAN Workshop @ECML-PKDD</span>
@@ -67,79 +103,107 @@
                         </a>
                     </div>
                 </div>
-                <a href="content/map.html" class="btn">Interactive Map</a>
-                <a href="content/results.html" class="btn">Results</a>
+                <a href="content/in-press.html" class="btn">In Press</a>
+                <div class="dropdown">
+                    <a href="#" class="btn dropdown-btn">Useful Links ▼</a>
+                    <div class="dropdown-content">
+                        <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Training data &mdash; BDAPPV</span>
+                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset badge" style="margin-top: 4px; height: 20px;">
+                        </a>
+                        <a href="#" class="dropdown-item" style="opacity: 0.5; cursor: default;" onclick="return false;">
+                            <span class="pub-title">Model weights</span>
+                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model%20(soon)-lightgrey" alt="Hugging Face Model badge - coming soon" style="margin-top: 4px; height: 20px;">
+                        </a>
+                        <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
+                            <span class="pub-title">pypvroof</span>
+                            <span class="pub-authors">Package on PyPI for extracting PV system characteristics</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Abstract -->
-    <section class="abstract">
+    <!-- Cartography overview -->
+    <section class="results">
         <div class="container">
-            <h2>Abstract</h2>
-            <p>
-                As the deployment of small-scale rooftop photovoltaic (PV) systems accelerates, transmission system operators (TSOs) 
-                face growing challenges in accessing reliable and comprehensive data on installed PV capacity. 
-                In France, 99% of PV grid connections correspond to rooftop systems connected to distribution networks. 
-                Yet, the accuracy and uncertainty of national PV registries remain undocumented, limiting their use in 
-                critical grid operations. In this context of sustained growth, timely and verifiable data are essential 
-                to ensure forecasting accuracy and secure grid management. We introduce DeepPVMapper, a deep learning 
-                pipeline trained on aerial orthoimagery to detect rooftop PV systems and estimate their installed 
-                capacity, tilt and azimuth angles. Applied at the French national scale, the method identifies over 
-                500,000 installations and generates a geospatial dataset to assess and audit the completeness of 
-                official registries. This study focuses on empirically evaluating the added value of Earth Observation 
-                and deep learning methods in practice. Using spatial aggregation and inter-source consensus metrics, we 
-                analyze how DeepPVMapper outputs align or diverge from the French TSO registry. Results reveal strong 
-                correlations in periurban areas, suggesting that existing registries are generally well-structured at aggregate 
-                scales. However, we also identify persistent gaps in rural zones where EO-based mapping highlights systematic 
-                omissions or errors. This work demonstrates how remote sensing acts as an independent, scalable lens to benchmark 
-                and improve the quality of PV datasets. It contributes to assessing the operational relevance of EO-based tools for 
-                energy system monitoring where direct observability is limited.
-            </p>
-        </div>
-    </section>
-
-    <!-- Teaser Image -->
-    <section class="teaser">
-        <div class="container">
-            <img src="figs/flowchart.png" alt="DeepPVMapper Algorithm Flowchart" class="teaser-image">
-            <p class="caption">Overview of the DeepPVMapper approach for detecting and characterizing rooftop PV systems</p>
-        </div>
-    </section>
-
-    <!-- Method -->
-    <section class="method">
-        <div class="container">
-            <h2>Method</h2>
-            <div class="method-content">
-                <div class="method-text">
-                    <p>
-                        The algorithm processes high-resolution aerial imagery through a two-stage pipeline:
-                    </p>
-                    <ol>
-                        <li><strong>Classification Stage:</strong> Aerial tiles are divided into patches and classified to detect PV panels</li>
-                        <li><strong>Segmentation Stage:</strong> Detected regions are precisely segmented to extract polygon boundaries</li>
-                    </ol>
-                    <p>
-                        The extracted polygons are converted to geolocated GeoJSON files, and system characteristics 
-                        (tilt, orientation, installed power, surface area) are computed using auxiliary data sources. 
-                        The system applies various filters to ensure quality, including restrictions to installations 
-                        under 36 kWc located on rooftops.
-                    </p>
+            <div class="reveal-group">
+                <h2>Mapping Rooftop PV at National Scale</h2>
+                <p>
+                    DeepPVMapper is a, open source, remote sensing-based rooftop PV mapping algorithm. It is part of a
+                    PhD project carried out at RTE, the French transmission operator.
+                    Applied across France on IGN BD ORTHO&reg; imagery acquired between 2018 and 2024, DeepPVMapper has
+                    produced the largest registry of rooftop PV systems at this level of detail anywhere in the world.
+                    For each system, the registry reports its surface, tilt, orientation, estimated installed capacity,
+                    and precise location (latitude/longitude).
+                </p>
+            </div>
+            <div class="reveal-group">
+                <div class="validation-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">520k+</span>
+                        <span class="stat-label">PV systems mapped</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">2.7 GWp</span>
+                        <span class="stat-label">Estimated installed capacity</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">34k</span>
+                        <span class="stat-label">Samples used for validation</span>
+                    </div>
                 </div>
+                <figure style="margin-top: 40px; text-align: center;">
+                    <img src="static/images/assets/mapping.webp" alt="DeepPVMapper mapping results" class="teaser-image" style="max-width: 700px;">
+                    <figcaption class="caption">Overview of the mapping of rooftop PV systems by DeepPVMapper. The darker, the higher the installed capacity.</figcaption>
+                </figure>
+            </div>
+            <div class="reveal-group">
+                <p style="text-align: center; margin-top: 30px;">
+                    <a href="content/map.html" class="btn">Explore the interactive map →</a>
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- Results -->
-    <section class="results">
+    <!-- Pipeline overview -->
+    <section class="abstract">
         <div class="container">
-            <h2>Results</h2>
+            <h2>The Pipeline</h2>
             <p>
-                The DeepPVMapper system has been validated against the French national registry of installations (RNI), 
-                demonstrating reliable performance in mapping distributed rooftop photovoltaic systems. The algorithm 
-                successfully processes large-scale aerial imagery datasets and generates comprehensive inventories 
-                of PV installations with detailed characteristics.
+                DeepPVMapper is a deep learning pipeline, inspired by 3D-PV-Locator (Meyer et al., 2022), that detects
+                rooftop photovoltaic systems from aerial imagery and characterizes them. It proceeds in two stages:
+                a classification model (Inception v3) flags candidate image patches, which are then segmented
+                (DeepLab v3) to extract precise polygon boundaries. The resulting polygons are processed with
+                <strong>pypvroof</strong>, a purpose-built package (available on PyPI) that estimates each
+                system's characteristics &mdash; surface, tilt, orientation, and installed capacity &mdash; and
+                cross-referenced with the BD TOPO&reg; building database to keep only rooftop-mounted detections and
+                merge detections belonging to the same roof. The output is a geolocated PV registry. The models are
+                trained on <strong>BD-PV</strong>, a novel annotated dataset built on IGN's BD ORTHO&reg; aerial imagery.
+            </p>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="content/pipeline.html" class="btn">Explore the pipeline in detail →</a>
+            </p>
+        </div>
+    </section>
+
+
+    <!-- Grid-connection data study overview -->
+    <section class="abstract">
+        <div class="container">
+            <h2>How Reliable Are Grid-Connection Registries?</h2>
+            <p>
+                Using DeepPVMapper's detections as an independent ground truth, we estimate &mdash; after correcting
+                for the pipeline's measured precision and recall by département &mdash; the actual distribution of
+                installed capacity and number of systems across France, and compare these estimates to official
+                grid-connection data (RNI/RTE) using a confidence-interval approach. The results reveal a clear and
+                quantifiable <strong>underestimation</strong> of rooftop PV in official registries, particularly
+                in rural areas &mdash; reversing the usual paradigm where registries serve as ground truth for
+                remote-sensing methods, and instead using remote sensing to audit the registries themselves.
+            </p>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="content/main-results.html" class="btn">Read the full analysis →</a>
             </p>
         </div>
     </section>
@@ -159,25 +223,32 @@
         </div>
     </section>
 
-    <!-- References -->
-    <section class="references">
-        <div class="container">
-            <h2>References</h2>
-            <div class="reference-list">
-                <p><strong>[1]</strong> Kasmi, G. (2024). Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations. PhD Thesis, Université Paris sciences et lettres.</p>
-                <p><strong>[2]</strong> Kasmi, G., Dubus, L., Blanc, P., & Saint-Drenan, Y. M. (2022). Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping. arXiv preprint arXiv:2207.07466.</p>
-            </div>
-        </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 
     <!-- JavaScript -->
     <script src="static/js/script.js"></script>
+    <script>
+        // Staggered reveal for grouped content within a section (e.g. the
+        // "Mapping Rooftop PV" section): each .reveal-group fades in on its
+        // own as it enters the viewport, on top of the section-level fade-in.
+        document.addEventListener('DOMContentLoaded', function() {
+            const groups = document.querySelectorAll('.reveal-group');
+            const groupObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        groupObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+            groups.forEach(group => groupObserver.observe(group));
+        });
+    </script>
 </body>
-</html> 
+</html>

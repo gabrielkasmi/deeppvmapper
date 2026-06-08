@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Related Work · DeepPVMapper</title>
+
+    <meta name="description" content="The DeepPVMapper universe: related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta name="author" content="Gabriel Kasmi">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .filter-bar {
+            max-width: 420px;
+            margin: 0 auto 46px auto;
+            position: relative;
+        }
+        .filter-bar input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            border: 1px solid #ced4da;
+            border-radius: 999px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: #f8f9fa;
+        }
+        .filter-bar input:focus {
+            border-color: #34495e;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(44, 62, 80, 0.08);
+        }
+        .filter-bar svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            pointer-events: none;
+        }
+
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .work-card {
+            background-color: white;
+            color: #2c3e50;
+            border-radius: 12px;
+            padding: 24px 26px;
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 10px rgba(44, 62, 80, 0.04);
+        }
+        .work-card:hover {
+            transform: translateY(-3px);
+            border-color: #34495e;
+            box-shadow: 0 12px 28px rgba(44, 62, 80, 0.12);
+        }
+        .work-card.hidden {
+            display: none;
+        }
+        .work-title {
+            font-size: 1.08rem;
+            font-weight: 300;
+            color: #2c3e50;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+        .work-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .keyword-chip {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #34495e;
+            background-color: #eef1f4;
+            border-radius: 999px;
+            padding: 4px 11px;
+            text-transform: lowercase;
+            letter-spacing: 0.01em;
+        }
+        .work-card:hover .keyword-chip {
+            background-color: #e2e8ee;
+        }
+
+        .work-card.cta-card {
+            background-color: #f8f9fa;
+            border: 1px dashed #adb5bd;
+            box-shadow: none;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .work-card.cta-card:hover {
+            border-color: #34495e;
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.08);
+        }
+        .work-card.cta-card .work-title {
+            color: #34495e;
+            margin-bottom: 8px;
+        }
+        .work-card.cta-card .cta-sub {
+            font-size: 0.88rem;
+            color: #6c757d;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #6c757d;
+            margin-top: 30px;
+            display: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(44, 62, 80, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 12px;
+            max-width: 920px;
+            width: 100%;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            padding: 28px 36px 18px 36px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+        .modal-keywords {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            line-height: 1;
+            color: #adb5bd;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .modal-close:hover {
+            color: #2c3e50;
+        }
+        .modal-body {
+            padding: 24px 36px;
+            overflow-y: auto;
+            font-size: 1rem;
+            line-height: 1.75;
+            color: #495057;
+            text-align: justify;
+        }
+        .modal-body h4 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin: 24px 0 10px 0;
+            text-align: left;
+        }
+        .modal-body h4:first-child {
+            margin-top: 0;
+        }
+        .modal-footer {
+            padding: 18px 36px 28px 36px;
+            text-align: right;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-background"></div>
+        <div class="container">
+            <h1 class="title">Related Work</h1>
+            <p class="subtitle">The DeepPVMapper universe &mdash; related works and what builds on it</p>
+            <div class="links">
+                <a href="../index.html" class="btn">← Back to Homepage</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Related works -->
+    <section class="abstract">
+        <div class="container">
+            <div class="filter-bar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <input type="text" id="work-filter" placeholder="Filter by keyword&hellip;">
+            </div>
+            <div class="work-grid" id="work-grid">
+                <!-- cards injected by script -->
+            </div>
+            <p class="no-results" id="no-results">Nothing matches your search.</p>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modal-title"></h3>
+                    <div class="modal-keywords" id="modal-keywords"></div>
+                </div>
+                <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <a id="modal-link" href="#" target="_blank" class="btn">Read the publication →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+    <script>
+        const works = [
+            {
+                title: "Rooftop PV power production",
+                keywords: ["production", "power", "estimation", "physics-based", "rooftop"],
+                text: "Estimating the power production of distributed rooftop PV systems is essential for grid operators, " +
+                      "yet small-scale installations remain poorly observed. This work develops a physics-based method " +
+                      "for estimating the production of rooftop PV systems from remote-sensing-derived registries and " +
+                      "weather data &mdash; the methodological foundation later benchmarked against the French TSO's " +
+                      "approach (see &laquo;&nbsp;Comparison with TSO&nbsp;&raquo;).",
+                link: "https://www.mdpi.com/1996-1073/17/17/4353"
+            },
+            {
+                title: "Comparison with TSO production estimates",
+                keywords: ["tso", "comparison", "benchmark", "production", "rte", "grid"],
+                text: "The deployment of photovoltaic (PV) systems accelerates worldwide and reached a global installed " +
+                      "capacity reaching 1,858 GWp in 2024, France accounting for 25 GWp. However, PV grid integration " +
+                      "is hindered by limited rooftop PV observability, as transmission system operators (TSOs) lack " +
+                      "direct measurements of small-scale systems. This study provides the first national-scale " +
+                      "benchmarking of the French TSO&rsquo;s statistical method against a physics-based approach using " +
+                      "remote-sensing PV registries and weather data. Using ground-truth measurements from rooftop PV " +
+                      "systems across France (2020-2023), we evaluate accuracy, robustness, and operational tradeoffs " +
+                      "of both methods. Results show comparable accuracy (aggregated errors of approximately 4%), with " +
+                      "the TSO method demonstrating superior robustness and the physics-based approach offering greater " +
+                      "adaptability. The TSO method performs better than expected under current conditions but faces " +
+                      "challenges from evolving PV systems, as self-consumption installations now represent 60% of new " +
+                      "capacity. Findings highlight the critical importance of accurate PV registries for grid " +
+                      "reliability, with implications extending beyond France to other regions with rooftop PV " +
+                      "integration challenges.",
+                link: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5385856"
+            },
+            {
+                title: "Socio-economic factors driving PV adoption",
+                keywords: ["adoption", "socioeconomic", "determinants", "policy", "literature review"],
+                text: "This literature review examines the key factors influencing the adoption of residential " +
+                      "photovoltaic (PV) rooftop systems. Economic research approaches this topic from both " +
+                      "macroeconomic and microeconomic perspectives, identifying a range of determinants, particularly " +
+                      "socioeconomic and financial, that influence individual decisions. These findings reveal a " +
+                      "complex interaction between these factors, highlighting how they can significantly affect the " +
+                      "effectiveness of public incentive policies. A better understanding of these dynamics is crucial " +
+                      "for designing policies that are both efficient and socially equitable in promoting the energy " +
+                      "transition.<br><br><em>This is currently a literature review &mdash; a follow-up study using " +
+                      "disaggregated data is coming soon.</em>",
+                link: "https://shs.hal.science/halshs-05121399/file/pv_adoption_literature_review.pdf"
+            },
+            {
+                title: "Reliability of detections &amp; explainability (XAI)",
+                keywords: ["reliability", "xai", "explainability", "distribution shift", "robustness"],
+                text: "Photovoltaic (PV) energy grows rapidly and is crucial for the decarbonization of electric " +
+                      "systems. However, centralized registries recording the technical characteristics of rooftop PV " +
+                      "systems are often missing, making it difficult to monitor this growth accurately. The lack of " +
+                      "monitoring could threaten the integration of PV energy into the grid. To avoid this situation, " +
+                      "remote sensing of rooftop PV systems using deep learning has emerged as a promising solution. " +
+                      "However, existing techniques are not reliable enough to be used by public authorities or " +
+                      "transmission system operators (TSOs) to construct up-to-date statistics on the rooftop PV " +
+                      "fleet. The lack of reliability comes from deep learning models being sensitive to distribution " +
+                      "shifts. This work comprehensively evaluates distribution shifts&rsquo; effects on the " +
+                      "classification accuracy of deep learning models trained to detect rooftop PV panels on " +
+                      "overhead imagery. We construct a benchmark to isolate the sources of distribution shifts and " +
+                      "introduce a novel methodology that leverages explainable artificial intelligence (XAI) and " +
+                      "decomposition of the input image and model&rsquo;s decision regarding scales to understand how " +
+                      "distribution shifts affect deep learning models. Finally, based on our analysis, we introduce " +
+                      "a data augmentation technique designed to improve the robustness of deep learning classifiers " +
+                      "under varying acquisition conditions. Our proposed approach outperforms competing methods and " +
+                      "can close the gap with more demanding unsupervised domain adaptation methods. We discuss " +
+                      "practical recommendations for mapping PV systems using overhead imagery and deep learning models.",
+                link: "https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5"
+            }
+        ];
+
+        const grid = document.getElementById('work-grid');
+        const noResults = document.getElementById('no-results');
+        const overlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalKeywords = document.getElementById('modal-keywords');
+        const modalBody = document.getElementById('modal-body');
+        const modalLink = document.getElementById('modal-link');
+
+        function chips(keywords) {
+            return keywords.map(k => `<span class="keyword-chip">${k}</span>`).join('');
+        }
+
+        works.forEach((work, idx) => {
+            const card = document.createElement('div');
+            card.className = 'work-card';
+            card.dataset.keywords = work.keywords.join(' ').toLowerCase();
+            card.dataset.title = work.title.toLowerCase();
+            card.innerHTML = `
+                <h3 class="work-title">${work.title}</h3>
+                <div class="work-keywords">${chips(work.keywords)}</div>
+            `;
+            card.addEventListener('click', () => openModal(idx));
+            grid.appendChild(card);
+        });
+
+        // CTA card inviting people to suggest related work to feature
+        const cta = document.createElement('a');
+        cta.className = 'work-card cta-card';
+        cta.href = 'mailto:gabriel.kasmi.services@gmail.com?subject=DeepPVMapper%20%E2%80%94%20Related%20work%20to%20feature';
+        cta.dataset.keywords = 'contact suggest propose feature contribute related work';
+        cta.dataset.title = 'got something to add';
+        cta.innerHTML = `
+            <h3 class="work-title">Got something to add?</h3>
+            <p class="cta-sub">Get in touch to suggest related work to feature here →</p>
+        `;
+        grid.appendChild(cta);
+
+        function openModal(idx) {
+            const work = works[idx];
+            modalTitle.innerHTML = work.title;
+            modalKeywords.innerHTML = chips(work.keywords);
+            modalBody.innerHTML = `<p>${work.text}</p>`;
+            modalLink.href = work.link;
+            overlay.classList.add('active');
+        }
+
+        function closeModal() {
+            overlay.classList.remove('active');
+        }
+
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('work-filter').addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            let visibleCount = 0;
+            document.querySelectorAll('.work-card').forEach(card => {
+                const matches = !query || card.dataset.keywords.includes(query) || card.dataset.title.includes(query);
+                card.classList.toggle('hidden', !matches);
+                if (matches) visibleCount++;
+            });
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

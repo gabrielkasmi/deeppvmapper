@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Press · DeepPVMapper</title>
+
+    <meta name="description" content="Popular-science and press coverage of DeepPVMapper and related work.">
+    <meta name="author" content="Gabriel Kasmi">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .press-grid {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 16px;
+        }
+        .press-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px 24px;
+            transition: all 0.2s ease;
+            gap: 20px;
+        }
+        .press-card:hover {
+            border-color: #34495e;
+            transform: translateY(-1px);
+        }
+        .press-card-text h3 {
+            font-size: 1.05rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        .press-card-text p {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin: 0;
+        }
+        .press-card .btn {
+            flex-shrink: 0;
+        }
+        .series-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #34495e;
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-bottom: 6px;
+        }
+        .section-label {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: #2c3e50;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-background"></div>
+        <div class="container">
+            <h1 class="title">In Press</h1>
+            <p class="subtitle">Popular-science articles and press coverage</p>
+            <div class="links">
+                <a href="../index.html" class="btn">← Back to Homepage</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- PV Magazine series -->
+    <section class="abstract">
+        <div class="container">
+            <p class="section-label">PV Magazine France &mdash; series on rooftop PV observability</p>
+            <div class="press-grid">
+                <div class="press-card">
+                    <div class="press-card-text">
+                        <span class="series-tag">1 / 3</span>
+                        <h3>L'observabilité de la production photovoltaïque sur toiture : une question de connaissance du parc installé</h3>
+                        <p>PV Magazine France &mdash; September 2025</p>
+                    </div>
+                    <a href="https://www.pv-magazine.fr/2025/09/17/lobservabilite-de-la-production-photovoltaique-sur-toiture-une-question-de-connaissance-du-parc-installe/" target="_blank" class="btn">Read →</a>
+                </div>
+                <div class="press-card">
+                    <div class="press-card-text">
+                        <span class="series-tag">2 / 3</span>
+                        <h3>Une cartographie par IA pour évaluer les données de raccordement de systèmes PV</h3>
+                        <p>PV Magazine France &mdash; September 2025</p>
+                    </div>
+                    <a href="https://www.pv-magazine.fr/2025/09/24/une-cartographie-par-ia-pour-evaluer-les-donnees-de-raccordement-de-systemes-pv/" target="_blank" class="btn">Read →</a>
+                </div>
+                <div class="press-card">
+                    <div class="press-card-text">
+                        <span class="series-tag">3 / 3</span>
+                        <h3>Comprendre comment l'autoconsommation façonne l'adoption du PV sur toiture</h3>
+                        <p>PV Magazine France &mdash; October 2025</p>
+                    </div>
+                    <a href="https://www.pv-magazine.fr/2025/10/01/comprendre-comment-lautoconsommation-faconne-ladoption-du-pv-sur-toiture/" target="_blank" class="btn">Read →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Other coverage -->
+    <section class="results">
+        <div class="container">
+            <p class="section-label">Other coverage</p>
+            <div class="press-grid">
+                <div class="press-card">
+                    <div class="press-card-text">
+                        <h3>Améliorer la fiabilité des modèles d'apprentissage profond en vue d'accroître l'observabilité des installations photovoltaïques en toiture en France</h3>
+                        <p>La Revue de l'Énergie &mdash; coverage of the PhD thesis</p>
+                    </div>
+                    <a href="https://www.larevuedelenergie.com/ameliorer-la-fiabilite-des-modeles-dapprentissage-profond-en-vue-daccroitre-lobservabilite-des-installations-photovoltaiques-en-toiture-en-france/" target="_blank" class="btn">Read →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

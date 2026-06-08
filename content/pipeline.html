@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline · DeepPVMapper</title>
+
+    <meta name="description" content="The DeepPVMapper detection and characterization pipeline: architecture, training, and deployment at national scale.">
+    <meta name="author" content="Gabriel Kasmi">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+
+    <style>
+        .section-number {
+            display: inline-block;
+            color: #6c757d;
+            font-weight: 400;
+            margin-right: 10px;
+        }
+        h3.subsection {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #2c3e50;
+            margin: 40px 0 16px 0;
+            text-align: left;
+        }
+        h3.subsection .section-number {
+            font-size: 1.2rem;
+        }
+        .placeholder-box {
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #adb5bd;
+            font-style: italic;
+            margin: 20px 0;
+        }
+        .side-by-side {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .side-by-side figure {
+            flex: 1;
+            min-width: 280px;
+            max-width: 480px;
+            text-align: center;
+            margin: 0;
+        }
+        .results-table-wrap {
+            max-width: 700px;
+            margin: 24px auto;
+            overflow-x: auto;
+        }
+        table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        table.results-table caption {
+            text-align: left;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 12px;
+            caption-side: bottom;
+            line-height: 1.6;
+        }
+        table.results-table th, table.results-table td {
+            border: 1px solid #dee2e6;
+            padding: 10px 16px;
+            text-align: center;
+        }
+        table.results-table thead th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        table.results-table tbody tr:last-child {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        table.results-table .ref {
+            color: #6c757d;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-background"></div>
+        <div class="container">
+            <h1 class="title">The Pipeline</h1>
+            <p class="subtitle">From aerial imagery to a characterized, national-scale rooftop PV registry</p>
+            <div class="links">
+                <a href="../index.html" class="btn">← Back to Homepage</a>
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="btn">GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ 1. Pipeline overview ============ -->
+    <section class="abstract">
+        <div class="container">
+            <h2><span class="section-number">1.</span>Pipeline Overview</h2>
+            <p>
+                DeepPVMapper is a deep learning pipeline, inspired by 3D-PV-Locator (Meyer et al., 2022), that
+                detects rooftop photovoltaic systems from aerial imagery and characterizes them. It proceeds in
+                two stages: polygon extraction, and characteristics extraction.
+            </p>
+            <figure style="text-align: center; margin: 30px 0;">
+                <img src="https://raw.githubusercontent.com/gabrielkasmi/deeppvmapper/main/figs/flowchart.png" alt="DeepPVMapper pipeline flowchart" class="teaser-image" style="max-width: 800px;">
+                <figcaption class="caption">Overview of the DeepPVMapper pipeline, from aerial tiles to a characterized PV registry</figcaption>
+            </figure>
+
+            <h3 class="subsection"><span class="section-number">1.1</span>Polygon Extraction</h3>
+            <p>
+                Aerial tiles are first divided into patches and passed through a
+                <strong>classification model (Inception v3)</strong> that flags patches likely to contain a PV
+                installation. Positively classified patches are then passed to a
+                <strong>segmentation model (DeepLab v3)</strong>, which extracts precise polygon boundaries for each
+                detected system. This two-step classify-then-segment design keeps the pipeline computationally
+                tractable at national scale, since the costly segmentation step only runs on the small fraction of
+                patches the classifier flags as positive.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">1.2</span>Characteristics Extraction</h3>
+            <p>
+                The extracted polygons are processed with <strong>pypvroof</strong>, a package developed for this
+                project and published on <a href="https://pypi.org/project/pypvroof/" target="_blank">PyPI</a>,
+                which estimates each system's surface area, tilt, orientation (azimuth), and installed capacity.
+                Detections are then cross-referenced with <strong>BD TOPO&reg;</strong>, IGN's national building
+                database, in a cleanup &amp; filtering step that (i) keeps only detections that sit on rooftops and
+                (ii) merges multiple detections belonging to the same roof into a single system. The result is a
+                clean, geolocated <strong>PV registry</strong>, with one entry per physical installation and its
+                estimated characteristics.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 2. Training ============ -->
+    <section class="method">
+        <div class="container">
+            <h2><span class="section-number">2.</span>Training</h2>
+
+            <h3 class="subsection"><span class="section-number">2.1</span>Training Data</h3>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        The models are trained on <strong>BDAPPV</strong>, a dataset of aerial images of rooftop PV
+                        installations in France and Belgium, with segmentation masks and installation metadata.
+                        Images are provided by two aerial imagery providers &mdash; <strong>Google</strong> and
+                        <strong>IGN</strong> &mdash; for a total of <strong>45,733 images</strong>, making the
+                        dataset suitable for both segmentation/classification benchmarks and distribution shift
+                        evaluation across imagery sources. All images are 400&times;400&nbsp;px PNGs, with binary
+                        PNG segmentation masks at the same resolution; the Google set is a superset of the IGN one,
+                        i.e. every IGN installation also has a corresponding Google image. For DeepPVMapper, since
+                        deployment runs on IGN's BD ORTHO&reg; imagery, the models are trained specifically on the
+                        <strong>IGN subset (17,325 images, including 7,685 positive samples)</strong>.
+                    </p>
+                    <div class="results-table-wrap">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Images</th>
+                                    <th>Positives (masks)</th>
+                                    <th>Negatives</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Google</td>
+                                    <td>28,408</td>
+                                    <td>13,303</td>
+                                    <td>15,105</td>
+                                    <td>399 images excluded (no metadata entry)</td>
+                                </tr>
+                                <tr>
+                                    <td>IGN</td>
+                                    <td>17,325</td>
+                                    <td>7,685</td>
+                                    <td>9,640</td>
+                                    <td>&ndash;</td>
+                                </tr>
+                            </tbody>
+                            <caption>
+                                <strong>BDAPPV dataset composition.</strong> Kasmi et al., <em>Scientific Data</em>, 2023.
+                            </caption>
+                        </table>
+                    </div>
+                    <figure style="text-align: center; margin: 30px 0;">
+                        <img src="../static/images/assets/bdappv-samples.webp" alt="Sample images and masks from the BDAPPV dataset" class="teaser-image" style="max-width: 700px;">
+                        <figcaption class="caption">Sample images (IGN images) from the BDAPPV dataset.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <h3 class="subsection"><span class="section-number">2.2</span>Training Results</h3>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        The table below, reproduced from Kasmi et al. (2022), benchmarks the classification and
+                        segmentation accuracy of our models against comparable works from the literature. The ground
+                        sampling distance (GSD) indicates how detailed the imagery is &mdash; the lower the GSD, the
+                        more detailed the image. PV panels generally cannot be detected on images with a GSD greater
+                        than 30&nbsp;cm/pixel.
+                    </p>
+                    <div class="results-table-wrap">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Work</th>
+                                    <th>Classification<br><span style="font-weight:400;">F1-score</span></th>
+                                    <th>Segmentation<br><span style="font-weight:400;">IoU</span></th>
+                                    <th>GSD (cm/pixel)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ref">Mayer et al.</td>
+                                    <td>0.87</td>
+                                    <td>0.74</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Malof et al.</td>
+                                    <td>&ndash;</td>
+                                    <td>0.67</td>
+                                    <td>30</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Zech &amp; Ranalli</td>
+                                    <td>0.82</td>
+                                    <td>&ndash;</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Parhar et al.</td>
+                                    <td><strong>0.97</strong></td>
+                                    <td>0.86</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>Ours</td>
+                                    <td>0.84</td>
+                                    <td><strong>0.86</strong></td>
+                                    <td>20</td>
+                                </tr>
+                            </tbody>
+                            <caption>
+                                <strong>Table 2 (Kasmi et al., 2022).</strong> Classification and segmentation accuracy
+                                &mdash; full references for each work are listed in the References section below.
+                            </caption>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 3. Deployment ============ -->
+    <section class="results">
+        <div class="container">
+            <h2><span class="section-number">3.</span>Deployment</h2>
+
+            <h3 class="subsection"><span class="section-number">3.1</span>Key Facts</h3>
+            <p>
+                The pipeline has been deployed across <strong>all of metropolitan France</strong>. On our hardware,
+                processing one département takes roughly <strong>10 hours</strong>, i.e. an estimated
+                <strong>~1,000 hours (about 42 days)</strong> of compute for the full national deployment. This is a
+                rough estimate: it does not account for the overhead caused by crashes, duplicated runs to obtain
+                longitudinal data, duplicated runs to clean or update the data, or the time spent
+                uploading/offloading the aerial imagery.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">3.2</span>Validation</h3>
+            <p>
+                The pipeline was validated against <strong>34,081 manually checked samples</strong>, allowing the
+                computation of precision, recall and F1-score for each département.
+            </p>
+
+            <p>
+                To evaluate the recall of the algorithm, we retrieved and cleaned PV plants labels from OpenStreetMap 
+                (accounting 8,000 detections) and manually labled the remaining 3,000 systems, depending on our needs. 
+                DeepPVMapper was then deployed on these images to estimate the recall. The precision was evaluated by 
+                manually labelling the model's own predictions. We labeled a total of 23,014 detections.
+            </p>
+
+            <p>
+                The number of validation samples for the precision and recall was decided so that 
+                sample size per département is chosen so that the resulting precision and recall estimates carry
+                a &plusmn;10% confidence interval around their true value,
+            </p>
+
+            <p>
+                The resulting F1 score ranges from 0.28 to 0.81, with a mean score of 0.65 at the national scale.
+                Highest accuracy is achieved in the south of France (average F1 score of 0.75 in the region
+                Provence-Alpes-Côte-d'Azur, followed by 0.70 in Occitanie). The lowest scores are achieved in
+                Normandie (0.49) and in Paris. Most of the variability actually comes from the precision: the number
+                of false positives skyrockets in densely urbanized areas (e.g., Paris), while the low precision in
+                Normandie is caused by farm buildings with metal roofs that the model confuses with
+                PV arrays.
+            </p>
+
+            <p>
+                For comparison, Malof et al. (2019) reported a precision of 0.88, a recall of 0.83 and an
+                F1-score of 0.85 over an area of about 12,000&nbsp;km&sup2;; a comparable area in our case &mdash; e.g.
+                the Gironde, one of the largest French départements &mdash; reaches a precision of 0.87 and a recall
+                of 0.65. More importantly, this validation effort is, to our knowledge, unprecedented in scale for
+                rooftop PV remote sensing: the Connecticut/California validation in Malof et al. (2019) was until now
+                the largest published benchmark for this task.
+            </p>
+
+            <figure style="text-align: center; margin-top: 20px;">
+                <img src="../static/images/assets/f1-score.webp" alt="F1 score by département" class="teaser-image" style="max-width: 600px;">
+                <figcaption class="caption">F1-score of the detection pipeline by département, computed on 23k validation samples.</figcaption>
+            </figure>
+
+            <h3 class="subsection"><span class="section-number">3.3</span>Results</h3>
+            <p>
+                After curation, the raw output of the pipeline counts <strong>451,883 individual PV systems</strong>,
+                totalling <strong>2,305,669.3&nbsp;kWp</strong> of installed capacity. Because the pipeline's precision
+                and recall are imperfect &mdash; and vary by département &mdash; this raw count is a biased estimate of
+                the true number of installations and the true installed capacity. We therefore use the validation results
+                above to produce <strong>corrected (bias-corrected) estimates</strong>.
+            </p>
+            <p>
+                The correction relies on a bootstrap procedure. For each département \(k\), the true positives,
+                false positives and false negatives observed in the manual annotations &mdash;
+                \(\text{TP}_k\), \(\text{FP}_k\) and \(\text{FN}_k\) &mdash; define a posterior belief about that
+                département's precision and recall, modelled as
+            </p>
+            <p style="text-align: center;">
+                \[
+                p_k \sim \text{Beta}(\text{TP}_k,\ \text{FP}_k), \qquad
+                r_k \sim \text{Beta}(\text{TP}_k,\ \text{FN}_k).
+                \]
+            </p>
+            <p>
+                The national precision (resp. recall) is then defined as the weighted average of the departmental
+                precisions (resp. recalls), each département being weighted by its estimated installed capacity, and
+                the national F1-score as the harmonic mean of the two. We run 10,000 iterations in which a precision
+                and a recall value are drawn for every département from these Beta distributions, the national
+                weighted averages and F1-score are recomputed, and the installed capacity is corrected as
+            </p>
+            <p style="text-align: center;">
+                \[
+                \text{Capacity}_{real} = \text{Capacity}_{est} \times \frac{p}{r}  
+                \]
+            </p>
+            <p>
+                where \(\text{est\_capacity}\) is the raw, uncorrected installed capacity estimated by the pipeline,
+                and \(p\) and \(r\) denote the (national or departmental) precision and recall. This procedure yields
+                a full distribution &mdash; and therefore confidence intervals &mdash; for the corrected number of
+                installations and installed capacity. The same bootstrap (10,000 draws) is run independently for each
+                département, producing departmental-level corrected distributions and confidence intervals.
+            </p>
+            <p>
+                Note that this correction is only valid under an <strong>homogeneity assumption</strong>: the model
+                must not make systematically different errors across installation size classes. If, say, it
+                under-detects large installations more often than small ones, a uniform precision/recall correction
+                would not fully remove the bias in the corrected capacity.
+            </p>
+            <p>
+                Applying this procedure at the national level raises the raw count of <strong>451,883</strong>
+                installations to a corrected estimate of <strong>528,199</strong> systems (99% CI:
+                [516,666; 540,434]), and the raw capacity of <strong>2,305,669.3&nbsp;kWp</strong> to a corrected
+                estimate of <strong>2,691,920.5&nbsp;kWp</strong> (99% CI: [2,636,215.5; 2,757,490.0]).
+            </p>
+            <div class="side-by-side">
+                <figure>
+                    <img src="../static/images/assets/installed-capacity.webp" alt="Installed capacity by département" class="teaser-image">
+                    <figcaption class="caption">Estimated installed capacity by département</figcaption>
+                </figure>
+                <figure>
+                    <img src="../static/images/assets/n-installations.webp" alt="Number of systems by département" class="teaser-image">
+                    <figcaption class="caption">Number of detected PV systems by département</figcaption>
+                </figure>
+            </div>
+            <div class="validation-stats" style="margin-top: 30px;">
+                <div class="stat-item">
+                    <span class="stat-number">520k+</span>
+                    <span class="stat-label">PV systems mapped</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">2.7 GWp</span>
+                    <span class="stat-label">Estimated installed capacity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">34k</span>
+                    <span class="stat-label">Manually checked validation samples</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ References ============ -->
+    <section class="references">
+        <div class="container">
+            <h2>References</h2>
+            <div class="reference-list">
+                <p>Mayer, J., Rausch, B., Arlt, M.-L., Gust, G., Wang, Z., Neumann, D., &amp; Rajagopal, R. (2022). 3D-PV-Locator: Large-scale detection of rooftop-mounted photovoltaic systems in 3D. <em>Applied Energy</em>, 310, 118469.</p>
+                <p>Malof, J. M., Li, B., Huang, B., Bradbury, K., &amp; Stretslov, A. (2019). Mapping solar array location, size, and capacity using deep learning and overhead imagery. <em>arXiv preprint arXiv:1902.10895</em>.</p>
+                <p>Zech, M., &amp; Ranalli, J. (2020). Predicting PV areas in aerial images with deep learning. In <em>2020 47th IEEE Photovoltaic Specialists Conference (PVSC)</em> (pp. 0767&ndash;0774). IEEE.</p>
+                <p>Parhar, P., Sawasaki, R., Todeschini, A., Reed, C., Vahabi, H., Nusaputra, N., &amp; Vergara, F. (2021). HyperionSolarNet: Solar panel detection from aerial images. In <em>NeurIPS 2021 Workshop on Tackling Climate Change with Machine Learning</em>.</p>
+                <p>Kasmi, G., Saint-Drenan, Y. M., Trebosc, D., Jolivet, R., Leloux, J., Sarr, B., &amp; Dubus, L. (2023). A crowdsourced dataset of aerial images with annotated solar photovoltaic arrays and installation metadata. <em>Scientific Data</em>, 10, 59.</p>
+                <p>Trémenbert, Y., Kasmi, G., Dubus, L., Saint-Drenan, Y. M., &amp; Blanc, P. (2023). PyPVRoof: a Python package for extracting the characteristics of rooftop PV installations using remote sensing data. <em>arXiv preprint <a href="https://arxiv.org/abs/2309.07143" target="_blank">arXiv:2309.07143</a></em>.</p>
+                <p>Kasmi, G., Dubus, L., Blanc, P., &amp; Saint-Drenan, Y. M. (2022). Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping. <em>arXiv preprint <a href="https://arxiv.org/abs/2207.07466" target="_blank">arXiv:2207.07466</a></em>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

@@ -60,7 +60,7 @@ body {
 
 .title {
     font-size: 3.5rem;
-    font-weight: 700;
+    font-weight: 300;
     margin-bottom: 10px;
     letter-spacing: -0.02em;
 }
@@ -171,7 +171,7 @@ body {
 
 .pub-title {
     display: block;
-    font-weight: 600;
+    font-weight: 300;
     font-size: 0.9rem;
     line-height: 1.4;
     margin-bottom: 6px;
@@ -203,7 +203,7 @@ section:nth-child(even) {
 
 h2 {
     font-size: 2.5rem;
-    font-weight: 600;
+    font-weight: 300;
     margin-bottom: 30px;
     color: #2c3e50;
     text-align: center;
@@ -322,7 +322,7 @@ h2 {
 .validation-stats .stat-number {
     display: block;
     font-size: 2.5rem;
-    font-weight: 700;
+    font-weight: 300;
     color: #34495e;
     margin-bottom: 0.5rem;
 }
