@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Related Work · DeepPVMapper</title>
 
-    <meta name="description" content="The DeepPVMapper universe: related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta name="description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
     <meta name="author" content="Gabriel Kasmi">
 
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
@@ -14,14 +14,14 @@
 
     <style>
         .filter-bar {
-            max-width: 420px;
-            margin: 0 auto 46px auto;
+            max-width: 320px;
+            margin: 0 auto 38px auto;
             position: relative;
         }
         .filter-bar input {
             width: 100%;
-            padding: 10px 16px 10px 40px;
-            font-size: 0.92rem;
+            padding: 7px 14px 7px 36px;
+            font-size: 0.84rem;
             font-family: inherit;
             border: 1px solid #ced4da;
             border-radius: 999px;
@@ -36,11 +36,13 @@
         }
         .filter-bar svg {
             position: absolute;
-            left: 14px;
+            left: 13px;
             top: 50%;
             transform: translateY(-50%);
             color: #adb5bd;
             pointer-events: none;
+            width: 13px;
+            height: 13px;
         }
 
         .work-grid {
@@ -64,6 +66,8 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             border: 1px solid #e9ecef;
             box-shadow: 0 2px 10px rgba(44, 62, 80, 0.04);
+            position: relative;
+            overflow: hidden;
         }
         .work-card:hover {
             transform: translateY(-3px);
@@ -73,12 +77,59 @@
         .work-card.hidden {
             display: none;
         }
+        .work-card.has-image {
+            background-size: cover;
+            background-position: center;
+            color: white;
+            border-color: transparent;
+        }
+        .work-card.has-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(40, 56, 73, 0.93) 0%, rgba(40, 56, 73, 0.8) 100%);
+            z-index: 0;
+            transition: background 0.2s ease;
+        }
+        .work-card.has-image:hover::before {
+            background: linear-gradient(160deg, rgba(40, 56, 73, 0.96) 0%, rgba(40, 56, 73, 0.86) 100%);
+        }
+        .work-card.has-image > * {
+            position: relative;
+            z-index: 1;
+        }
+        .work-card.has-image .work-title {
+            color: white;
+        }
+        .work-card.has-image .keyword-chip {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .work-card.has-image:hover .keyword-chip {
+            background-color: rgba(255, 255, 255, 0.32);
+        }
+        .work-date {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            z-index: 2;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: white;
+            background: rgba(0, 0, 0, 0.34);
+            border-radius: 999px;
+            padding: 3px 11px;
+            letter-spacing: 0.03em;
+        }
         .work-title {
             font-size: 1.08rem;
             font-weight: 300;
             color: #2c3e50;
             line-height: 1.4;
             margin-bottom: 16px;
+        }
+        .work-date + .work-title {
+            margin-top: 30px;
         }
         .work-keywords {
             display: flex;
@@ -142,6 +193,31 @@
             justify-content: center;
             padding: 24px;
         }
+        .modal-nav {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            color: #34495e;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin: 0 16px;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        .modal-nav:hover {
+            background: white;
+            color: #2c3e50;
+            transform: scale(1.06);
+        }
+        @media (max-width: 720px) {
+            .modal-nav { display: none; }
+        }
         .modal-overlay.active {
             display: flex;
         }
@@ -168,6 +244,14 @@
             font-size: 1.5rem;
             color: #2c3e50;
             line-height: 1.4;
+        }
+        .modal-meta {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
         }
         .modal-keywords {
             margin-top: 10px;
@@ -204,9 +288,39 @@
         .modal-body h4:first-child {
             margin-top: 0;
         }
+        .modal-body figure {
+            margin: 18px 0;
+            text-align: center;
+        }
+        .modal-body figure img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        .modal-body figcaption {
+            font-size: 0.82rem;
+            color: #6c757d;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin: 14px 0 6px 0;
+        }
+        .modal-table th, .modal-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e9ecef;
+            text-align: left;
+        }
+        .modal-table th {
+            color: #2c3e50;
+            font-weight: 400;
+            background-color: #f8f9fa;
+        }
         .modal-footer {
             padding: 18px 36px 28px 36px;
-            text-align: right;
+            text-align: center;
             border-top: 1px solid #e9ecef;
         }
     </style>
@@ -217,7 +331,7 @@
         <div class="header-background"></div>
         <div class="container">
             <h1 class="title">Related Work</h1>
-            <p class="subtitle">The DeepPVMapper universe &mdash; related works and what builds on it</p>
+            <p class="subtitle">Related works and what builds on it</p>
             <div class="links">
                 <a href="../index.html" class="btn">← Back to Homepage</a>
             </div>
@@ -225,7 +339,7 @@
     </header>
 
     <!-- Related works -->
-    <section class="abstract">
+    <section class="abstract" style="padding-top: 30px;">
         <div class="container">
             <div class="filter-bar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -242,9 +356,11 @@
 
     <!-- Modal -->
     <div class="modal-overlay" id="modal-overlay">
+        <button class="modal-nav" id="modal-prev" aria-label="Previous">&larr;</button>
         <div class="modal-box">
             <div class="modal-header">
                 <div>
+                    <p class="modal-meta" id="modal-meta"></p>
                     <h3 id="modal-title"></h3>
                     <div class="modal-keywords" id="modal-keywords"></div>
                 </div>
@@ -252,9 +368,10 @@
             </div>
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-footer">
-                <a id="modal-link" href="#" target="_blank" class="btn">Read the publication →</a>
+                <a id="modal-link" href="javascript:void(0);" target="_blank" class="btn">Read the publication</a>
             </div>
         </div>
+        <button class="modal-nav" id="modal-next" aria-label="Next">&rarr;</button>
     </div>
 
     <!-- Footer -->
@@ -268,69 +385,228 @@
     <script>
         const works = [
             {
-                title: "Rooftop PV power production",
-                keywords: ["production", "power", "estimation", "physics-based", "rooftop"],
-                text: "Estimating the power production of distributed rooftop PV systems is essential for grid operators, " +
-                      "yet small-scale installations remain poorly observed. This work develops a physics-based method " +
-                      "for estimating the production of rooftop PV systems from remote-sensing-derived registries and " +
-                      "weather data &mdash; the methodological foundation later benchmarked against the French TSO's " +
-                      "approach (see &laquo;&nbsp;Comparison with TSO&nbsp;&raquo;).",
+                title: "Remote-Sensing-Based Estimation of Rooftop Photovoltaic Power Production Using Physical Conversion Models and Weather Data",
+                authors: "Gabriel Kasmi, Augustin Touron, Philippe Blanc, Yves-Marie Saint-Drenan, Maxime Fortin, Laurent Dubus",
+                date: "08/2024",
+                image: "../static/images/assets/ga-energies.webp",
+                keywords: ["production", "power", "estimation", "physics-based", "rooftop", "observability"],
+                text: "<h4>The problem: rooftop solar is largely invisible to grid operators</h4>" +
+                      "<p>In France, about 94% of all grid-connected PV installations &mdash; representing roughly " +
+                      "22% of the total installed capacity, the equivalent of four 900&nbsp;MW nuclear units &mdash; " +
+                      "produce electricity that the transmission system operator (TSO) cannot directly measure. " +
+                      "These are almost all small, rooftop-mounted systems (under 36&nbsp;kWp). As their numbers grow, " +
+                      "this blind spot becomes a real risk for grid balancing, congestion management, and reserve " +
+                      "planning.</p>" +
+                      "<h4>The idea: combine what we can see with a simple physical model</h4>" +
+                      "<p>Remote-sensing pipelines such as DeepPVMapper can now locate rooftop PV systems and estimate " +
+                      "their basic characteristics &mdash; position, tilt, orientation, and installed capacity &mdash; " +
+                      "directly from aerial imagery, without ever measuring their output. This study asks a simple " +
+                      "question: is that limited information, combined with weather data (solar irradiance and " +
+                      "temperature) and an off-the-shelf physical conversion model (PVWatts), enough to reconstruct " +
+                      "an individual system's production curve with reasonable accuracy?</p>" +
+                      "<figure>" +
+                      "<img src=\"../static/images/assets/ga-energies.webp\" alt=\"Graphical abstract: from remote-sensing-derived PV system characteristics and weather data, through a physical conversion model, to validated power-production estimates\">" +
+                      "<figcaption>From remote-sensing characteristics and weather data to validated power-production estimates &mdash; graphical abstract of the study.</figcaption>" +
+                      "</figure>" +
+                      "<h4>Putting it to the test</h4>" +
+                      "<p>The method was validated against real, measured production curves from 906 rooftop systems " +
+                      "across France (30-minute resolution, sourced via the non-profit association Asso&nbsp;BDPV), " +
+                      "of which 276 could be matched with remote-sensing-derived characteristics. To isolate the " +
+                      "effect of the remote-sensing step, estimates built on DeepPVMapper's inferred characteristics " +
+                      "were compared against an &laquo;&nbsp;oracle&nbsp;&raquo; that uses the true, owner-reported " +
+                      "characteristics &mdash; the best result the physical model could possibly achieve.</p>" +
+                      "<table class=\"modal-table\">" +
+                      "<tr><th>Parameterization</th><th>Typical error (pRMSE, % of system size)</th></tr>" +
+                      "<tr><td>Oracle (true characteristics)</td><td>&asymp; 8%</td></tr>" +
+                      "<tr><td>DeepPVMapper (remote-sensing-derived)</td><td>&asymp; 10%</td></tr>" +
+                      "</table>" +
+                      "<h4>What it means</h4>" +
+                      "<p>A roughly 10% error relative to system size &mdash; close to the best achievable with this " +
+                      "simple model &mdash; shows that remote-sensing-derived characteristics lose very little compared " +
+                      "to ground-truth data. Just as importantly, the error does not blow up as more systems are " +
+                      "aggregated together: it follows the same, well-behaved trend as the oracle, which is exactly " +
+                      "what you want from a method meant to scale to hundreds of thousands of installations. In short, " +
+                      "a fairly coarse description of a rooftop system, paired with weather data and a textbook " +
+                      "conversion model, is enough to make small-scale solar considerably more observable &mdash; the " +
+                      "methodological foundation later benchmarked against the French TSO's own approach (see " +
+                      "&laquo;&nbsp;Comparison with TSO production estimates&nbsp;&raquo;).</p>",
                 link: "https://www.mdpi.com/1996-1073/17/17/4353"
             },
             {
-                title: "Comparison with TSO production estimates",
-                keywords: ["tso", "comparison", "benchmark", "production", "rte", "grid"],
-                text: "The deployment of photovoltaic (PV) systems accelerates worldwide and reached a global installed " +
-                      "capacity reaching 1,858 GWp in 2024, France accounting for 25 GWp. However, PV grid integration " +
-                      "is hindered by limited rooftop PV observability, as transmission system operators (TSOs) lack " +
-                      "direct measurements of small-scale systems. This study provides the first national-scale " +
-                      "benchmarking of the French TSO&rsquo;s statistical method against a physics-based approach using " +
-                      "remote-sensing PV registries and weather data. Using ground-truth measurements from rooftop PV " +
-                      "systems across France (2020-2023), we evaluate accuracy, robustness, and operational tradeoffs " +
-                      "of both methods. Results show comparable accuracy (aggregated errors of approximately 4%), with " +
-                      "the TSO method demonstrating superior robustness and the physics-based approach offering greater " +
-                      "adaptability. The TSO method performs better than expected under current conditions but faces " +
-                      "challenges from evolving PV systems, as self-consumption installations now represent 60% of new " +
-                      "capacity. Findings highlight the critical importance of accurate PV registries for grid " +
-                      "reliability, with implications extending beyond France to other regions with rooftop PV " +
-                      "integration challenges.",
+                title: "Balancing Robustness and Accuracy in Rooftop PV Estimation: Benchmarking the French TSO's Approach and Physics-Based Models",
+                authors: "Gabriel Kasmi, Augustin Touron, Laurent Dubus, Yves-Marie Saint-Drenan, Philippe Blanc",
+                date: "08/2025",
+                image: "../static/images/assets/tso_scaling_behavior.webp",
+                keywords: ["tso", "comparison", "benchmark", "production", "rte", "grid", "physics-based"],
+                text: "<h4>How does the grid operator estimate what it cannot measure?</h4>" +
+                      "<p>RTE, the French transmission system operator, doesn&rsquo;t have meters on the country&rsquo;s " +
+                      "rooftops &mdash; most small-scale PV systems are invisible to it in real time. To estimate their " +
+                      "production anyway, RTE falls back on a simple statistical trick: for a given rooftop system, take " +
+                      "the median production of the ten nearest <em>metered</em> reference installations, and rescale it. " +
+                      "The catch is a <strong>scale mismatch</strong>: those reference systems average 283 kWp, roughly " +
+                      "<strong>80&times;</strong> larger than the typical rooftop system (&asymp;3.5 kWp) they&rsquo;re " +
+                      "standing in for. Larger, professionally-operated installations behave differently &mdash; different " +
+                      "orientations, different shading environments, no self-consumption &mdash; than the small residential " +
+                      "roofs they&rsquo;re used to approximate.</p>" +
+                      "<h4>Putting the operator&rsquo;s method to a real test</h4>" +
+                      "<p>This study runs the first national-scale, head-to-head comparison between RTE&rsquo;s upscaling " +
+                      "method and a <strong>physics-based alternative</strong> &mdash; one that, like DeepPVMapper, " +
+                      "derives each system&rsquo;s characteristics (capacity, tilt, orientation) from remote sensing and " +
+                      "feeds them into a textbook conversion model together with weather data. The benchmark draws on " +
+                      "<strong>906 ground-truth metered systems</strong> across France (2020&ndash;2023), of which 255 " +
+                      "have both production records and remote-sensing-derived characteristics &mdash; a rare opportunity " +
+                      "to confront both approaches against the same, independent reality.</p>" +
+                      "<figure>" +
+                      "<img src=\"../static/images/assets/tso_scaling_behavior.webp\" alt=\"Scaling behavior of the prediction error (pRMSE) with the number of aggregated installations, for the Oracle, RTE, Upscaling and physics-based (PVlib) methods\">" +
+                      "<figcaption>As more systems are aggregated, the relative error of every method &mdash; including RTE&rsquo;s &mdash; shrinks and converges toward the same theoretical floor, around 4%. Aggregation is forgiving; it&rsquo;s the individual-system estimates that reveal the real differences between methods.</figcaption>" +
+                      "</figure>" +
+                      "<h4>What the benchmark reveals</h4>" +
+                      "<p>At the aggregate level &mdash; which is what matters for grid planning &mdash; both methods " +
+                      "land in the same place, with errors of roughly 4%. But this aggregate convergence hides a sharper " +
+                      "story at the individual-system level (pRMSE &asymp; 8%): the physics-based approach is " +
+                      "<strong>slightly more accurate on average</strong>, while RTE&rsquo;s method is " +
+                      "<strong>more robust</strong> &mdash; less prone to large individual errors, at the cost of a " +
+                      "structural 3&ndash;4 percentage-point representativeness uncertainty baked into its reference-system " +
+                      "approach. Accounting for rooftop shading &mdash; which neither method does by default &mdash; could " +
+                      "cut errors by up to 25%, but requires 3D building data that isn&rsquo;t yet available at scale.</p>" +
+                      "<table class=\"modal-table\">" +
+                      "<tr><th>Dimension</th><th>RTE&rsquo;s upscaling method</th><th>Physics-based method</th></tr>" +
+                      "<tr><td>Aggregated error (national scale)</td><td>&asymp; 4%</td><td>&asymp; 4%</td></tr>" +
+                      "<tr><td>Individual-system error (pRMSE)</td><td>&asymp; 8%, more robust</td><td>&asymp; 8%, slightly more accurate</td></tr>" +
+                      "<tr><td>Main source of uncertainty</td><td>Representativeness of reference systems (&plusmn;3&ndash;4 pts)</td><td>Accuracy of remote-sensing-derived characteristics</td></tr>" +
+                      "<tr><td>Adapts to changing PV fleet?</td><td>Limited &mdash; relies on fixed reference panel</td><td>Yes &mdash; recomputes from up-to-date system data</td></tr>" +
+                      "</table>" +
+                      "<h4>Why this matters going forward</h4>" +
+                      "<p>RTE&rsquo;s method works about as well as it does today because three conditions happen to " +
+                      "hold: a dense enough network of metered reference systems, reasonably accurate knowledge of " +
+                      "installed capacity, and minimal self-consumption. That third condition is " +
+                      "<strong>already obsolete</strong>: self-consuming installations now make up roughly 60% of the " +
+                      "connected rooftop fleet and effectively all of its recent growth, which systematically biases " +
+                      "any method calibrated on fully grid-injecting reference systems. Physics-based approaches, " +
+                      "precisely because they recompute estimates from each system&rsquo;s actual characteristics rather " +
+                      "than from a fixed reference panel, are inherently better placed to track a PV fleet that keeps " +
+                      "changing &mdash; in self-consumption behaviour, storage adoption, and system design. The " +
+                      "recommendation that follows is straightforward: keep building the remote-sensing registries " +
+                      "&mdash; like DeepPVMapper&rsquo;s &mdash; that make this adaptive approach possible.</p>",
                 link: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5385856"
             },
             {
-                title: "Socio-economic factors driving PV adoption",
-                keywords: ["adoption", "socioeconomic", "determinants", "policy", "literature review"],
-                text: "This literature review examines the key factors influencing the adoption of residential " +
-                      "photovoltaic (PV) rooftop systems. Economic research approaches this topic from both " +
-                      "macroeconomic and microeconomic perspectives, identifying a range of determinants, particularly " +
-                      "socioeconomic and financial, that influence individual decisions. These findings reveal a " +
-                      "complex interaction between these factors, highlighting how they can significantly affect the " +
-                      "effectiveness of public incentive policies. A better understanding of these dynamics is crucial " +
-                      "for designing policies that are both efficient and socially equitable in promoting the energy " +
-                      "transition.<br><br><em>This is currently a literature review &mdash; a follow-up study using " +
-                      "disaggregated data is coming soon.</em>",
+                title: "Understanding the socio-economics factors driving rooftop PV adoption",
+                authors: "Sarah Mehiyddine (RTE internship report, supervised by Gabriel Kasmi &amp; Laurent Dubus)",
+                date: "09/2025",
+                image: "../static/images/assets/evolution_injection.webp",
+                keywords: ["adoption", "socioeconomic", "determinants", "policy", "self-consumption", "injection"],
+                text: "<h4>A puzzle: why do the sunniest regions adopt the least solar?</h4>" +
+                      "<p>Here's a paradox that should not exist if adoption were purely a matter of how much sun a " +
+                      "roof receives: some of France's sunniest départements, like the Alpes-Maritimes, show " +
+                      "comparatively <em>low</em> rooftop PV adoption, while cloudier regions in the north and west " +
+                      "rank among the highest adopters. This internship project, carried out at RTE, set out to " +
+                      "understand what really drives a household to go solar &mdash; building an original " +
+                      "municipality-level panel covering all of mainland France from 2005 to 2024, combining RTE's " +
+                      "internal grid-connection records (capacity and connection type for every installation since " +
+                      "2005), the Piketty&ndash;Cag&eacute; socio-economic dataset on French municipalities, solar " +
+                      "irradiation data, building stock data, and DeepPVMapper's own remote-sensing detections.</p>" +
+                      "<h4>Two waves, two very different households</h4>" +
+                      "<p>The data reveal that the French residential PV market has unfolded in <strong>two distinct " +
+                      "adoption waves</strong>, each carried by a different connection model and a different kind of " +
+                      "household. The first wave, around 2010, was fuelled by extremely generous feed-in tariffs " +
+                      "(reaching close to 60 centimes &euro;/kWh in 2009) and was dominated by " +
+                      "<strong>full injection</strong>: households sold their entire production back to the grid. Its " +
+                      "adopters fit the textbook &ldquo;early-adopter&rdquo; profile &mdash; younger, wealthier, more " +
+                      "educated, concentrated near major cities &mdash; chasing an attractive return rather than " +
+                      "energy independence. The second wave, triggered by the 2022 energy-price crisis, looks " +
+                      "completely different: <strong>individual self-consumption paired with surplus injection</strong> " +
+                      "&mdash; consume what you produce, sell only the excess &mdash; has become the dominant model, " +
+                      "adopted by a far more socio-economically diverse population, increasingly concentrated in " +
+                      "regions that actually get a lot of sun. Profitability, not portfolio diversification, is now " +
+                      "the driving logic.</p>" +
+                      "<figure>" +
+                      "<img src=\"../static/images/assets/evolution_injection.webp\" alt=\"Number of new PV installations per year in France (2005-2025), broken down by injection type: self-consumption, surplus injection and full injection\">" +
+                      "<figcaption>Number of new residential PV installations per year, by connection type. Full injection dominated the first wave around 2010; surplus injection (paired with self-consumption) has taken over entirely since 2022.</figcaption>" +
+                      "</figure>" +
+                      "<h4>What tipped the balance</h4>" +
+                      "<p>The turning point shows up clearly in the numbers: the report's profitability model finds " +
+                      "that full-injection systems were, on average, more profitable than surplus-injection systems " +
+                      "&mdash; until <strong>2022</strong>, when the relationship flipped. From that point on, the more " +
+                      "a household self-consumes, the more its returns depend on the price of electricity rather than " +
+                      "on feed-in tariffs &mdash; exactly the opposite of the 2010 logic. Regulation has reinforced the " +
+                      "shift: tariffs for full and surplus injection were identical until 2021, then deliberately " +
+                      "decoupled to favour self-consumption, and in early 2025 the purchase obligation for small " +
+                      "full-injection systems was scrapped outright while surplus-injection tariffs fell to a " +
+                      "historic low of 4 centimes &euro;/kWh. A market-diffusion model (Bass model) confirms that " +
+                      "full-injection has essentially saturated &mdash; little room left to grow &mdash; while " +
+                      "surplus-injection is still firmly in its growth phase, with an estimated " +
+                      "<strong>14+ GWc of additional capacity</strong> still deployable through that single segment.</p>" +
+                      "<h4>What it means for monitoring &mdash; and for policy</h4>" +
+                      "<p>For a system operator like RTE, this shift matters operationally: self-consuming households " +
+                      "behave less predictably &mdash; they can shift their own consumption to match production " +
+                      "(&ldquo;running the washing machine when the sun shines&rdquo;), making both their grid " +
+                      "footprint and their statistical visibility harder to pin down, which is precisely the kind of " +
+                      "blind spot that remote-sensing registries like DeepPVMapper&rsquo;s help fill. On the policy " +
+                      "side, the report also finds that <strong>peer effects</strong> &mdash; one neighbour's " +
+                      "installation raising the odds that another follows &mdash; are strongest in lower-income " +
+                      "municipalities, suggesting that seeding a handful of installations in such areas could trigger " +
+                      "outsized adoption at a low public cost: a rare case where equity and efficiency point in the " +
+                      "same direction.</p>",
                 link: "https://shs.hal.science/halshs-05121399/file/pv_adoption_literature_review.pdf"
             },
             {
-                title: "Reliability of detections &amp; explainability (XAI)",
+                title: "Space-Scale Exploration of the Poor Reliability of Deep Learning Models: The Case of the Remote Sensing of Rooftop Photovoltaic Systems",
+                authors: "Gabriel Kasmi, Laurent Dubus, Yves-Marie Saint-Drenan, Philippe Blanc",
+                date: "04/2025",
+                image: "../static/images/assets/wcam_explanation.gif",
                 keywords: ["reliability", "xai", "explainability", "distribution shift", "robustness"],
-                text: "Photovoltaic (PV) energy grows rapidly and is crucial for the decarbonization of electric " +
-                      "systems. However, centralized registries recording the technical characteristics of rooftop PV " +
-                      "systems are often missing, making it difficult to monitor this growth accurately. The lack of " +
-                      "monitoring could threaten the integration of PV energy into the grid. To avoid this situation, " +
-                      "remote sensing of rooftop PV systems using deep learning has emerged as a promising solution. " +
-                      "However, existing techniques are not reliable enough to be used by public authorities or " +
-                      "transmission system operators (TSOs) to construct up-to-date statistics on the rooftop PV " +
-                      "fleet. The lack of reliability comes from deep learning models being sensitive to distribution " +
-                      "shifts. This work comprehensively evaluates distribution shifts&rsquo; effects on the " +
-                      "classification accuracy of deep learning models trained to detect rooftop PV panels on " +
-                      "overhead imagery. We construct a benchmark to isolate the sources of distribution shifts and " +
-                      "introduce a novel methodology that leverages explainable artificial intelligence (XAI) and " +
-                      "decomposition of the input image and model&rsquo;s decision regarding scales to understand how " +
-                      "distribution shifts affect deep learning models. Finally, based on our analysis, we introduce " +
-                      "a data augmentation technique designed to improve the robustness of deep learning classifiers " +
-                      "under varying acquisition conditions. Our proposed approach outperforms competing methods and " +
-                      "can close the gap with more demanding unsupervised domain adaptation methods. We discuss " +
-                      "practical recommendations for mapping PV systems using overhead imagery and deep learning models.",
+                text: "<h4>A model that scores well can still be right for the wrong reasons</h4>" +
+                      "<p>A detection model can reach an excellent F1-score on its training data and still collapse " +
+                      "once deployed on new imagery &mdash; a different aerial imagery provider, a different region, a " +
+                      "different resolution. These performance drops are called <strong>distribution shifts</strong>, " +
+                      "and they are deep learning's Achilles' heel for any application, like rooftop PV registries, " +
+                      "that needs to be regularly updated with fresh images. Worse, a model can pass its tests for the " +
+                      "<em>wrong reasons</em> &mdash; latching onto incidental cues (a swimming pool, a roof colour, a " +
+                      "compression artefact) rather than the PV panel itself &mdash; which makes its failures both hard " +
+                      "to predict and hard to trust. This work asks a simple question: <em>what is the model actually " +
+                      "looking at, and at what scale, when it decides there's a solar panel in the image?</em></p>" +
+                      "<h4>Pulling distribution shifts apart, then opening the black box</h4>" +
+                      "<p>Using BDAPPV &mdash; a dataset of nearly 28,000 PV systems imaged by two different providers " +
+                      "(Google and the French IGN) &mdash; the authors first isolate the three usual suspects behind " +
+                      "performance drops in remote sensing: the image's <strong>resolution</strong>, the " +
+                      "<strong>geographic location</strong>, and the <strong>acquisition conditions</strong> (sensor, " +
+                      "exposure, atmosphere &mdash; in short, what makes a Google image look different from an IGN " +
+                      "image of the very same rooftop). The acquisition conditions turn out to be by far the dominant " +
+                      "culprit: a model trained on Google imagery sees its F1-score collapse from 0.98 to 0.46 once " +
+                      "evaluated on IGN images of the same installations &mdash; far more than resolution changes alone " +
+                      "(0.98 &rarr; 0.89), with no measurable effect from geography once the other two are accounted for.</p>" +
+                      "<p>To understand <em>why</em>, the authors turn to <strong>explainable AI (XAI)</strong>, with a " +
+                      "twist: rather than just asking <em>where</em> in the image the model looks (as classic heatmap " +
+                      "methods do), they decompose its decision in terms of <strong>scale</strong> &mdash; the spatial " +
+                      "frequency of the details it relies on, from the fine texture of individual PV cells (sub-metre) " +
+                      "to the coarse outline of the panel array (several metres). Because image scales in orthoimagery " +
+                      "translate directly into physical sizes on the ground, this space-scale lens (built on wavelet " +
+                      "decomposition and a method called the WCAM) tells us not just <em>where</em> the model looks, " +
+                      "but <em>what kind of physical detail</em> it is keying on at that location.</p>" +
+                      "<figure>" +
+                      "<img src=\"../static/images/assets/wcam_explanation.gif\" alt=\"Animated explanation of the WCAM method: input image, heatmap of the important regions, and the important components the model relies on\">" +
+                      "<figcaption>Reading a model's decision with the WCAM: (A) the input image, (B) the regions the model finds important (warmer = more important), and (C) the actual components &mdash; here, the PV panel &mdash; driving the prediction.</figcaption>" +
+                      "</figure>" +
+                      "<h4>What the model is really looking at &mdash; and why that's a problem</h4>" +
+                      "<p>The picture that emerges is a textbook trade-off. At the <strong>finest scales</strong>, the " +
+                      "model relies on clean, high-frequency texture &mdash; features that transfer reasonably well " +
+                      "across providers but aren't very discriminative on their own (they trigger lots of false " +
+                      "positives). At <strong>coarser scales</strong>, the model leans on the kind of broad, " +
+                      "discriminative shape cues that make it confident on its training data &mdash; but these are " +
+                      "precisely the features that get distorted the most when the acquisition conditions change, " +
+                      "which is exactly what makes the model unreliable when deployed on new imagery: it is " +
+                      "discriminative at home and untransferable abroad, or the other way around, but rarely both at once.</p>" +
+                      "<h4>Turning the diagnosis into a fix &mdash; and a recommendation</h4>" +
+                      "<p>Armed with this diagnosis, the authors design a targeted remedy: a data augmentation " +
+                      "technique that <strong>blurs out the fragile fine-scale texture</strong> and <strong>randomly " +
+                      "perturbs the coarse-scale features</strong> the model over-relies on, forcing it to learn more " +
+                      "transferable representations. The resulting models close much of the gap with an oracle trained " +
+                      "directly on the target imagery, and outperform standard data-augmentation and domain-adaptation " +
+                      "baselines &mdash; all without requiring a single labelled image from the target domain. The " +
+                      "broader lesson: improving the reliability of remote-sensing PV mapping isn't primarily a matter " +
+                      "of throwing more data or fancier domain-adaptation machinery at the problem &mdash; it starts " +
+                      "with understanding, scale by scale, what the model is actually seeing.</p>",
                 link: "https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5"
             }
         ];
@@ -338,6 +614,7 @@
         const grid = document.getElementById('work-grid');
         const noResults = document.getElementById('no-results');
         const overlay = document.getElementById('modal-overlay');
+        const modalMeta = document.getElementById('modal-meta');
         const modalTitle = document.getElementById('modal-title');
         const modalKeywords = document.getElementById('modal-keywords');
         const modalBody = document.getElementById('modal-body');
@@ -350,9 +627,14 @@
         works.forEach((work, idx) => {
             const card = document.createElement('div');
             card.className = 'work-card';
+            if (work.image) {
+                card.classList.add('has-image');
+                card.style.backgroundImage = `url('${work.image}')`;
+            }
             card.dataset.keywords = work.keywords.join(' ').toLowerCase();
             card.dataset.title = work.title.toLowerCase();
             card.innerHTML = `
+                ${work.date ? `<span class="work-date">${work.date}</span>` : ''}
                 <h3 class="work-title">${work.title}</h3>
                 <div class="work-keywords">${chips(work.keywords)}</div>
             `;
@@ -372,25 +654,42 @@
         `;
         grid.appendChild(cta);
 
+        let currentIndex = null;
+
         function openModal(idx) {
+            currentIndex = idx;
             const work = works[idx];
+            modalMeta.innerHTML = [work.authors, work.date].filter(Boolean).join(' &middot; ');
             modalTitle.innerHTML = work.title;
             modalKeywords.innerHTML = chips(work.keywords);
-            modalBody.innerHTML = `<p>${work.text}</p>`;
+            modalBody.innerHTML = work.text;
+            modalBody.scrollTop = 0;
             modalLink.href = work.link;
             overlay.classList.add('active');
         }
 
         function closeModal() {
             overlay.classList.remove('active');
+            currentIndex = null;
+        }
+
+        function showRelative(offset) {
+            if (currentIndex === null) return;
+            const next = (currentIndex + offset + works.length) % works.length;
+            openModal(next);
         }
 
         document.getElementById('modal-close').addEventListener('click', closeModal);
+        document.getElementById('modal-prev').addEventListener('click', () => showRelative(-1));
+        document.getElementById('modal-next').addEventListener('click', () => showRelative(1));
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
         });
         document.addEventListener('keydown', (e) => {
+            if (!overlay.classList.contains('active')) return;
             if (e.key === 'Escape') closeModal();
+            if (e.key === 'ArrowLeft') showRelative(-1);
+            if (e.key === 'ArrowRight') showRelative(1);
         });
 
         document.getElementById('work-filter').addEventListener('input', (e) => {

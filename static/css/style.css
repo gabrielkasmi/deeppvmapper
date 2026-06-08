@@ -145,6 +145,8 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     border: 1px solid #e9ecef;
     transition: all 0.3s ease;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
 }
 
 .dropdown:hover .dropdown-content {
