@@ -385,6 +385,7 @@
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-footer">
                 <a id="modal-link" href="javascript:void(0);" target="_blank" class="btn">Read the publication</a>
+                <a id="modal-xai-link" href="javascript:void(0);" target="_blank" class="btn" style="display:none;">XAI Method →</a>
             </div>
         </div>
         <button class="modal-nav" id="modal-next" aria-label="Next">&rarr;</button>
@@ -538,7 +539,7 @@
                       "the driving logic.</p>" +
                       "<figure>" +
                       "<img src=\"../static/images/assets/evolution_injection.webp\" alt=\"Number of new PV installations per year in France (2005-2025), broken down by injection type: self-consumption, surplus injection and full injection\">" +
-                      "<figcaption>Number of new residential PV installations per year, by connection type. Full injection dominated the first wave around 2010; surplus injection (paired with self-consumption) has taken over entirely since 2022.</figcaption>" +
+                      "<figcaption>Number of new residential PV installations per year, by connection type. Full injection dominated the first wave around 2010; surplus injection (paired with self-consumption) has taken over entirely since 2022. Source: Sarah Mehiyddine.</figcaption>" +
                       "</figure>" +
                       "<h4>What tipped the balance</h4>" +
                       "<p>The turning point shows up clearly in the numbers: the report's profitability model finds " +
@@ -623,7 +624,77 @@
                       "broader lesson: improving the reliability of remote-sensing PV mapping isn't primarily a matter " +
                       "of throwing more data or fancier domain-adaptation machinery at the problem &mdash; it starts " +
                       "with understanding, scale by scale, what the model is actually seeing.</p>",
-                link: "https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5"
+                link: "https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5",
+                xai_link: "https://gabrielkasmi.github.io/wam"
+            },
+            {
+                title: "Green Meridian Information Factory (GTIF-UKIF)",
+                authors: "Jan-Peter Muller (UCL-MSSL)",
+                date: "04/2026",
+                image: "../static/images/assets/gmif.webp",
+                link_label: "Project page",
+                keywords: ["earth observation", "webgis", "energy transition", "esa", "gtif", "rooftop pv", "france", "uk", "ireland", "solar"],
+                text: "<h4>An ESA-funded geospatial decision-support demonstrator</h4>" +
+                      "<p>The Green Meridian Information Factory is an ESA &laquo;&nbsp;Green Transition Information " +
+                      "Factories&nbsp;&raquo; (GTIF) kickstarter project led by University College London (UCL-MSSL). " +
+                      "It builds a rich web-based geospatial information system (webGIS) covering the land masses of " +
+                      "the UK, Ireland and France, combining Earth Observation data, geospatial platform technologies " +
+                      "and advanced analytics to generate actionable knowledge for climate change adaptation and " +
+                      "energy transition planning.</p>" +
+                      "<h4>Five thematic pillars</h4>" +
+                      "<p>The demonstrator covers five domains: <strong>Energy Transition</strong> (large-scale solar " +
+                      "farm siting, rooftop PV mapping), <strong>Mobility Transition</strong>, " +
+                      "<strong>Food Security</strong> (long-range drought prediction in croplands), " +
+                      "<strong>Sustainable Cities</strong> (urban heat islands, PM2.5 pollution mapping), and " +
+                      "<strong>Carbon Accounting</strong> (methane emission monitoring). Stakeholders range from " +
+                      "urban planners and energy developers to farmers, NGOs and local citizens.</p>" +
+                      "<h4>DeepPVMapper's contribution</h4>" +
+                      "<p>DeepPVMapper's rooftop PV registry is integrated as a dedicated layer within the France " +
+                      "component of the webGIS, providing building-level detection and installed capacity estimates " +
+                      "across metropolitan France &mdash; the only layer of its kind at this resolution and national " +
+                      "coverage within the platform.</p>" +
+                      "<p>The project is part of a broader family of GTIF dashboards that includes " +
+                      "<a href=\"https://gtif-baltic.info\" target=\"_blank\">GTIF Baltic</a>, " +
+                      "<a href=\"https://cif.eox.at\" target=\"_blank\">GTIF Cerulean</a> and " +
+                      "<a href=\"https://gtif-austria.info\" target=\"_blank\">GTIF Austria</a>.</p>",
+                link: "https://gtif-ukif.github.io/gtif-ukif-client/"
+            },
+            {
+                title: "Investment Dynamics and Territorial Energy Justice in Île-de-France (I-JET-IdF)",
+                authors: "Emmanuelle Santoire, Eliot Boulard",
+                date: "2025–2028",
+                image: "../static/images/assets/I.JET_.IDF-Emmanuelle-Santoire.webp",
+                link_label: "Project page",
+                keywords: ["energy justice", "investment", "île-de-france", "solar", "grid infrastructure", "geo-legal", "territorial transition", "participatory science"],
+                text: "<figure>" +
+                      "<img src=\"../static/images/assets/I.JET_.IDF-Emmanuelle-Santoire.webp\" alt=\"Solar park of Boissise-la-Bertrand (77)\" style=\"max-width:100%;border-radius:8px;\">" +
+                      "<figcaption>Photo: E. Santoire, 2025 &mdash; Solar park of Boissise-la-Bertrand (77).</figcaption>" +
+                      "</figure>" +
+                      "<h4>The question</h4>" +
+                      "<p>As France pursues decarbonisation, the electrification of Île-de-France raises a central " +
+                      "question: <em>who invests where, and with what territorial consequences?</em> The I-JET-IdF " +
+                      "project examines investment dynamics in the region's electrical infrastructure &mdash; both " +
+                      "production assets (solar, wind) and grid networks &mdash; through the combined lens of " +
+                      "geography and law. Its goal is to map the energy geographies taking shape in Île-de-France, " +
+                      "identify the actors behind them, and understand their long-term socio-spatial effects on " +
+                      "access to energy &mdash; a dimension that no prior social-science study has addressed in a " +
+                      "structured, multi-scale way.</p>" +
+                      "<h4>Methodology</h4>" +
+                      "<p>The project combines two complementary movements: tracking investment flows and critically " +
+                      "analysing their governance. It mobilises an interdisciplinary geo-legal approach, participatory " +
+                      "methods involving territorial stakeholders, and geo-visualisation tools. Three lines of inquiry " +
+                      "structure the work: (1) the location dynamics of electrical infrastructure, (2) the forms of " +
+                      "public-private investment and the power relations they involve, and (3) the futures of the " +
+                      "public electricity service.</p>" +
+                      "<h4>Link to DeepPVMapper</h4>" +
+                      "<p>Eliot Boulard, intern at LATTS, uses DeepPVMapper's rooftop PV registry as a primary data " +
+                      "source for the Île-de-France region, combining it with investment and land-use data to " +
+                      "analyse the spatial distribution of solar energy deployment and its equity implications.</p>" +
+                      "<h4>Funding &amp; partners</h4>" +
+                      "<p>Funded by the Région Île-de-France (&laquo;&nbsp;Chaires SHS&nbsp;&raquo; programme, " +
+                      "2025 laureate). Partners include SIPPEREC, SDEVO, SIPEnR, and La Fabrique de la Cité. " +
+                      "Lead institution: LATTS (UMR 8134, CNRS / ENPC / Université Gustave Eiffel).</p>",
+                link: "https://latts.fr/projets-de-recherche/i-jet-idf/"
             }
         ];
 
@@ -636,6 +707,7 @@
         const modalKeywords = document.getElementById('modal-keywords');
         const modalBody = document.getElementById('modal-body');
         const modalLink = document.getElementById('modal-link');
+        const modalXaiLink = document.getElementById('modal-xai-link');
 
         function chips(keywords) {
             return keywords.map(k => `<span class="keyword-chip">${k}</span>`).join('');
@@ -682,6 +754,13 @@
             modalBody.innerHTML = work.text;
             modalBody.scrollTop = 0;
             modalLink.href = work.link;
+            modalLink.textContent = work.link_label || 'Read the publication';
+            if (work.xai_link) {
+                modalXaiLink.href = work.xai_link;
+                modalXaiLink.style.display = '';
+            } else {
+                modalXaiLink.style.display = 'none';
+            }
             overlay.classList.add('active');
         }
 

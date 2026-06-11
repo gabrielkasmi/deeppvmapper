@@ -6,22 +6,22 @@
     <title>DeepPVMapper</title>
 
     <!-- Meta tags for SEO and social sharing -->
-    <meta name="description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images. PhD work by Gabriel Kasmi.">
-    <meta name="keywords" content="deep learning, photovoltaic, mapping, computer vision, remote sensing">
+    <meta name="description" content="Open source deep learning for remote sensing of rooftop solar systems at national scale.">
+    <meta name="keywords" content="deep learning, photovoltaic, mapping, computer vision, remote sensing, open source, solar energy">
     <meta name="author" content="Gabriel Kasmi">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
-    <meta property="og:title" content="DeepPVMapper: Deep Learning for Rooftop PV Mapping">
-    <meta property="og:description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images.">
+    <meta property="og:title" content="DeepPVMapper: Open Source Rooftop PV Mapping">
+    <meta property="og:description" content="Open source deep learning for remote sensing of rooftop solar systems at national scale.">
     <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
-    <meta property="twitter:title" content="DeepPVMapper: Deep Learning for Rooftop PV Mapping">
-    <meta property="twitter:description" content="Deep learning-based algorithm for mapping rooftop photovoltaic systems from overhead images.">
+    <meta property="twitter:title" content="DeepPVMapper: Open Source Rooftop PV Mapping">
+    <meta property="twitter:description" content="Open source deep learning for remote sensing of rooftop solar systems at national scale.">
     <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
 
     <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/">
@@ -120,13 +120,18 @@
                 <div class="dropdown">
                     <a href="#" class="btn dropdown-btn">Useful Links ▼</a>
                     <div class="dropdown-content">
+                        <a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank" class="dropdown-item">
+                            <span class="pub-title">Interactive demo</span>
+                            <span class="pub-authors">Try DeepPVMapper on HuggingFace Spaces</span>
+                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue" alt="Hugging Face Space badge" style="margin-top: 4px; height: 20px;">
+                        </a>
                         <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="dropdown-item">
                             <span class="pub-title">Training data &mdash; BDAPPV</span>
                             <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset badge" style="margin-top: 4px; height: 20px;">
                         </a>
-                        <a href="#" class="dropdown-item" style="opacity: 0.5; cursor: default;" onclick="return false;">
+                        <a href="https://huggingface.co/gabrielkasmi/bdappv-models" target="_blank" class="dropdown-item">
                             <span class="pub-title">Model weights</span>
-                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model%20(soon)-lightgrey" alt="Hugging Face Model badge - coming soon" style="margin-top: 4px; height: 20px;">
+                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue" alt="Hugging Face Model badge" style="margin-top: 4px; height: 20px;">
                         </a>
                         <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
                             <span class="pub-title">pypvroof</span>
@@ -163,9 +168,10 @@
                         <span class="stat-number">2.7 GWp</span>
                         <span class="stat-label">Estimated installed capacity</span>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">34k</span>
-                        <span class="stat-label">Samples used for validation</span>
+                    <!-- Shown once the community counter passes the threshold (see script at end of body) -->
+                    <div class="stat-item" id="community-stat" style="display:none;">
+                        <span class="stat-number" id="community-count">—</span>
+                        <span class="stat-label">Community contributions</span>
                     </div>
                 </div>
                 <figure style="margin-top: 40px; text-align: center;">
@@ -176,12 +182,51 @@
             <div class="reveal-group">
                 <p style="text-align: center; margin-top: 30px;">
                     <a href="content/map.html" class="btn">Explore the interactive map →</a>
+                    &nbsp;
+                    <a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank" class="btn">See the interactive demo →</a>
                 </p>
             </div>
         </div>
     </section>
 
     <!-- Pipeline overview -->
+    <!-- Grid-connection data study overview -->
+    <section class="abstract">
+        <div class="container">
+            <h2>How Reliable Are Grid-Connection Registries?</h2>
+            <p>
+                Using DeepPVMapper's detections as an independent ground truth, we estimate &mdash; after correcting
+                for the pipeline's measured precision and recall by département &mdash; the actual distribution of
+                installed capacity and number of systems across France, and compare these estimates to official
+                grid-connection data (RNI/RTE) using a confidence-interval approach. The results reveal a clear and
+                quantifiable <strong>underestimation</strong> of rooftop PV in official registries, particularly
+                in rural areas &mdash; reversing the usual paradigm where registries serve as ground truth for
+                remote-sensing methods, and instead using remote sensing to audit the registries themselves.
+            </p>
+            <div class="validation-stats">
+                <div class="stat-item">
+                    <span class="stat-number">34k</span>
+                    <span class="stat-label">Samples used for validation</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">&minus;10.1%</span>
+                    <span class="stat-label">Global underestimation in official registries</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">36</span>
+                    <span class="stat-label">Départements with significant underestimation</span>
+                </div>
+            </div>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="static/images/assets/rte_year_absolute_over_under.webp" alt="RTE vs. corrected remote-sensing estimates by département" class="teaser-image" style="max-width: 800px;">
+                <figcaption class="caption">RTE vs. corrected remote-sensing estimates, by département: absolute gap in MWp (left), and the same gap expressed as a share of each département's installed capacity, split between over- (middle) and under-estimations (right).</figcaption>
+            </figure>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="content/main-results.html" class="btn">Read the full analysis →</a>
+            </p>
+        </div>
+    </section>
+
     <section class="abstract">
         <div class="container">
             <h2>The Pipeline</h2>
@@ -196,28 +241,12 @@
                 merge detections belonging to the same roof. The output is a geolocated PV registry. The models are
                 trained on <strong>BD-PV</strong>, a novel annotated dataset built on IGN's BD ORTHO&reg; aerial imagery.
             </p>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="https://raw.githubusercontent.com/gabrielkasmi/deeppvmapper/main/figs/flowchart.png" alt="DeepPVMapper pipeline flowchart" class="teaser-image" style="max-width: 800px;">
+                <figcaption class="caption">Overview of the DeepPVMapper pipeline, from aerial imagery acquisition to geolocated PV registry.</figcaption>
+            </figure>
             <p style="text-align: center; margin-top: 30px;">
                 <a href="content/pipeline.html" class="btn">Explore the pipeline in detail →</a>
-            </p>
-        </div>
-    </section>
-
-
-    <!-- Grid-connection data study overview -->
-    <section class="abstract">
-        <div class="container">
-            <h2>How Reliable Are Grid-Connection Registries?</h2>
-            <p>
-                Using DeepPVMapper's detections as an independent ground truth, we estimate &mdash; after correcting
-                for the pipeline's measured precision and recall by département &mdash; the actual distribution of
-                installed capacity and number of systems across France, and compare these estimates to official
-                grid-connection data (RNI/RTE) using a confidence-interval approach. The results reveal a clear and
-                quantifiable <strong>underestimation</strong> of rooftop PV in official registries, particularly
-                in rural areas &mdash; reversing the usual paradigm where registries serve as ground truth for
-                remote-sensing methods, and instead using remote sensing to audit the registries themselves.
-            </p>
-            <p style="text-align: center; margin-top: 30px;">
-                <a href="content/main-results.html" class="btn">Read the full analysis →</a>
             </p>
         </div>
     </section>
@@ -263,6 +292,29 @@
 
             groups.forEach(group => groupObserver.observe(group));
         });
+    </script>
+
+    <!-- Community contributions counter (Supabase RPC; shown above threshold, ?contrib forces display) -->
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './static/js/map/config.js';
+        const THRESHOLD = 25;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_count`, {
+                method: 'POST',
+                headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                           'Content-Type': 'application/json' },
+                body: '{}'
+            })
+            .then(r => r.json())
+            .then(count => {
+                const force = new URLSearchParams(location.search).has('contrib');
+                if (typeof count === 'number' && (count >= THRESHOLD || force)) {
+                    document.getElementById('community-count').textContent = count.toLocaleString('en-US');
+                    document.getElementById('community-stat').style.display = '';
+                }
+            })
+            .catch(() => {});   // counter is decorative — never break the page
+        }
     </script>
 </body>
 </html>
