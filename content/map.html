@@ -3,191 +3,632 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepPVMapper Interactive Registry - Map</title>
-    
-    <!-- Meta tags -->
+    <title>DeepPVMapper — Interactive Registry</title>
+
     <meta name="description" content="Interactive map of rooftop photovoltaic installations mapped by DeepPVMapper">
     <meta name="keywords" content="photovoltaic, map, registry, deep learning, France">
     <meta name="author" content="Gabriel Kasmi">
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/map.html">
     <meta property="og:title" content="Interactive Map · DeepPVMapper">
-    <meta property="og:description" content="Interactive map of rooftop photovoltaic installations mapped by DeepPVMapper.">
+    <meta property="og:description" content="Interactive map of 460k+ rooftop PV systems detected across France by DeepPVMapper.">
     <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
-
-    <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/map.html">
     <meta property="twitter:title" content="Interactive Map · DeepPVMapper">
-    <meta property="twitter:description" content="Interactive map of rooftop photovoltaic installations mapped by DeepPVMapper.">
+    <meta property="twitter:description" content="Interactive map of 460k+ rooftop PV systems detected across France by DeepPVMapper.">
     <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
 
     <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/content/map.html">
-
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link rel="stylesheet" href="../static/css/map.css">
-    
-    <!-- Fonts -->
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet MarkerCluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css" />
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        #map { position: fixed; inset: 0; z-index: 1; }
+
+        /* ─ Dark glass mixin ─────────────────────────────── */
+        .glass {
+            background: rgba(15, 20, 30, 0.88);
+            border: 1px solid rgba(255,255,255,0.11);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        /* ─ Search ───────────────────────────────────────── */
+        #search-wrap {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 900;
+            width: 320px;
+        }
+
+        #search-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 12px;
+            padding: 9px 12px;
+        }
+
+        #city-search {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #f0f4ff;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+        #city-search::placeholder { color: rgba(255,255,255,0.35); }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.45);
+            cursor: pointer;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            transition: color .15s;
+            flex-shrink: 0;
+        }
+        .icon-btn:hover { color: rgba(255,255,255,0.85); }
+
+        #search-results {
+            margin-top: 5px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .sr-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #d0d8f0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            transition: background .15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sr-item:last-child { border-bottom: none; }
+        .sr-item:hover { background: rgba(255,255,255,0.07); }
+        .sr-type {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        /* ─ Breadcrumb ───────────────────────────────────── */
+        #breadcrumb {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 900;
+            border-radius: 12px;
+            padding: 9px 14px;
+            font-size: 13px;
+            color: #d0d8f0;
+            display: none;
+            align-items: center;
+            gap: 7px;
+            max-width: 46vw;
+            flex-wrap: wrap;
+        }
+        .bc-item { white-space: nowrap; }
+        .bc-item[data-idx] {
+            cursor: pointer;
+            color: rgba(255,255,255,0.55);
+            transition: color .15s;
+        }
+        .bc-item[data-idx]:hover { color: #5bc8f5; }
+        .bc-current { color: #f0f4ff; font-weight: 600; }
+        .bc-sep { color: rgba(255,255,255,0.25); }
+
+        /* ─ Legend ───────────────────────────────────────── */
+        #legend {
+            position: fixed;
+            bottom: 40px;
+            right: 14px;
+            z-index: 900;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #d0d8f0;
+            display: none;
+        }
+        #legend .leg-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            opacity: .5;
+            margin-bottom: 7px;
+        }
+        .leg-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+        .leg-sw {
+            width: 12px; height: 12px; border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+
+        /* ─ Zoom hint ────────────────────────────────────── */
+        #zoom-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 900;
+            border-radius: 12px;
+            padding: 12px 22px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            pointer-events: none;
+            display: none;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* ─ WFS spinner ──────────────────────────────────── */
+        #wfs-spinner {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 900;
+            border-radius: 10px;
+            padding: 7px 14px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.65);
+            display: none;
+            letter-spacing: .02em;
+        }
+
+        /* ─ Back button ──────────────────────────────────── */
+        #leave-btn {
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 900;
+            border-radius: 12px;
+            padding: 9px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color .2s, transform .2s;
+        }
+        #leave-btn:hover {
+            color: #fff;
+            transform: translateX(-50%) translateY(-2px);
+            text-decoration: none;
+        }
+
+        /* ─ Stats card ───────────────────────────────────── */
+        #stats-card {
+            position: fixed;
+            top: 70px;
+            left: 14px;
+            z-index: 900;
+            border-radius: 14px;
+            padding: 18px 20px 14px;
+            color: #d0d8f0;
+            width: 310px;
+            display: none;
+        }
+
+        .sc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .sc-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f4ff;
+            line-height: 1.3;
+            max-width: 220px;
+        }
+        .sc-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            padding: 0 0 0 8px;
+            flex-shrink: 0;
+            transition: color .15s;
+        }
+        .sc-close:hover { color: rgba(255,255,255,0.8); }
+
+        .sc-kpis {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .sc-kpi {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .sc-kpi-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f0f4ff;
+            display: block;
+        }
+        .sc-kpi-lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            opacity: .5;
+            margin-top: 2px;
+        }
+
+        .sc-chart-title {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: .5;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+
+        .sc-chart-wrap           { position: relative; height: 110px; }
+        .sc-chart-wrap.polar     { height: 150px; }
+
+        .sc-note {
+            margin-top: 10px;
+            font-size: 11px;
+            opacity: .4;
+            font-style: italic;
+        }
+
+        .sc-download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 12px;
+            padding: 8px 0;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.55);
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .sc-download:hover {
+            background: rgba(255,255,255,0.11);
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* ─ WFS polygon popup ────────────────────────────── */
+        .wfs-popup { font-family: 'Inter', sans-serif; min-width: 190px; }
+        .wfs-popup h4 {
+            margin: 0 0 9px;
+            color: #2d3748;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 5px;
+        }
+        .wfs-popup table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .wfs-popup td { padding: 3px 5px; color: #4a5568; }
+        .wfs-popup td:first-child { color: #718096; width: 55%; }
+        .wfs-popup td strong { color: #2d3748; }
+        .wfs-actions { display: flex; gap: 6px; margin-top: 9px; }
+        .wfs-actions button {
+            flex: 1; padding: 5px 4px; font-size: 11px; font-family: inherit;
+            border: 1px solid #cbd5e0; border-radius: 6px; background: #f7fafc;
+            color: #4a5568; cursor: pointer; transition: background .15s;
+        }
+        .wfs-actions button:hover { background: #edf2f7; }
+        .wfs-actions button.danger { color: #c53030; border-color: #feb2b2; }
+        .wfs-actions button.danger:hover { background: #fff5f5; }
+
+        /* ─ Intro popup ──────────────────────────────────── */
+        #intro-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(8, 11, 18, 0.55);
+            display: none; align-items: center; justify-content: center;
+        }
+        #intro-card {
+            border-radius: 16px; padding: 26px 28px; width: 440px; max-width: 92vw;
+            max-height: 86vh; overflow-y: auto; color: #d0d8f0;
+        }
+        #intro-card h2 { font-size: 17px; font-weight: 700; color: #f0f4ff; margin-bottom: 4px; }
+        #intro-card .intro-sub { font-size: 12px; opacity: .55; margin-bottom: 16px; }
+        #intro-card h4 {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .06em; opacity: .5; margin: 14px 0 5px;
+        }
+        #intro-card p { font-size: 13px; line-height: 1.55; }
+        #intro-card .intro-data { font-size: 12px; opacity: .65; line-height: 1.5; }
+        #intro-card kbd {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px; padding: 0 5px; font-size: 11px; font-family: inherit;
+        }
+        #intro-start {
+            display: block; width: 100%; margin-top: 18px; padding: 10px 0;
+            background: rgba(91,200,245,0.15); border: 1px solid rgba(91,200,245,0.4);
+            border-radius: 10px; color: #5bc8f5; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: background .15s;
+        }
+        #intro-start:hover { background: rgba(91,200,245,0.28); }
+
+        #help-btn {
+            position: fixed; top: 60px; right: 14px; z-index: 900;
+            width: 32px; height: 32px; border-radius: 10px;
+            color: rgba(255,255,255,0.55); font-size: 15px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: color .15s;
+        }
+        #help-btn:hover { color: #5bc8f5; }
+
+        /* ─ Annotation UI ────────────────────────────────── */
+        #annot-add-btn {
+            position: fixed; top: 50%; right: 14px; transform: translateY(-50%);
+            z-index: 900; border-radius: 12px; padding: 11px 13px;
+            color: #d0d8f0; font-size: 13px; font-family: inherit;
+            cursor: pointer; display: flex; align-items: center; gap: 7px;
+            transition: color .15s;
+        }
+        #annot-add-btn:hover { color: #34d399; }
+
+        #annot-counter {
+            position: fixed; bottom: 14px; left: 14px; z-index: 900;
+            border-radius: 10px; padding: 7px 12px; font-size: 11px;
+            color: rgba(255,255,255,0.6); display: none; letter-spacing: .02em;
+        }
+
+        #annot-toast {
+            position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 950; border-radius: 10px; padding: 9px 16px;
+            font-size: 12px; color: #f0f4ff; display: none; max-width: 70vw;
+            text-align: center;
+        }
+
+        #annot-editbar {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 950; border-radius: 12px; padding: 9px 12px;
+            display: none; gap: 8px; align-items: center;
+            font-size: 12px; color: #d0d8f0;
+        }
+        #annot-editbar button, #annot-form button {
+            padding: 6px 14px; font-size: 12px; font-family: inherit;
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+            background: rgba(255,255,255,0.07); color: #d0d8f0; cursor: pointer;
+            transition: background .15s;
+        }
+        #annot-editbar button:hover, #annot-form button:hover { background: rgba(255,255,255,0.14); }
+        #annot-editbar button.primary, #annot-form button.primary {
+            background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.4); color: #6ee7b7;
+        }
+        #annot-editbar button.primary:hover, #annot-form button.primary:hover { background: rgba(52,211,153,0.3); }
+
+        #annot-form {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 960; border-radius: 14px; padding: 18px 20px;
+            width: 320px; color: #d0d8f0; display: none;
+        }
+        #annot-form h3 { font-size: 14px; font-weight: 600; color: #f0f4ff; margin-bottom: 6px; }
+        #annot-form-note { font-size: 11px; opacity: .55; margin-bottom: 12px; line-height: 1.4; }
+        #annot-props { display: flex; gap: 8px; margin-bottom: 10px; }
+        #annot-props input, #annot-comment {
+            width: 100%; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+            padding: 7px 10px; color: #f0f4ff; font-size: 12px; font-family: inherit;
+            outline: none;
+        }
+        #annot-comment { resize: vertical; min-height: 56px; margin-bottom: 12px; }
+        #annot-form .annot-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* ─ Leaflet controls ─────────────────────────────── */
+        .leaflet-control-layers {
+            border-radius: 12px !important;
+            border: 1px solid rgba(255,255,255,0.11) !important;
+            background: rgba(15,20,30,0.88) !important;
+            backdrop-filter: blur(14px) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+        }
+        .leaflet-control-layers-list,
+        .leaflet-control-layers label { color: #d0d8f0 !important; font-size: 13px; }
+        .leaflet-control-layers-separator { border-top-color: rgba(255,255,255,0.1) !important; }
+        .leaflet-control-layers-toggle {
+            background-color: rgba(15,20,30,0.88) !important;
+        }
+        .leaflet-control-attribution {
+            background: rgba(15,20,30,0.7) !important;
+            color: rgba(255,255,255,0.4) !important;
+            font-size: 10px;
+        }
+        .leaflet-control-attribution a { color: rgba(255,255,255,0.55) !important; }
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+        }
+    </style>
 </head>
 <body>
-    <h1 style="position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">DeepPVMapper Interactive Registry &mdash; Map of Rooftop PV Installations in France</h1>
 
-    <!-- Search Bar -->
-    <div class="search-container">
-        <div class="search-box">
-            <input type="text" id="citySearch" placeholder="Search for a city..." class="search-input">
-            <button class="search-btn" onclick="searchCity()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">
+        DeepPVMapper Interactive Registry — Rooftop PV in France
+    </h1>
+
+    <!-- Breadcrumb (multiscale navigation) -->
+    <div id="breadcrumb" class="glass"></div>
+
+    <!-- Search -->
+    <div id="search-wrap">
+        <div id="search-box" class="glass">
+            <input id="city-search" type="text" placeholder="City, département, région…" autocomplete="off" spellcheck="false">
+            <button class="icon-btn" id="search-btn" aria-label="Search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                 </svg>
             </button>
-            <button class="clear-search-btn" onclick="clearSearch()" style="display: none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <button class="icon-btn" id="clear-btn" aria-label="Clear" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
                 </svg>
             </button>
         </div>
-        <div id="searchResults" class="search-results"></div>
+        <div id="search-results" class="glass"></div>
     </div>
 
-    <!-- Info Popup Button -->
-    <div class="info-button">
-        <button class="info-btn" onclick="openPopup()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+    <!-- Stats card (appears after search) -->
+    <div id="stats-card" class="glass">
+        <div class="sc-header">
+            <div class="sc-title" id="sc-title">—</div>
+            <button class="sc-close" onclick="closeStatsCard()">×</button>
+        </div>
+        <div class="sc-kpis" id="sc-kpis"></div>
+        <div id="sc-charts">
+            <div class="sc-chart-title">Capacity distribution</div>
+            <div class="sc-chart-wrap"><canvas id="sc-chart-kwp"></canvas></div>
+            <div class="sc-chart-title">Surface distribution (m²)</div>
+            <div class="sc-chart-wrap polar"><canvas id="sc-chart-year"></canvas></div>
+        </div>
+        <div class="sc-note" id="sc-note"></div>
+        <button class="sc-download" id="sc-download" onclick="downloadAreaData()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
             </svg>
+            Download CSV
         </button>
     </div>
 
-    <!-- Info Popup -->
-    <div id="infoPopup" class="popup-overlay">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h2>Interactive Registry</h2>
-                <button class="close-btn" onclick="closePopup()">×</button>
-            </div>
-            <div class="popup-body">
-                <p>
-                    This map shows the detections of <strong>DeepPVMapper</strong>, 
-                    aggregated at the city level to preserve privacy. Individual 
-                    PV panels are not displayed. The map is optimized for desktop browsing.
-                  </p>
-                
-                  <h4>How to Use</h4>
-                  <ul>
-                    <li><strong>Each point is a city</strong>. Click to view detailed 
-                        statistics about detected PV systems.</li>
-                    <li>Use the <strong>search bar</strong> to locate specific cities.</li>
-                  </ul>
-                
-                  <h4>Rooftop PV Installations Statistics</h4>
-                  <p>
-                    For each city, we display the following information based on the number of detected systems:
-                  </p>
-                  <ul>
-                    <li>
-                      <strong>No detections:</strong>
-                      <br>
-                      We indicate if there are no detections in a city (whether from DeepPVMapper or true absence of PV systems).
-                    </li>
-                    <li>
-                      <strong>Between 1 and 10 detections:</strong>
-                      <br>
-                      A message is shown indicating that precise information is not disclosed (to preserve privacy).
-                    </li>
-                    <li>
-                      <strong>At least 10 detections:</strong>
-                      <br>
-                      We display the <strong>number of detected systems</strong> and the <strong>total installed capacity</strong> (in kWp).
-                    </li>
-                    <li>
-                      <strong>More than 30 systems:</strong>
-                      <br>
-                      Additional charts are shown to visualize the distribution of <strong>installed capacity</strong>, <strong>tilt angles</strong>, and <strong>azimuth orientations</strong>.
-                    </li>
-                  </ul>
-                
-                  <h4>Accuracy Metrics</h4>
-                  <p>DeepPVMapper has been manually validated across all departements. 
-                    We report the following metrics, at the departemental scale</p>
-                  <ul>
-                    <li>The <strong>Precision</strong>, which evaluates how many correct 
-                        detections are correct among all detections, 
-                    </li>
-                    <li>The <strong>Recall</strong>, which evaluates how many correct 
-                        detections are correct among all true detections, 
-                    </li>
-                    <li>The <strong>F1 score</strong>, which is the harmonic mean of precision and recall,                    
-                  </ul>
-                
-                  <p>
-                    📖 <em>See the <a href="pipeline.html">pipeline page</a> for methodology and interpretation details.</em><br>
-                    ℹ️ <em>Click the info icon (top left) to reopen this menu.</em><br>
-                    📧 <em>For questions or feedback, feel free to contact me.</em>
-                  </p>
-                <div class="popup-actions">
-                    <button onclick="closePopup()" class="btn">Start Exploring</button>
-                </div>
+    <!-- Legend -->
+    <div id="legend" class="glass">
+        <div class="leg-title">Installed capacity</div>
+        <div class="leg-row"><span class="leg-sw" style="background:#c9b3e8"></span> ≤ 3 kWp</div>
+        <div class="leg-row"><span class="leg-sw" style="background:#a07cd4"></span> 3 – 6 kWp</div>
+        <div class="leg-row"><span class="leg-sw" style="background:#7248b8"></span> 6 – 10 kWp</div>
+        <div class="leg-row"><span class="leg-sw" style="background:#4e1d96"></span> 10 – 20 kWp</div>
+        <div class="leg-row"><span class="leg-sw" style="background:#2c0870"></span> > 20 kWp</div>
+    </div>
+
+    <!-- Heatmap legend (low zoom) -->
+    <div id="legend-heat" class="glass" style="position:fixed;bottom:40px;right:14px;z-index:900;border-radius:12px;padding:10px 14px;font-size:12px;color:#d0d8f0;display:none;">
+        <div class="leg-title">System density</div>
+        <div style="width:120px;height:10px;border-radius:5px;background:linear-gradient(90deg,#fed976,#fd8d3c,#e31a1c,#a50f15,#67000d);"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;opacity:.5;margin-top:3px;"><span>low</span><span>high</span></div>
+    </div>
+
+    <!-- Zoom hint -->
+    <div id="zoom-hint" class="glass">Zoom in to explore individual systems</div>
+
+    <!-- WFS spinner -->
+    <div id="wfs-spinner" class="glass">Loading…</div>
+
+    <!-- Intro popup -->
+    <div id="intro-overlay">
+        <div id="intro-card" class="glass">
+            <h2>DeepPVMapper</h2>
+            <div class="intro-sub">460,000+ raw rooftop PV detections across France by deep learning · ≈ 2.3 GWp</div>
+
+            <h4>Navigate</h4>
+            <p>Zoom to change scale: régions, then départements, then communes appear under your cursor,
+               with their detection counts. <strong>Click a zone to lock onto it</strong> — detailed statistics
+               open, and you can zoom all the way down to individual installations. Click anywhere outside
+               the zone to unlock. The search bar jumps straight to any place.</p>
+
+            <h4>Contribute</h4>
+            <p>Spotted an error? On any detected installation: report a false detection or redraw its outline.
+               Missed installation? Use the <strong>Add installation</strong> button and draw it. Submissions
+               are reviewed and merged into future releases of the registry.</p>
+
+            <h4>Data</h4>
+            <p class="intro-data">This map shows the <strong>raw detections</strong> — unfiltered model output,
+               which is exactly why your corrections matter. The registry is hosted on
+               <strong>cartes.gouv.fr</strong> (IGN Géoplateforme) and served live via WFS — public access
+               coming soon. Detections are produced by the
+               <a href="pipeline.html" style="color:#5bc8f5;">DeepPVMapper pipeline</a>
+               from IGN aerial orthoimagery.</p>
+
+            <button id="intro-start">Explore the map</button>
+            <div style="text-align:center;margin-top:12px;font-size:11px;opacity:.55;">
+                Questions, feedback, data requests —
+                <a href="mailto:gabriel.kasmi.services@gmail.com" style="color:#5bc8f5;">contact me</a>
             </div>
         </div>
     </div>
 
-    <!-- Map Container -->
-    <div class="map-wrapper">
-        <div id="map" class="map"></div>
+    <!-- Help button (reopens the intro) -->
+    <button id="help-btn" class="glass" aria-label="Help" title="How it works">?</button>
+
+    <!-- Annotation UI -->
+    <button id="annot-add-btn" class="glass" title="Report a missed installation">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        Add installation
+    </button>
+
+    <div id="annot-counter" class="glass"></div>
+    <div id="annot-toast" class="glass"></div>
+
+    <div id="annot-editbar" class="glass">
+        <span id="annot-editbar-msg"></span>
+        <button id="annot-cancel-edit">Cancel</button>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+    <div id="annot-form" class="glass">
+        <h3 id="annot-form-title">—</h3>
+        <div id="annot-form-note"></div>
+        <div id="annot-props">
+            <label style="flex:1;font-size:10px;opacity:.55;display:flex;flex-direction:column;gap:4px;">Surface (m²)
+                <input id="annot-surface" type="number" min="0" step="0.1" placeholder="optional">
+            </label>
+            <label style="flex:1;font-size:10px;opacity:.55;display:flex;flex-direction:column;gap:4px;">Capacity (kWp)
+                <input id="annot-kwp" type="number" min="0" step="0.1" placeholder="optional">
+            </label>
         </div>
-    </footer>
-
-    <!-- Leave Map Button -->
-    <div class="leave-map-button">
-        <a href="../index.html" class="leave-btn">← Leave Map</a>
+        <textarea id="annot-comment" maxlength="500" placeholder="Comment (optional)"></textarea>
+        <div class="annot-form-actions">
+            <button id="annot-cancel">Cancel</button>
+            <button id="annot-submit" class="primary">Submit</button>
+        </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Back -->
+    <a href="../index.html" id="leave-btn" class="glass">← Back</a>
+
+    <!-- Leaflet + plugins + Chart.js + Supabase -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <!-- Chart.js for plots -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Pako library for gzip decompression -->
-    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-    <!-- Fallback for pako if CDN fails -->
-    <script>
-        if (typeof pako === 'undefined') {
-            console.log('Primary pako CDN failed, trying fallback...');
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js';
-            script.onload = function() {
-                console.log('Pako loaded from fallback CDN');
-                // Reinitialize map if needed
-                if (window.deepPVMapperMap) {
-                    window.deepPVMapperMap.init();
-                }
-            };
-            script.onerror = function() {
-                console.error('Failed to load pako from both CDNs');
-            };
-            document.head.appendChild(script);
-        }
-    </script>
-    <script src="../static/js/map.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script type="module" src="../static/js/map/main.js"></script>
 </body>
-</html> 
+</html>

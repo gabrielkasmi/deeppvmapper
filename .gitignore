@@ -1,0 +1,11 @@
+.DS_Store
+
+# Local-only data — the WFS is the source of truth, never commit detection dumps
+static/data/19188878/
+static/data/aggregated_data.geojson
+
+# Pipeline working data (aux/ is ~6.6 GB), not used by the site
+# (root-anchored: must NOT match static/data/)
+/aux/
+/data/
+/notebooks/
