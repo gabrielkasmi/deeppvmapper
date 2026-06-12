@@ -1,0 +1,39 @@
+# RunPod deployment config
+# - Network volume mounted at /workspace (persistent)
+# - Container disk at /data (fast SSD, erased on pod stop)
+# Run: python main.py --dpt 06 --config /workspace/config_runpod.yml
+
+source_images_dir : /workspace/images         # IGN JP2 tiles + dalles.shp
+source_topo_dir   : /workspace/bdtopo         # BDTOPO
+source_commune_dir: /workspace/communes       # communes-20210101.shp
+model_dir         : /workspace/weights        # model_bdappv_cls.pth, model_bdappv_seg.pth
+
+temp_dir    : /workspace/temp
+outputs_dir : /workspace/outputs
+
+# -------- Pipeline switches --------
+run_classification : True
+run_segmentation   : True
+run_aggregation    : True
+
+# -------- Common --------
+patch_size : 299
+
+# -------- Classification --------
+cls_batch_size : 512
+cls_threshold  : 0.4
+cls_model      : model_bdappv_cls
+
+# -------- Segmentation --------
+seg_batch_size : 64
+seg_threshold  : 0.46
+num_gpu        : 1
+seg_model      : model_bdappv_seg
+
+# -------- Aggregation --------
+filter_building : True
+tilt_method     : lut
+azimuth_method  : bounding-box
+ic_method       : clustered
+ic_clusters     : 4
+constant_tilt   : 27.

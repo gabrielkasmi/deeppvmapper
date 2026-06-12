@@ -1,285 +1,219 @@
 # -*- coding: utf-8 -*-
 
 """
-PANEL AGGREGATION
-the script takes the arrays geojson file as input
-and returns the aggregated capacities
+AGGREGATION
 
+Takes arrays_{dpt}.geojson produced by segmentation, extracts panel
+characteristics via pypvroof MetadataExtraction, filters implausible
+detections, and writes the final CSV + enriched GeoJSON outputs.
 """
+
 import sys
 sys.path.append('../src')
 
-
 import os
 import json
-import postprocessing_helpers
+import numpy as np
 import geojson
 import pandas as pd
-import tqdm
-import joblib
 
-"""
-helper that saves the outputs in a file name stored
-in the target directory. 
-if the file already exists, append current outputs to 
-the existing file.
-"""
+import postprocessing_helpers
+
+from pypvroof import MetadataExtraction
+
+
+# ---------------------------------------------------------------------------
+# I/O helpers
+# ---------------------------------------------------------------------------
+
 def save(outputs, target_directory, file_name):
-    """
-    saves the raw outputs of the model 
-    the outputs should be a dictionnary.
-    """
-# if no file exists : 
-    if not os.path.isfile(os.path.join(target_directory, file_name)):
-        with open(os.path.join(target_directory, file_name), 'w') as f:
+    path = os.path.join(target_directory, file_name)
+    if not os.path.isfile(path):
+        with open(path, 'w') as f:
             json.dump(outputs, f, indent=2)
     else:
-        # update the file
-        # open the file
-        previous_outputs = json.load(open(os.path.join(target_directory, file_name)))
-        
-        # add the latest tiles
-        for key in outputs.keys():
-            previous_outputs[key] = outputs[key]
+        existing = json.load(open(path))
+        existing.update(outputs)
+        with open(path, 'w') as f:
+            json.dump(existing, f, indent=2)
 
-        # save the new file
-        with open(os.path.join(target_directory, file_name), 'w') as f:
-
-            json.dump(previous_outputs, f, indent=2)
-
-    return None
 
 def save_geojson(outputs, target_directory, file_name):
-    """
-    saves the raw outputs of the model 
-    the outputs should be a dictionnary.
-    """
-# if no file exists : 
-    if not os.path.isfile(os.path.join(target_directory, file_name)):
-        with open(os.path.join(target_directory, file_name), 'w') as f:
+    path = os.path.join(target_directory, file_name)
+    if not os.path.isfile(path):
+        with open(path, 'w') as f:
             geojson.dump(outputs, f, indent=2)
     else:
-        # update the file
-        # open the file
-        previous_outputs = geojson.load(open(os.path.join(target_directory, file_name)))
-        
-        # add the latest tiles
-        for key in outputs.keys():
-            previous_outputs[key] = outputs[key]
+        existing = geojson.load(open(path))
+        existing.update(outputs)
+        with open(path, 'w') as f:
+            geojson.dump(existing, f, indent=2)
 
-        # save the new file
-        with open(os.path.join(target_directory, file_name), 'w') as f:
 
-            geojson.dump(previous_outputs, f, indent=2)
+# ---------------------------------------------------------------------------
+# Aggregation pipeline
+# ---------------------------------------------------------------------------
 
-    return None
-
-class Aggregation():
+class Aggregation:
     """
-    given a geojson of arrays locations, extracts the panel characteristics and
-    outputs a pandas dataframe.
-    filters these detections to keep plausible ones and removes the installations 
-    above 36 kWc.
+    Characterizes detected PV installations and filters them.
+
+    Steps:
+      1. initialize  — load arrays GeoJSON + communes lookup
+      2. characterize — run pypvroof MetadataExtraction; add city/tile metadata
+      3. filter_installations — remove implausible kWp; optionally filter to buildings
+      4. export — write CSV, aggregated CSV, and enriched GeoJSON
     """
 
     def __init__(self, configuration, dpt):
-        """
-        Get the parameters and the directories.
-        """
-
-        # Retrieve the directories for this part
-        self.temp_dir = configuration.get('temp_dir')
-        self.aux_dir = configuration.get('aux_dir')
+        self.temp_dir    = configuration.get('temp_dir')
+        self.aux_dir     = configuration.get('aux_dir')
         self.outputs_dir = configuration.get('outputs_dir')
-        self.img_dir = configuration.get('source_images_dir')
-        self.lut_dir = configuration.get('look_up_table_dir')
-        self.models_dir = configuration.get('model_dir')
+        self.img_dir     = configuration.get('source_images_dir')
+        self.dpt         = dpt
 
-        # arguments
-        self.dpt = dpt
+        self.building      = configuration.get('filter_building', True)
+        self.method_tilt   = configuration.get('tilt_method',    'lut')
+        self.method_az     = configuration.get('azimuth_method', 'bounding-box')
+        self.method_ic     = configuration.get('ic_method',      'clustered')
+        self.ic_clusters   = configuration.get('ic_clusters',    4)
+        self.constant_tilt = configuration.get('constant_tilt',  27.)
 
-        # parameters
-        self.building = configuration.get('filter_building')
-        self.random_forest_tilt = configuration.get('random_forest_tilt')
-        self.rf_scaler_tilt = configuration.get('rf_scaler_tilt')
-        self.random_forest_ic = configuration.get('random_forest_ic')
-        self.rf_scaler_ic = configuration.get('rf_scaler_ic')
-
-        # parameters
-        self.constant_tilt = configuration.get("constant_tilt")
-        self.efficiency = configuration.get('efficiency')
-        self.method_tilt = configuration.get('tilt_method')
-        self.method_azimuth = configuration.get('azimuth_method')
-        self.method_ic = configuration.get('installed_capacity_method')
-
+    # ------------------------------------------------------------------
 
     def initialize(self):
-        '''
-        initializes the characterization module
-        '''
+        """Loads arrays GeoJSON and communes lookup."""
+        print('Loading data for department {}...'.format(self.dpt))
 
-        print('Converting the raw masks into panel characteristics...')
-        print(""" Parameters for the conversion have been set as follows : \n
-        - Filter by building : {}
-        - Method to infer the tilt : {}
-        - Method to infer the azimuth : {}
-        - Method to infer the installed capacity : {}
-        """.format(self.building, self.method_tilt, self.method_azimuth, self.method_ic))
+        communes = json.load(
+            open(os.path.join(self.aux_dir, 'communes_{}.json'.format(self.dpt)))
+        )
+        arrays = geojson.load(
+            open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt)))
+        )
+        return arrays, communes
 
-        # load and prepare the lookup table
-        lut = json.load(open(os.path.join(self.lut_dir, "look_up_table.json")))
+    # ------------------------------------------------------------------
 
-        # load and prepare the communes directory for matching the installations
-        # with the communes.
-        communes = json.load(open(os.path.join(self.aux_dir, 'communes_{}.json'.format(self.dpt))))
-
-        # open the main file arrays.geojson
-        arrays = geojson.load(open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt))))
-
-        # initialize the random forest
-        self.rf_tilt = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.random_forest_tilt)))
-        self.scaler_tilt = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.rf_scaler_tilt)))
-
-        self.rf_ic = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.random_forest_ic)))
-        self.scaler_ic = joblib.load(os.path.join(self.models_dir, '{}.joblib'.format(self.rf_scaler_ic)))
-
-        return arrays, lut, communes
-
-    def characterize(self, arrays, lut, communes):
+    def characterize(self, arrays, communes):
         """
-        characterizes the polygons based on the LUT
+        Runs pypvroof MetadataExtraction over the arrays GeoJSON, then
+        appends city code, tile name, and installation_id.
 
-        returns a dataframe where each line is an installation with the following columns : 
-        surface, tilt, installed_capacity, lat, lon, commune
+        Returns a DataFrame with columns:
+          surface, tilt, azimuth, kWp, city, lat, lon, tile_name, installation_id
         """
-        installations = []
+        print('Extracting characteristics (tilt={}, azimuth={}, ic={})...'.format(
+            self.method_tilt, self.method_az, self.method_ic))
 
-        #def f(array):
-        #    installations.append(postprocessing_helpers.compute_characteristics(array, lut, communes, self.lut, self.constant))
-        #    return None
-
-        print('Extracting the characteristics from the geojson file...')
-
-        #with concurrent.futures.ThreadPoolExecutor() as executor:
-        #    executor.map(f, arrays['features'])
-
-        # define the dictionnary of parameters
         p = {
-            'constant_tilt'      : self.constant_tilt,
-            'method_tilt'        : self.method_tilt,
-            'random_forest_tilt' : (self.rf_tilt, self.scaler_tilt),
-            'method_azimuth'     : self.method_azimuth,
-            'random_forest_ic'   : (self.rf_ic, self.scaler_ic),
-            'efficiency'         : self.efficiency,
-            'method_ic'          : self.method_ic
+            'tilt-method'        : self.method_tilt,
+            'azimuth-method'     : self.method_az,
+            'regression-type'    : self.method_ic,
+            'regression-clusters': self.ic_clusters,
+            'constant-tilt'      : self.constant_tilt,
         }
+        extractor = MetadataExtraction(p=p)
+        df = extractor.extract_all_characteristics(arrays)
 
+        # pypvroof returns: lon, lat, tilt, azimuth, installed_capacity, surface
+        df = df.rename(columns={'installed_capacity': 'kWp'})
 
-        for i, array in tqdm.tqdm(enumerate(arrays['features'])):
+        # Add per-installation metadata from the source GeoJSON
+        cities, tile_names, inst_ids = [], [], []
+        for i, feature in enumerate(arrays['features']):
+            coords = np.array(feature['geometry']['coordinates']).squeeze(0)
+            center = np.mean(coords, axis=0)          # (lon, lat) in WGS84
+            cities.append(postprocessing_helpers.retrieve_city_code(center, communes))
+            tile_names.append(feature['properties'].get('tile', ''))
+            inst_ids.append(i)
 
-            installations.append(postprocessing_helpers.compute_characteristics(array, i, lut, communes, p))
+        df['city']            = cities
+        df['tile_name']       = tile_names
+        df['installation_id'] = inst_ids
 
+        # Guarantee expected column order; create missing ones with NaN
+        expected = ['surface', 'tilt', 'azimuth', 'kWp', 'city', 'lat', 'lon',
+                    'tile_name', 'installation_id']
+        for col in expected:
+            if col not in df.columns:
+                df[col] = np.nan
 
+        print('Characteristics extraction complete ({} installations).'.format(len(df)))
+        return df[expected]
 
-        df = pd.DataFrame(installations, columns = ['surface', 'tilt', 'azimuth', 'kWp', 'city', 'lat', 'lon', 'tile_name', 'installation_id'])
-        print('Characteristics extraction completed.')
-        
-        return df
+    # ------------------------------------------------------------------
 
     def filter_installations(self, df, communes):
         """
-        filter the installations based on their characteristics
+        1. Drops implausible kWp values (< 1.7 or > 36.1).
+        2. Optionally filters to detections that fall on a building and
+           merges multiple installations on the same building.
         """
+        print('Filtering installations...')
 
-        print('Filtering the installations...')
-
-        # remove the implausible installed capacities and capacities above 36 kWc
-        # a first estimate is the minimum surface of a module (1.7 sq. m.)
-        minimum = 1.7
-        df = df[(df['kWp'] > minimum) & (df['kWp'] < 36.1)] 
+        df = df[(df['kWp'] > 1.7) & (df['kWp'] < 36.1)].copy()
 
         if not self.building:
-
-            print('Filtering complete.')
-
+            print('Building filter disabled. {} installations kept.'.format(len(df)))
             return df
-        
-        else:
 
-            # convert the dataframe 
-            annotations = postprocessing_helpers.reshape_dataframe(df)
+        annotations    = postprocessing_helpers.reshape_dataframe(df)
+        tiles_list     = list(annotations.keys())
+        buildings      = json.load(
+            open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt)))
+        )
+        sorted_buildings = postprocessing_helpers.assign_building_to_tiles(
+            tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt
+        )
+        df_out = postprocessing_helpers.filter_installations(
+            df, annotations, sorted_buildings, communes
+        )
+        print('Filtering complete. {} installations kept.'.format(len(df_out)))
+        return df_out
 
-
-            tiles_list = list(annotations.keys()) # subset of tiles on which there is an installation
-
-            # buildings : open the file with all the buildings
-            buildings = json.load(open(os.path.join(self.aux_dir, 'buildings_locations_{}.json'.format(self.dpt))))
-                    
-            # sort the buildings by tile
-            sorted_buildings = postprocessing_helpers.assign_building_to_tiles(tiles_list, buildings, self.img_dir, self.temp_dir, self.dpt)
-            
-            # return a filtered dataframe where 
-            # - the kWp is merged, as well as the surface
-            # - installations that are not on a building are removed
-            df_out = postprocessing_helpers.filter_installations(df, annotations, sorted_buildings, communes)
-
-            print('Filtering complete.')
-
-  
-            return df_out
+    # ------------------------------------------------------------------
 
     def export(self, filtered_installations):
         """
-        exports the file as three files : 
-        - the .csv of the registry
-        - the aggregated characteristics : that merge the characteristics by city
-        - an updated geojson file which restricts to the filtered installations and includes 
-        the estimated characteristics of the underlying polygon
+        Writes:
+          - characteristics_{dpt}.csv       — full per-installation registry
+          - aggregated_characteristics_{dpt}.csv — city-level aggregation
+          - arrays_characteristics_{dpt}.geojson — enriched polygons
         """
+        # De-duplicate and write registry
+        out = postprocessing_helpers.merge_duplicates(filtered_installations)
+        out.to_csv(
+            os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt)),
+            index=False,
+        )
 
-        # full registry
-        filtered_installations = postprocessing_helpers.merge_duplicates(filtered_installations) # remove the duplicates of the dataframe
-        filtered_installations.to_csv(os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt)), index = False)
-
-        # aggregated capacities computed for comparison
-        # sum the installed capacity
-        aggregated_capacity = filtered_installations[['kWp', 'city']].groupby(['city']).sum()
-
-        # count the installations 
-        installations_count = filtered_installations[['city', 'kWp']].groupby(['city']).count()
-        installations_count.columns = ['count']
-
-        # average the localization, surface and installed capacity
-        means = filtered_installations[['surface', 'city', 'lat', 'lon', 'kWp']].groupby(['city']).mean()
+        # City-level aggregation
+        agg_cap   = out[['kWp', 'city']].groupby('city').sum()
+        count     = out[['city', 'kWp']].groupby('city').count().rename(columns={'kWp': 'count'})
+        means     = out[['surface', 'city', 'lat', 'lon', 'kWp']].groupby('city').mean()
         means.columns = ['avg_surface', 'lat', 'lon', 'avg_kWp']
+        aggregated = pd.concat([agg_cap, count, means], axis=1)
+        aggregated = aggregated[['count', 'kWp', 'avg_surface', 'avg_kWp', 'lat', 'lon']]
+        aggregated.to_csv(
+            os.path.join(self.outputs_dir, 'aggregated_characteristics_{}.csv'.format(self.dpt))
+        )
 
-        # aggregate in a single dataframe and save it in the outputs directory.
-        aggregated = pd.concat([aggregated_capacity, installations_count, means], axis=1)
-        aggregated = aggregated[['count', 'kWp', 'avg_surface', 'avg_kWp', 'lat', 'lon']] # reorder the columns.
-        aggregated.to_csv(os.path.join(self.outputs_dir, 'aggregated_characteristics_{}.csv'.format(self.dpt)))
+        # Enriched GeoJSON
+        characteristics = pd.read_csv(
+            os.path.join(self.outputs_dir, 'characteristics_{}.csv'.format(self.dpt))
+        )
+        arrays = geojson.load(
+            open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt)))
+        )
+        postprocessing_helpers.associate_characteristics_to_pv_polygons(
+            characteristics, arrays, self.outputs_dir, self.dpt
+        )
 
-        # updated geojson with the characteristics
-        # open the characteristics and arrays files
-        characteristics = pd.read_csv(os.path.join(self.outputs_dir, "characteristics_{}.csv".format(self.dpt)))
-        arrays = geojson.load(open(os.path.join(self.outputs_dir, 'arrays_{}.geojson'.format(self.dpt))))
-
-        postprocessing_helpers.associate_characteristics_to_pv_polygons(characteristics, arrays, self.outputs_dir, self.dpt)
-        
-        return None
+    # ------------------------------------------------------------------
 
     def run(self):
-        """
-        chain all parts together.
-        """
-
-        # initialize the module
-        arrays, lut, communes = self.initialize()
-
-        # compute the characteristics of the arrays
-        characteristics = self.characterize(arrays, lut, communes)
-
-        # filter based on the installed capacities
-        filtered_installations = self.filter_installations(characteristics, communes)
-
-        # save the outputs
-        self.export(filtered_installations)
+        arrays, communes = self.initialize()
+        characteristics  = self.characterize(arrays, communes)
+        filtered         = self.filter_installations(characteristics, communes)
+        self.export(filtered)

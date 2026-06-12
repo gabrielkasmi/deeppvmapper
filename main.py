@@ -4,211 +4,191 @@
 """
 DETECTION PIPELINE
 
-This script chains together all components of the detection pipeline.
+Single entry point. Runs in three stages for a given department:
 
-- pre_processing : loads the raw images and converts them as thumbnails
+  1. Initialization  — build auxiliary files (buildings, plants, communes) into temp/
+                       Skipped if temp/ already contains them (allows resuming after crash)
+  2. Classification  — in-memory tile classification, positive patches saved to temp/segmentation/
+  3. Segmentation    — segment positive patches → LAMB93 polygons → temp/segmentation/ deleted
+  4. Aggregation     — pypvroof characteristics + building filter → outputs written to data/
 
-- detection : runs the detection and extracts the localization based on the CAM of the model
-
-- post_processing : associates the detections with buildings or plants to remove false postives
-                    and formats the output as a geojson file.
-
+On success : temp/ is deleted.
+On crash   : temp/ is kept; rerun the same command to resume from where it stopped.
+Force full rerun : pass --clean to wipe temp/ before starting.
 """
 
 import sys
-
+import os
+import shutil
 sys.path.append('scripts/pipeline_components/')
 sys.path.append('scripts/src/')
 
+# Patch pypvroof: its utils.py does a bare `from osgeo import gdal` at import time
+# which fails when GDAL is installed as `gdal` (not `osgeo`) on some systems.
+# Applied once at startup — no manual post-install step needed.
+try:
+    import pypvroof
+    import pypvroof.utils as _pypvroof_utils
+
+    # 1. GDAL patch
+    if not hasattr(_pypvroof_utils, '_gdal_patched'):
+        try:
+            from osgeo import gdal as _gdal
+        except ImportError:
+            import gdal as _gdal
+        _pypvroof_utils.gdal = _gdal
+        _pypvroof_utils._gdal_patched = True
+
+    # 2. Data file patch — copy bundled CSV into the install if missing
+    _pypvroof_data_dir = os.path.join(os.path.dirname(pypvroof.__file__), 'data')
+    _bundled_csv = os.path.join(
+        os.path.dirname(__file__), 'pypvroof_data', 'bdappv-metadata.csv'
+    )
+    _target_csv = os.path.join(_pypvroof_data_dir, 'bdappv-metadata.csv')
+    if not os.path.isfile(_target_csv) and os.path.isfile(_bundled_csv):
+        os.makedirs(_pypvroof_data_dir, exist_ok=True)
+        shutil.copy(_bundled_csv, _target_csv)
+
+except Exception:
+    pass  # pypvroof not installed yet — will fail later with a clear error
+
+import warnings
+import argparse
+import json
+
+import yaml
+import torch
 
 import preprocessing
-import detection, segmentation, aggregation, carbon
-import yaml
-import sys
-import torch
-import os
-import argparse
-import warnings
-from datetime import datetime
+import detection
+import segmentation
+import aggregation
+import data_handlers
 
-warnings.filterwarnings("ignore")
+warnings.filterwarnings('ignore')
 
-def main(): 
- 
-    # - - - - - - - STEP 1 : INITIALIZATION - - - - - - -  
 
-    # Parse the arguments
-    parser = argparse.ArgumentParser(description = 'Large scale detection pipeline')
+# ---------------------------------------------------------------------------
+# Auxiliary initialization (merged from auxiliary.py)
+# ---------------------------------------------------------------------------
 
-    parser.add_argument('--count', default = 16, help = "Number of tiles to process simultaneoulsy", type=int)
-    parser.add_argument('--dpt', default = None, help = "Department to proceed", type=int)
+def _initialize_auxiliary(configuration, dpt):
+    """
+    Generates per-department auxiliary files into temp_dir if not already present.
+    Safe to call on every run — skips files that already exist.
+    """
+    temp_dir           = configuration.get('temp_dir')
+    source_topo_dir    = configuration.get('source_topo_dir')
+    source_commune_dir = configuration.get('source_commune_dir')
 
-    parser.add_argument('--run_classification', default = None, help = "Whether detection should be done.", type=bool)
-    parser.add_argument('--run_segmentation', default = None, help = "Whether segmentation should be done.", type=bool)
-    parser.add_argument('--run_postprocessing', default = None, help = "Whether postprocessing should be done.", type=bool)
+    buildings_path = os.path.join(temp_dir, 'buildings_locations_{}.json'.format(dpt))
+    plants_path    = os.path.join(temp_dir, 'plants_locations_{}.json'.format(dpt))
+    communes_path  = os.path.join(temp_dir, 'communes_{}.json'.format(dpt))
 
+    if not os.path.exists(buildings_path):
+        print('Building auxiliary: building locations...')
+        buildings = data_handlers.get_buildings_locations(source_topo_dir)
+        with open(buildings_path, 'w') as f:
+            json.dump(buildings, f, indent=2)
+
+    if not os.path.exists(plants_path):
+        print('Building auxiliary: power plant locations...')
+        plants = data_handlers.get_power_plants(source_topo_dir)
+        with open(plants_path, 'w') as f:
+            json.dump(plants, f, indent=2)
+
+    if not os.path.exists(communes_path):
+        print('Building auxiliary: communes...')
+        communes = data_handlers.get_communes(source_commune_dir, dpt)
+        with open(communes_path, 'w') as f:
+            json.dump(communes, f, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+
+    # ── Arguments ─────────────────────────────────────────────────────────────
+    parser = argparse.ArgumentParser(description='Large-scale PV detection pipeline')
+    parser.add_argument('--dpt',   required=True, type=int,
+                        help='Department number to process')
+    parser.add_argument('--count', default=16, type=int,
+                        help='Tiles per classification batch (default: 16)')
+    parser.add_argument('--clean', action='store_true',
+                        help='Wipe temp/ before running (forces full rerun)')
+    parser.add_argument('--config', default='config.yml',
+                        help='Path to config file (default: config.yml)')
     args = parser.parse_args()
 
-    # Load the configuration file
-    config = 'config.yml'
+    dpt = args.dpt
 
-    with open(config, 'rb') as f:
+    # ── Configuration ──────────────────────────────────────────────────────────
+    with open(args.config, 'rb') as f:
         configuration = yaml.load(f, Loader=yaml.FullLoader)
 
-    # Parameters that are specific to the wrapper
-    # Overwrite the configuration parameters whenever relevant.
+    temp_dir    = configuration.get('temp_dir', 'temp')
+    outputs_dir = configuration.get('outputs_dir', 'data')
 
-    run_classification = configuration.get('run_classification')
+    # Route aux file lookups to temp_dir so everything lives in one place
+    configuration['aux_dir'] = temp_dir
 
-    run_segmentation = configuration.get('run_segmentation')
-    
-    run_aggregation = configuration.get('run_aggregation')
-    
-    # department number
+    # ── Setup ─────────────────────────────────────────────────────────────────
+    if args.clean and os.path.isdir(temp_dir):
+        print('--clean: removing {}/'.format(temp_dir))
+        shutil.rmtree(temp_dir)
 
-    if args.dpt is not None:
-        dpt = args.dpt
-    else:
-        print('Please input a departement number to run the pipeline.')
-        raise ValueError
+    os.makedirs(temp_dir,    exist_ok=True)
+    os.makedirs(outputs_dir, exist_ok=True)
 
-    # directories : 
-    # the aux directory contains auxiliary information needed at different stages of inference.
-    # the outputs directory stores the results of teh model
-    # the temp directory stores the temporary outputs and is erased at the end of inference.
+    run_classification = configuration.get('run_classification', True)
+    run_segmentation   = configuration.get('run_segmentation',   True)
+    run_aggregation    = configuration.get('run_aggregation',    True)
 
-    outputs_dir = configuration.get('outputs_dir')
-    aux_dir = configuration.get('aux_dir')
-    carbon_dir = configuration.get('carbon_dir')
+    # ── Run ───────────────────────────────────────────────────────────────────
+    try:
 
-    # Check that the aux directory is not empty. 
-    # If it is the case, stop the script and tell the user to 
-    # run auxiliary inference first.
-    if not os.listdir(aux_dir):
-        print('Auxiliary directory not found. Run auxiliary.py before running the main script.')
-        raise ValueError
+        # Step 0 — auxiliary files (skipped if already in temp/)
+        _initialize_auxiliary(configuration, dpt)
 
-    # also check that the files corresponding to the departements exist. Otherwise raise an error
-    if not os.path.exists(os.path.join(aux_dir, "buildings_locations_{}.json".format(args.dpt))):
-        print('No auxiliary files associated to the directory found in the {} directory. run auxiliary.py before running the main script.'.format(aux_dir))
-        raise ValueError
+        # Step 1 — classification
+        if run_classification:
+            tiles_tracker = preprocessing.TilesTracker(configuration, dpt)
+            print('Starting classification. Batches of {} tiles.'.format(args.count))
+            while tiles_tracker.completed():
+                pre  = preprocessing.PreProcessing(configuration, args.count, dpt)
+                tile_paths = pre.run()
+                det  = detection.Detection(configuration)
+                det.run(tile_paths)
+                tiles_tracker.update()
+            print('Classification complete for department {}.'.format(dpt))
 
-    # if the carbon directory does not exist, create it
-    if not os.path.isdir(carbon_dir):
-        os.mkdir(carbon_dir)
+        # Step 2 — segmentation
+        if run_segmentation:
+            print('Starting segmentation...')
+            segmenter = segmentation.Segmentation(configuration, dpt)
+            segmenter.run()
+            print('Segmentation complete for department {}.'.format(dpt))
 
-    # - - - - - - - STEP 2 : EXECUTION - - - - - - -  
+        # Step 3 — aggregation
+        if run_aggregation:
+            print('Starting aggregation...')
+            aggregator = aggregation.Aggregation(configuration, dpt)
+            aggregator.run()
+            print('Aggregation complete.')
 
-    if run_classification:
+        # ── Success: clean up temp/ ────────────────────────────────────────────
+        print('Run successful. Cleaning up {}/ ...'.format(temp_dir))
+        shutil.rmtree(temp_dir)
+        print('Done.')
 
-        # initialize the energy consumption tracker
-        #tracker, startDate = carbon.initialize()
-        #tracker.start()
+    except Exception as e:
+        print('\nPipeline error: {}'.format(e))
+        print('Temporary files kept in {}/ — rerun the same command to resume.'.format(temp_dir))
+        raise
 
-        # Initialize the tiles tracker helper, that will keep track of the 
-        # tiles that have been completed and those that still need to be proceeded
-        tiles_tracker = preprocessing.TilesTracker(configuration, dpt) 
-
-        i = 0
-
-        print('Starting classification. Batches of tiles will be subsequently proceeded.')
-
-        while tiles_tracker.completed():
-            # While the full list of tiles has not been completed,
-            # do the following :
-            # 1) Split a batch of unprocessed tiles
-            # 2) Do inference and save the list of thumbnails that are identified 
-            #    as positives
-            # 3) Update the list of tiles that have been processed 
-            # 4) remove the negative images
-
-            i += 1
-
-            print('Starting pre processing...')
-
-            pre_processing = preprocessing.PreProcessing(configuration, args.count, args.dpt)
-            pre_processing.run()
-
-            print('Preprocessing complete. ')
-
-            print('Starting detection ...')
-
-            inference = detection.Detection(configuration)
-            inference.run()
-
-            print('Detection complete. ')
-
-            # update the tiles tracker and clean the thumbnails folder
-            print('Updating and cleaning the tiles list...')
-
-            tiles_tracker.update()
-
-            tiles_tracker.clean()
-
-            print('Complete.')
-
-            # end the energy consumption tracker
-
-            #if i == 3:
-            #    break
-        
-        print('Detection of the tiles on the departement {} complete.'.format(dpt))
-
-        # save the carbon instances
-        # tracker.stop() # stop the tracker
-        # endDate = datetime.now()
-        # carbon.add_instance(startDate, endDate, tracker, carbon_dir, dpt, 'cls')
-        
-    if run_segmentation:
-
-        # initialize the energy consumption tracker
-        # tracker, startDate = carbon.initialize()
-        # tracker.start()
-
-        print('Starting segmentation... ')
-
-        # create the outputs direectory if the latter does not exist
-        if not os.path.isdir(outputs_dir):
-            os.mkdir(outputs_dir)
-
-
-        
-        segmenter = segmentation.Segmentation(configuration, args.dpt)
-        segmenter.run()
-
-        print('Segmentation of the positive thumbnails of department {} complete.'.format(dpt))
-
-        # save the carbon instances
-        #tracker.stop() # stop the tracker
-        #endDate = datetime.now()
-        #carbon.add_instance(startDate, endDate, tracker, carbon_dir, dpt, 'seg')
-
-    if run_aggregation:
-
-        # initialize the energy consumption tracker
-        #tracker, startDate = carbon.initialize()
-        #tracker.start()
-
-        print('Starting aggregation...')
-
-        aggregator = aggregation.Aggregation(configuration, dpt)
-        aggregator.run()
-
-        print('Aggregation complete.')
-
-        # save the carbon instances
-        #tracker.stop() # stop the tracker
-        #endDate = datetime.now()
-        #carbon.add_instance(startDate, endDate, tracker, carbon_dir, dpt, 'agg')
-        
-    # Cleaning the temporary directories. 
-    #clean = postprocessing.Cleaner(configuration)
-    #clean.run()
 
 if __name__ == '__main__':
-
-    # Setting up the seed for reproducibility
     torch.manual_seed(42)
-
-    # Run the pipeline.
-    main()    
+    main()

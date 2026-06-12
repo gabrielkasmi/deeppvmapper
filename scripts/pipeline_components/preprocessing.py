@@ -1,268 +1,130 @@
 # -*- coding: utf-8 -*-
 
 """
-TILES PREPROCESSING
+PREPROCESSING
 
-This script takes the raw input images and preprocesses them in order 
-to be handled by the model.
-Images are processed and stored in a dedicated directory, also passed as input.
+Reads the tiles list for the current department and resolves jp2 paths
+for the next batch of unprocessed tiles.
+
+No thumbnail writing — classification runs fully in-memory (see detection.py).
 """
-from re import T
-import sys 
-sys.path.append('../src')
 
-import glob
-from fiona import collection
 import os
-import tiles_processing
-import concurrent
-import tqdm
+import glob
 import json
-import shutil
+import tqdm
+from fiona import collection
 
 
-
-def initialize_tiles_list(source_dir, target_tiles ,dpt):
+def initialize_tiles_list(source_dir, target_tiles, dpt):
     """
-    returns a dictionnary where each key is the tile name
-    and each value is set to False, meaning that none of the 
-    tiles have yet been proceeded.
+    Returns {tile_name: False} for every tile to process.
+    target_tiles : optional list of tile names from config; None means all tiles.
     """
-
     tiles_list = {}
-    
-    if target_tiles is None: # if we do not input a specific list of tiles to proceed, go for all of them.
 
-        print(source_dir)
-    
-        dnsSHP = glob.glob(source_dir + "/**/dalles.shp", recursive = True) 
-        print(source_dir)
-
+    if target_tiles is None:
+        dnsSHP = glob.glob(source_dir + '/**/dalles.shp', recursive=True)
         if not dnsSHP:
-            print("Error, the shape file could not be found.")
-            raise ValueError
-
-        with collection(dnsSHP[0], 'r') as input: # look for the tile that contains the point
-            for shapefile_record  in input:
-                name = shapefile_record["properties"]["NOM"][2:-4]
+            raise ValueError('dalles.shp not found in {}'.format(source_dir))
+        with collection(dnsSHP[0], 'r') as shp:
+            for rec in shp:
+                name = rec['properties']['NOM'][2:-4]
                 tiles_list[name] = False
     else:
-        tiles_list = {tile : False for tile in target_tiles}
+        tiles_list = {tile: False for tile in target_tiles}
 
-
-    # only display the remaining number of tiles for the département.
-
-   
-    print('There are {} tiles for the departement {}.'.format(len(tiles_list), dpt))
+    print('There are {} tiles for department {}.'.format(len(tiles_list), dpt))
     return tiles_list
 
 
-class TilesTracker():
+class TilesTracker:
     """
-    Reads the shapefile of the inputed departement and gets the list of tiles
-    Then, during the inference process, the list of tiles is updated and the corresponding 
-    folders in the data/thumbnails folder are deleted in order to limit the space taken by
-    the process.
+    Persists the processing state to disk so the pipeline can resume after a crash.
     """
 
-    def __init__(self, configuration, dpt, force = False):
-        """
-        Retrieve the location of the folders from the configuration file.
-
-        arguments: 
-        - the configuration file
-        - dpt : the number of the departement on which inference is being made.
-        - (optional) force : a boolean passed indicating whether at 
-        each initialization, the tiles file will be erased (meaning the whole
-        inference process will be restarted from scratch)
-        """
-
+    def __init__(self, configuration, dpt, force=False):
         self.source_dir = configuration.get('source_images_dir')
-        self.temp_dir = configuration.get("temp_dir")
-        self.dpt = dpt
-        self.tiles_list = configuration.get("tiles_list")
+        self.temp_dir   = configuration.get('temp_dir')
+        self.dpt        = dpt
+        self._target    = configuration.get('tiles_list')   # optional subset from config
 
-        # initialize the temporary directory if the latter does not exist.
-        if not os.path.isdir(self.temp_dir):
-            os.mkdir(self.temp_dir)
-        # create the thumbnails directory if the latter does not exist
-        thumbnails_dir = os.path.join(self.temp_dir, 'classification')
-        if not os.path.isdir(thumbnails_dir):
-            os.mkdir(thumbnails_dir)
-        
-        # Open the tiles list file.
+        os.makedirs(self.temp_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.temp_dir, 'segmentation'), exist_ok=True)
 
-        # If the file exists and if force is false, load it.
-        if os.path.isfile(os.path.join(self.temp_dir, "tiles_list_{}.json".format(self.dpt))):
+        tiles_file = os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(dpt))
 
-            if not force : 
-                with open(os.path.join(self.temp_dir, "tiles_list_{}.json".format(self.dpt))) as f:
-                    tiles_list = json.load(f)
-            else:# if force is set on True, initialize the file
-                tiles_list = initialize_tiles_list(self.source_dir, self.dpt)
-                with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
-                    json.dump(tiles_list, f, indent = 2)
+        if os.path.isfile(tiles_file) and not force:
+            with open(tiles_file) as f:
+                tiles_list = json.load(f)
+        else:
+            tiles_list = initialize_tiles_list(self.source_dir, self._target, dpt)
+            with open(tiles_file, 'w') as f:
+                json.dump(tiles_list, f, indent=2)
+            raw = os.path.join(self.temp_dir, 'raw_detection_results.json')
+            if os.path.exists(raw):
+                os.remove(raw)
 
-                # also initialize the approximate_coordinates and raw results files
-                if os.path.exists(os.path.join(self.temp_dir, "raw_detection_results.json")):
-                    os.remove(os.path.join(self.temp_dir, "raw_detection_results.json"))
-                
-                # if os.path.exists(os.path.join(self.outputs_dir, "approximate_coordinates.json")):
-                #    os.remove(os.path.join(self.outputs_dir, "approximate_coordinates.json"))
-
-        else: # if the file does not exist create it in all cases.
-
-            tiles_list = initialize_tiles_list(self.source_dir, self. tiles_list, self.dpt)
-            with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(tiles_list, f, indent = 2)
-
-        # save the list of tiles as an additional attribute.
         self.tiles_list = tiles_list
 
     def update(self):
-        """update the list of tiles based on the raw_detection_results.json file
-        this file is returned at the end of the inference phase, before the postprocessing
-        if panels have been found on a given tile, the key still exists but its 
-        value is an empty dictionnary.
-        """
+        """Mark processed tiles as done based on raw_detection_results.json."""
+        raw_path = os.path.join(self.temp_dir, 'raw_detection_results.json')
+        proceeded = json.load(open(raw_path))
 
-        # open the file
-        proceeded_tiles = json.load(open(os.path.join(self.temp_dir, "raw_detection_results.json")))
-        completed_tiles = list(proceeded_tiles.keys())
+        str_dpt  = ('0' + str(self.dpt)) if self.dpt < 10 else str(self.dpt)
+        dpt_done = sum(1 for t in proceeded if t[:2] == str_dpt)
+        print('{}/{} tiles completed for department {}'.format(
+            dpt_done, len(self.tiles_list), self.dpt))
 
-        # display only the number of tiles proceeded in the current departement
-        str_dpt = '0' + str(self.dpt) if self.dpt < 10 else str(self.dpt)
-
-        print("{}/{} tiles completed for departement {}".format(len([t for t in completed_tiles if t[:2] == str_dpt]),len(self.tiles_list.keys()),self.dpt))
-
-        for tile in completed_tiles: # loop over the tiles for which the approximate coordinates 
-                                     # have been computed
+        for tile in proceeded:
             self.tiles_list[tile] = True
 
-        # update the file in the source folder.
-            with open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt)), 'w') as f:
-                json.dump(self.tiles_list, f, indent=2)
-
-    def clean(self):
-        """cleans the thumbnails directory"""
-
-        thumbnails_dir = os.path.join(self.temp_dir, 'classification')
-
-        # open the file
-        raw_results = json.load(open(os.path.join(self.temp_dir, 'raw_detection_results.json')))
-        completed_tiles = [tile for tile in os.listdir(thumbnails_dir) if not (tile[-5:] == '.json') | (tile[0] == '.')] # consider only the folders that have not been deleted
-
-        # create a folder with the positive tiles
-        # segmentation inference will be run from this folder.
-        segmentation_thumbnails = os.path.join(self.temp_dir, 'segmentation') 
-        if not os.path.isdir(segmentation_thumbnails):
-            os.mkdir(segmentation_thumbnails)
-
-        # get the list of tiles that are positively labelled
-        for tile in completed_tiles:
-            positive_thumbnails = raw_results[tile]
-
-            # copy the tiles
-            for positive_thumbnail in positive_thumbnails:
-                source = os.path.join(os.path.join(thumbnails_dir, tile), positive_thumbnail)
-                target = os.path.join(segmentation_thumbnails, positive_thumbnail)
-
-                shutil.copy(source, target)
-
-        # remove the folders once the copy of the positive tiles is 
-        # complete.
-        folders = 0
-        for tile in completed_tiles:
-            if os.path.isdir(os.path.join(thumbnails_dir, tile)):
-                folders += 1
-                shutil.rmtree(os.path.join(thumbnails_dir, tile))
-
-        print("{} folders deleted.".format(folders))
+        tiles_file = os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(self.dpt))
+        with open(tiles_file, 'w') as f:
+            json.dump(self.tiles_list, f, indent=2)
 
     def completed(self):
-        """checks whether the tiles_list still contains 
-        tiles flagged with False"""
-        
-        return bool({k : v for k, v in self.tiles_list.items() if v == False})
+        """Returns True while there are still unprocessed tiles."""
+        return any(not v for v in self.tiles_list.values())
 
 
-class PreProcessing():
-
+class PreProcessing:
     """
-    Preprocesses the data. 
-
-    The preprocessing step stores in the folder "temp_dir/classification" 
-    all the classification generated from each tile of the departement. 
-
-    The structure is the following :
-    - thumbnails
-        |
-        |- tile_name
-        |   |- thumbnail
-        |   |- thumbnail
-        |- tile_name
-        |   |- thumbnail
-        |   |- thumbnail
-        |- tile_name
-        |   |- thumbnail
-        |   |- thumbnail
-        | ...
-
-    Remark : the preprocessing is always attached to a department. 
-
-    The main preprocessing steps are the following : 
-
-    - get the list of tiles that have not been proceeded
-    - generates the thumbnails from each tile, with a given thumbnail
-    size 
+    Resolves jp2 file paths for the next batch of unprocessed tiles.
+    Returns {tile_name: jp2_path} consumed by Detection.
     """
 
     def __init__(self, configuration, count, dpt):
-        """
-        initialization of the pre processing step
-
-        configuration is a yaml file
-        count is an integer, correspondig to the number of tiles to 
-        proceed in each batch. The larger the count, 
-        the heavier the data/thumbnails folder.
-        """
-        # Retrieve the directories for this part
         self.source_dir = configuration.get('source_images_dir')
-        self.temp_dir = configuration.get('temp_dir')
-        self.thumbnails_dir = os.path.join(self.temp_dir, "classification")
+        self.temp_dir   = configuration.get('temp_dir')
 
-        # Parameters for this part
-        self.patch_size = configuration.get('patch_size')
-        self.count = count
-
-        # Tiles list. The tiles that will be proceeded are the one that are flagged as false
-        # Tiles that are marked as 'False'
-        full_tiles_list = json.load(open(os.path.join(self.temp_dir, "tiles_list_{}.json".format(dpt))))
-
-        # filter the dictionnary to keep only the tiles for which the value is "False"
-        self.tiles_list = {k : v for k,v in full_tiles_list.items() if v == False}
-
-        # number of tiles to proceed (cannot be greated than the len of the tiles_list)
-        self.count = min(len(list(self.tiles_list.keys())), count) 
-
-
+        full_list = json.load(
+            open(os.path.join(self.temp_dir, 'tiles_list_{}.json'.format(dpt)))
+        )
+        pending           = {k: v for k, v in full_list.items() if not v}
+        self.tiles_batch  = list(pending.keys())[:min(len(pending), count)]
 
     def run(self):
-        """preprocess the number of tiles that have been flagged as
-        False """
+        """Returns {tile_name: jp2_path} for the current batch."""
+        if not self.tiles_batch:
+            return {}
 
-        # the tiles batch is simply a list taken from the complete tiles_list.
-        tiles_batch = list(self.tiles_list.keys())[:self.count]
+        tile_paths = {}
+        dnsSHP = glob.glob(self.source_dir + '/**/dalles.shp', recursive=True)
+        if not dnsSHP:
+            raise ValueError('dalles.shp not found in {}'.format(self.source_dir))
 
-        # debug only : when the process is not run in parallel.
-        #for tile in tqdm.tqdm(tiles_batch):
-        #    tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)  
+        batch_set = set(self.tiles_batch)
+        with collection(dnsSHP[0], 'r') as shp:
+            for rec in tqdm.tqdm(shp, desc='Resolving tile paths'):
+                name = rec['properties']['NOM'][2:-4]
+                if name not in batch_set:
+                    continue
+                dns   = rec['properties']['NOM'][2:]
+                paths = glob.glob(self.source_dir + '/**/' + dns, recursive=True)
+                if paths:
+                    tile_paths[name] = paths[0]
 
-        def f(tile) : # Local function to be put in the threadpoolexecutor
-            print('Processing tile {}...'.format(tile))
-            return tiles_processing.generate_thumbnails_from_tile(self.source_dir, self.thumbnails_dir, tile, self.patch_size)
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(f, tiles_batch)
-
-
+        print('Batch: {} tiles resolved.'.format(len(tile_paths)))
+        return tile_paths

@@ -1,82 +1,190 @@
-# DeepPVMapper: a deep learning-based algorithm for mapping rooftop PV systems from overhead images
+# DeepPVMapper
 
-Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of his PhD (2020–2024): *"Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations"*. The PhD manuscript is available [here](https://pastel.hal.science/tel-04909303).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-gabrielkasmi%2Fdeeppvmapper-blue?logo=docker)](https://hub.docker.com/r/gabrielkasmi/deeppvmapper)
+[![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
+[![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
+[![HF Space](https://img.shields.io/badge/🤗%20Space-Interactive%20demo-orange)](https://huggingface.co/spaces/gabrielkasmi/deeppvmapper)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19188878.svg)](https://doi.org/10.5281/zenodo.19188878)
 
+Large-scale rooftop PV detection pipeline for France. Classifies IGN aerial tiles with InceptionV3, segments positive patches with FCN/DeepLab, and extracts panel characteristics (surface, tilt, azimuth, installed capacity) via [pypvroof](https://pypi.org/project/pypvroof/).
 
-## Installation
+**[🗺️ Explore the map and results →](https://gabrielkasmi.github.io/deeppvmapper)**  
+**[🎮 Try the interactive demo →](https://huggingface.co/spaces/gabrielkasmi/deeppvmapper)**
 
-### Prerequisites
+Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of his PhD at Mines Paris-PSL (2020–2024).
 
-It is recommended to use hardware that allows for GPU acceleration (Metal, CUDA). All models were implemented and coded to run on a GPU with at least CUDA 10.2 installed. 8 to 12 GB of VRAM is advised to run the model in inference mode. The model was initially deployed on a server equipped with three GPUs, each with 12 GB of VRAM.
+---
 
-### Installation and Setup
+## Mapping data
 
-Clone the repository and create a Python environment from the `deeppvmapper.yml` file:
+Pre-computed detection results for French departments are available on Zenodo:
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19188878.svg)](https://doi.org/10.5281/zenodo.19188878)
 
-```python
-git clone https://github.com/gabrielkasmi/deeppvmapper.git
-cd deeppvmapper
+---
+
+## Quickstart (Docker)
+
+The easiest way to run the pipeline is via the pre-built Docker image:
+
+```bash
+docker pull gabrielkasmi/deeppvmapper:latest
+docker run --gpus all \
+  -v /your/data:/workspace \
+  gabrielkasmi/deeppvmapper:latest \
+  --dpt 06 --config /workspace/config_runpod.yml
 ```
 
-Then create a Python environment:
+---
 
-```python
-conda env create --file deeppvmapper.yml
-conda activate deeppvmapper
+## Installation (from source)
+
+GDAL must be installed system-wide first:
+
+```bash
+# Ubuntu/Debian
+apt-get install -y gdal-bin libgdal-dev python3-gdal libopenjp2-7
+
+pip install -r requirements.txt
 ```
 
-The `config.yml` file centralizes all the configuration parameters to run the algorithm. Empty fields should be filled by the user, while pre-filled fields can be left as is, provided the user uses the files and sources described in this README. The repository containing the files necessary to run the model can be accessed here: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814).
+GPU required. CUDA 11.8+, 8 GB VRAM minimum.
 
-### Model Weights Retrieval
+---
 
-Two models are required to run the algorithm: a classification model and a segmentation model. The model weights can be retrieved from the following repository: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814). The path to the model weights must be specified in the configuration file, under the `model_dir` field.
+## Data and model weights
 
-### Downloading Images and Topological Data
+Download model weights and runtime data from Zenodo:
 
-The classification and segmentation models were trained on IGN images. Therefore, it is recommended to use IGN images for mapping PV systems. The images can be retrieved from the IGN Geoportal. Similarly, BD TOPO data can be retrieved from the IGN Geoportal. The paths to the orthophotos and BD TOPO data must be specified in the `source_images_dir` and `source_topo_dir` fields. Finally, a file containing the boundaries of French municipalities is included in the repository associated with the source code. Its path must be specified in the `source_commune_dir` field.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7576814.svg)](https://doi.org/10.5281/zenodo.7576814)
 
-## Tutorials
+Model weights are also available on Hugging Face:
 
-### Overview
+[![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
 
-The following flowchart presents our approach for detecting and characterizing rooftop PV systems.
-<p align="center">
-<img src="https://github.com/gabrielkasmi/deeppvmapper/blob/main/figs/flowchart.png" width=700px>
-</p>
+The training dataset (BDAppV):
 
-The algorithm works in two stages: first, tiles from IGN are cut into small patches, and each patch is classified. Patches where a PV panel is detected are then segmented. The segmentation allows for extracting the polygon corresponding to the PV system. This polygon is then converted into a geolocated `.geojson` file.
+[![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
 
-From the polygon and third-party data, the characteristics of the PV systems (tilt, orientation, installed power, and surface area) are extracted. Various filters are applied, including a filter to keep only <b> installations of less than 36 kWc </b> and located on rooftops.
+Fill in the source paths in `config.yml` before running:
 
-The reader can refer to Chapter 2 of the thesis manuscript [1] or [2] for more details on the algorithm's characteristics.
+| config key | what goes there |
+|---|---|
+| `source_images_dir` | IGN JP2 tiles + `dalles.shp` index shapefile |
+| `source_topo_dir` | BDTOPO folder (BATIMENT.shp, ZONE_D_ACTIVITE_OU_D_INTERET.shp) |
+| `source_commune_dir` | folder containing `communes-20210101.shp` |
+| `model_dir` | folder containing `model_bdappv_cls.pth` and `model_bdappv_seg.pth` |
 
-### Replicating Experimental Results
+---
 
-For first-time users, it is recommended to follow the instructions in the `notebooks/hands-on.ipynb` notebook, which allows for configuring the configuration file, retrieving the necessary auxiliary data for inference, and running the model on a sample of the data.
+## Usage
 
-### Comparisons with the national registry of installations (RNI)
-
-It is possible to compare the registry generated by the model with the national installation registry using the `evaluate.py` script. The `notebook/visualization.ipynb` notebook also allows for visualizing the data generated from the `notebooks/hands-on.ipynb` notebook.
-
-
-## References 
-
-[1] Gabriel Kasmi. Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations. Chemical and Process Engineering. Université Paris sciences et lettres, 2024. English. ⟨NNT : 2024UPSLM027⟩. ⟨tel-04909303⟩
-
-[2] Kasmi, G., Dubus, L., Blanc, P., & Saint-Drenan, Y. M. (2022). Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping. arXiv preprint arXiv:2207.07466.
-
-## License and citation
-
-### License
-
-This software is provided under [GPL-3.0 license](https://github.com/gabrielkasmi/dsfrance/blob/main/LICENSE). 
-
-### Citation: 
-
-The preferred citation for referring to this work is 
-
+```bash
+python main.py --dpt 06
 ```
+
+`--count` sets tiles per classification batch (default 16 — reduce if OOM):
+
+```bash
+python main.py --dpt 06 --count 8
+```
+
+`--config` points to an alternative config file (useful for RunPod deployments):
+
+```bash
+python main.py --dpt 06 --config /workspace/config_runpod.yml
+```
+
+To process a subset of tiles (local testing), set `tiles_list` in `config.yml`:
+
+```yaml
+tiles_list:
+  - 01-2024-0850-6565-LA93-0M20-E080
+  - 01-2024-0850-6570-LA93-0M20-E080
+```
+
+Force a full rerun (wipe prior progress):
+
+```bash
+python main.py --dpt 06 --clean
+```
+
+---
+
+## Pipeline
+
+Four steps run sequentially inside `main.py`:
+
+| step | what happens |
+|---|---|
+| **Init** | Builds per-department auxiliary files (buildings, plants, communes) into `temp/`. Skipped if already present — safe to rerun after a crash. |
+| **Classification** | Tiles loaded fully in memory. InceptionV3 classifies 299×299 patches; positives saved as GeoTIFFs to `temp/segmentation/`. |
+| **Segmentation** | FCN/DeepLab segments each positive patch. LAMB93 polygons extracted, sorted by tile, merged into pseudo-arrays. |
+| **Aggregation** | pypvroof extracts tilt/azimuth/kWp per polygon. Building filter applied. Results written to `outputs_dir`. |
+
+**On success**: `temp/` is deleted automatically.  
+**On crash**: `temp/` is kept. Rerun the same command to resume from where it stopped.
+
+---
+
+## Outputs
+
+Written to `outputs_dir` (default: `data/`):
+
+| file | description |
+|---|---|
+| `arrays_{dpt}.geojson` | Detected PV polygons in WGS84 |
+| `characteristics_{dpt}.csv` | Per-installation registry: surface (m²), tilt (°), azimuth (°), kWp, city code, lat, lon |
+| `aggregated_characteristics_{dpt}.csv` | City-level aggregation: count, total kWp, avg surface, avg kWp |
+| `arrays_characteristics_{dpt}.geojson` | Polygons enriched with all characteristics |
+
+Only residential-scale installations (1.7–36.1 kWp) located on buildings are retained.
+
+---
+
+## Configuration reference
+
+| parameter | default | description |
+|---|---|---|
+| `temp_dir` | `temp` | Working directory. Deleted on success, kept on crash. |
+| `outputs_dir` | `data` | Final outputs directory. |
+| `cls_threshold` | 0.4 | Classification confidence threshold |
+| `cls_batch_size` | 512 | Patches per GPU batch (classification) |
+| `seg_threshold` | 0.46 | Segmentation binarization threshold |
+| `seg_batch_size` | 64 | Images per GPU batch (segmentation) |
+| `filter_building` | True | Discard detections not on a building |
+| `tilt_method` | `lut` | pypvroof tilt method (`lut` or `constant`) |
+| `azimuth_method` | `bounding-box` | pypvroof azimuth method |
+| `ic_method` | `clustered` | pypvroof installed-capacity regression type |
+| `tiles_list` | *(empty)* | Optional tile subset for partial runs |
+
+---
+
+## Contributing
+
+Contributions are welcome. Open an issue to discuss before submitting a large PR.
+
+**Performance**
+- *Async tile prefetch* — classification reads tiles sequentially from disk; overlapping I/O with GPU inference (threading + Queue) would cut wall time on I/O-bound setups
+- *Multi-GPU segmentation* — `num_gpu > 1` via DataParallel is wired in but untested at scale
+
+**Imagery and models**
+- *Modular image loader* — preprocessing is hardcoded to IGN JP2 tiles; a pluggable loader interface would allow other aerial sources (SPOT, Sentinel-2, USGS, etc.) without touching the rest of the pipeline
+- *Additional model weights* — the classification and segmentation architectures are standard (InceptionV3, FCN/DeepLab); weights trained on other geographies or datasets can be dropped in via `config.yml` as long as they match the input/output format
+
+**Characteristics extraction**
+- *pypvroof coverage beyond France* — tilt estimation relies on a LUT built from French irradiance data; extending the LUT or adding a regression-based fallback would make the pipeline usable in other countries
+- *pypvroof refactor* — the library has known technical debt; a cleaner API and better test coverage would benefit both this pipeline and standalone users
+
+**Building filter**
+- *Pluggable footprint sources* — the building filter is currently tied to BDTOPO; abstracting it behind a common interface would allow OpenStreetMap, Microsoft Building Footprints, or any polygon layer as a drop-in replacement
+
+---
+
+## Citation
+
+```bibtex
 @phdthesis{kasmi2024enhancing,
   title={Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations},
   author={Kasmi, Gabriel},
@@ -85,4 +193,8 @@ The preferred citation for referring to this work is
 }
 ```
 
-Like this work ? Do not hesitate to <a class="github-button" href="https://github.com/gabrielkasmi/deeppvmapper" data-icon="octicon-star" aria-label="Star gabrielkasmi/deeppvmapper on GitHub">star</a> us ! 
+---
+
+## License
+
+[MIT](LICENSE)
