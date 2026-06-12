@@ -163,22 +163,9 @@ Only residential-scale installations (1.7–36.1 kWp) located on buildings are r
 
 ## Contributing
 
-Contributions are welcome. Open an issue to discuss before submitting a large PR.
+Contributions are welcome — both **code** (performance, new imagery sources, models, building filters) and **registry corrections** via the [interactive map](https://gabrielkasmi.github.io/deeppvmapper/content/map.html), no coding required.
 
-**Performance**
-- *Async tile prefetch* — classification reads tiles sequentially from disk; overlapping I/O with GPU inference (threading + Queue) would cut wall time on I/O-bound setups
-- *Multi-GPU segmentation* — `num_gpu > 1` via DataParallel is wired in but untested at scale
-
-**Imagery and models**
-- *Modular image loader* — preprocessing is hardcoded to IGN JP2 tiles; a pluggable loader interface would allow other aerial sources (SPOT, Sentinel-2, USGS, etc.) without touching the rest of the pipeline
-- *Additional model weights* — the classification and segmentation architectures are standard (InceptionV3, FCN/DeepLab); weights trained on other geographies or datasets can be dropped in via `config.yml` as long as they match the input/output format
-
-**Characteristics extraction**
-- *pypvroof coverage beyond France* — tilt estimation relies on a LUT built from French irradiance data; extending the LUT or adding a regression-based fallback would make the pipeline usable in other countries
-- *pypvroof refactor* — the library has known technical debt; a cleaner API and better test coverage would benefit both this pipeline and standalone users
-
-**Building filter**
-- *Pluggable footprint sources* — the building filter is currently tied to BDTOPO; abstracting it behind a common interface would allow OpenStreetMap, Microsoft Building Footprints, or any polygon layer as a drop-in replacement
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution areas, setup instructions and workflow. Issues labelled [`good first issue`](https://github.com/gabrielkasmi/deeppvmapper/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are the best entry points.
 
 ---
 
