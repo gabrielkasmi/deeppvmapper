@@ -1,7 +1,6 @@
 # DeepPVMapper
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-gabrielkasmi%2Fdeeppvmapper-blue?logo=docker)](https://hub.docker.com/r/gabrielkasmi/deeppvmapper)
 [![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
 [![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
 [![HF Space](https://img.shields.io/badge/🤗%20Space-Interactive%20demo-orange)](https://huggingface.co/spaces/gabrielkasmi/deeppvmapper)
@@ -24,28 +23,15 @@ Pre-computed detection results for French departments are available on Zenodo:
 
 ---
 
-## Quickstart (Docker)
+## Installation
 
-The easiest way to run the pipeline is via the pre-built Docker image:
-
-```bash
-docker pull gabrielkasmi/deeppvmapper:latest
-docker run --gpus all \
-  -v /your/data:/workspace \
-  gabrielkasmi/deeppvmapper:latest \
-  --dpt 06 --config /workspace/config_runpod.yml
-```
-
----
-
-## Installation (from source)
-
-GDAL must be installed system-wide first:
+GDAL must be installed system-wide first, then via pip to match the running Python version:
 
 ```bash
 # Ubuntu/Debian
-apt-get install -y gdal-bin libgdal-dev python3-gdal libopenjp2-7
+apt-get install -y gdal-bin libgdal-dev libopenjp2-7
 
+pip install "GDAL==$(gdal-config --version)"
 pip install -r requirements.txt
 ```
 
@@ -166,6 +152,23 @@ Only residential-scale installations (1.7–36.1 kWp) located on buildings are r
 Contributions are welcome — both **code** (performance, new imagery sources, models, building filters) and **registry corrections** via the [interactive map](https://gabrielkasmi.github.io/deeppvmapper/content/map.html), no coding required.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution areas, setup instructions and workflow. Issues labelled [`good first issue`](https://github.com/gabrielkasmi/deeppvmapper/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are the best entry points.
+
+---
+
+## Known issues
+
+**GDAL Python bindings must match the system library exactly.** `pip install GDAL`
+fails to build (or segfaults later) if the version differs from the system `libgdal`.
+Always install with:
+
+```bash
+pip install gdal==$(gdal-config --version)
+```
+
+**JP2 tiles silently fail to open without OpenJPEG.** GDAL needs the OpenJPEG driver
+to read IGN JP2 tiles; without `libopenjp2-7`, `gdal.Open()` returns `None` (no
+exception) and the pipeline fails downstream. Make sure it is installed
+(`apt-get install libopenjp2-7`).
 
 ---
 

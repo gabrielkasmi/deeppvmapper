@@ -39,13 +39,13 @@ Open an issue to discuss before submitting a large PR. Areas where help is espec
 
 1. Check the [open issues](https://github.com/gabrielkasmi/deeppvmapper/issues) — issues labelled `good first issue` are the best entry points — or open one to discuss your idea before starting work, so we can align on scope.
 2. Fork the repo and create a branch for your change.
-3. Set up following the README: either the pre-built [Docker image](https://hub.docker.com/r/gabrielkasmi/deeppvmapper) (recommended), or from source (`apt-get install gdal-bin libgdal-dev python3-gdal libopenjp2-7` then `pip install -r requirements.txt`). Model weights and runtime data are on [Zenodo](https://doi.org/10.5281/zenodo.7576814). GPU required (CUDA 11.8+, 8 GB VRAM minimum).
+3. Set up following the README: `apt-get install gdal-bin libgdal-dev libopenjp2-7`, then `pip install "GDAL==$(gdal-config --version)" && pip install -r requirements.txt`. Model weights and runtime data are on [Zenodo](https://doi.org/10.5281/zenodo.7576814). GPU required (CUDA 11.8+, 8 GB VRAM minimum).
 4. For local testing without a full department, use `tiles_list` in `config.yml` to run on a handful of tiles (see README → Usage).
 5. Open a pull request with a clear description of what changed and why. Reference the related issue.
 
 ## Reporting bugs
 
-Open an issue with: what you ran (exact command + config), what you expected, what happened instead, and your environment (OS, GPU, CUDA version, Docker or source install).
+Open an issue with: what you ran (exact command + config), what you expected, what happened instead, and your environment (OS, GPU, CUDA version).
 
 ## Questions
 
