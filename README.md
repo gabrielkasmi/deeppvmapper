@@ -13,6 +13,8 @@ Large-scale rooftop PV detection pipeline for France. Classifies IGN aerial tile
 
 Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of his PhD at Mines Paris-PSL (2020–2024).
 
+![DeepPVMapper — detected rooftop PV installations](assets/map.webp)
+
 ---
 
 ## Mapping data
