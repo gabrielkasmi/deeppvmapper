@@ -49,7 +49,7 @@ Model weights are also available on Hugging Face:
 
 [![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
 
-The training dataset (BDAppV):
+The training dataset (BDAPPV):
 
 [![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
 

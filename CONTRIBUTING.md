@@ -31,6 +31,10 @@ Open an issue to discuss before submitting a large PR. Areas where help is espec
 - **pypvroof coverage beyond France** — tilt estimation relies on a LUT built from French irradiance data; extending the LUT or adding a regression-based fallback would make the pipeline usable in other countries.
 - **pypvroof refactor** — the library has known technical debt; a cleaner API and better test coverage would benefit both this pipeline and standalone users.
 
+### Coverage
+
+- **Overseas France (DOM-TOM)** — the pipeline assumes metropolitan France throughout (LAMB93 projection, department codes 01–95, metropolitan BDTOPO and commune shapefiles). Extending it to overseas departments (971–976) requires handling their local CRS (RGAF09, RGR92, etc.) and pointing to the right IGN/BDTOPO extracts. La Réunion is the suggested starting point.
+
 ### Building filter
 
 - **Pluggable footprint sources** — the building filter is currently tied to BDTOPO; abstracting it behind a common interface would allow OpenStreetMap, Microsoft Building Footprints, or any polygon layer as a drop-in replacement.
