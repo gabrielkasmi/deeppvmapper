@@ -17,11 +17,14 @@ This eliminates the thousands of disk writes/reads that dominated preprocessing 
 import os
 import json
 import time
+import shutil
+import multiprocessing
 import numpy as np
 import torch
 import tqdm
 import torchvision
-from concurrent.futures import ThreadPoolExecutor
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from torch.nn import functional as F
 
 try:
@@ -30,12 +33,32 @@ except ImportError:
     import gdal
 
 
-def _read_tile(jp2_path):
+def _init_decode_worker():
     """
-    Opens and fully decodes a jp2 tile into memory.
+    Runs once per worker process when the decode pool starts.
 
-    Runs in a background thread so the next tile can be read/decoded while
-    the GPU is busy classifying the current one (see Detection.run).
+    A single GDAL/OpenJPEG decode call only ever drives ~1.5-2 CPU cores for
+    this JP2 profile, regardless of how many cores are available or how
+    OPJ_NUM_THREADS / GDAL_NUM_THREADS are set (confirmed via mpstat: one
+    thread pegged at ~97-98%, a second one partially loaded, everything else
+    idle -- seen identically on a 48-core box and inside a 6-vCPU container).
+    So instead of one decode trying and failing to spread across all cores,
+    several decodes run concurrently as separate OS processes -- each capped
+    to 1 internal thread here so N processes don't oversubscribe the CPU quota
+    by each also trying to spawn their own internal thread pool.
+    """
+    os.environ['OPJ_NUM_THREADS']  = '1'
+    os.environ['GDAL_NUM_THREADS'] = '1'
+
+
+def _decode_tile_to_disk(jp2_path, out_path):
+    """
+    Decodes one JP2 tile and writes it back out as an uncompressed GeoTIFF.
+
+    Runs in a separate OS process (see _init_decode_worker for why). Returns
+    the cache file path rather than the decoded array: shipping a ~2GB array
+    back through process IPC (pickling) would eat a meaningful chunk of the
+    gain, whereas the path + small metadata is essentially free to pickle.
     """
     ds           = gdal.Open(jp2_path)
     geotransform = ds.GetGeoTransform()
@@ -45,7 +68,16 @@ def _read_tile(jp2_path):
     ds           = None
     if tile_arr.ndim == 2:                   # single-band edge case
         tile_arr = np.stack([tile_arr, tile_arr, tile_arr])
-    return tile_arr, geotransform, width, height
+
+    driver = gdal.GetDriverByName('GTiff')
+    out_ds = driver.Create(out_path, width, height, 3, gdal.GDT_Byte)
+    out_ds.SetGeoTransform(geotransform)
+    for b in range(3):
+        out_ds.GetRasterBand(b + 1).WriteArray(tile_arr[b])
+    out_ds.FlushCache()
+    out_ds = None
+
+    return out_path, geotransform, width, height
 
 
 def _prepare_batch(dataset, idx_batch):
@@ -87,13 +119,19 @@ class Detection:
     """In-memory tile classification."""
 
     def __init__(self, configuration):
-        self.temp_dir   = configuration.get('temp_dir')
-        self.model_dir  = configuration.get('model_dir')
-        self.device     = configuration.get('device')
-        self.batch_size = configuration.get('cls_batch_size')
-        self.threshold  = configuration.get('cls_threshold')
-        self.patch_size = configuration.get('patch_size')
-        self.model_name = configuration.get('cls_model')
+        self.temp_dir       = configuration.get('temp_dir')
+        self.model_dir      = configuration.get('model_dir')
+        self.device         = configuration.get('device')
+        self.batch_size     = configuration.get('cls_batch_size')
+        self.threshold      = configuration.get('cls_threshold')
+        self.patch_size     = configuration.get('patch_size')
+        self.model_name     = configuration.get('cls_model')
+        # Number of JP2 tiles decoded concurrently (separate processes, see
+        # _init_decode_worker). Size this to roughly match the CPU quota you
+        # actually have, not the core count of the underlying host -- on a
+        # 6 vCPU container where one decode drives ~1.5-2 cores, 3 concurrent
+        # decodes is the sweet spot, not 8-16.
+        self.decode_workers = configuration.get('decode_workers', 3)
 
     def initialization(self):
         if torch.cuda.is_available():
@@ -124,6 +162,13 @@ class Detection:
         seg_dir  = os.path.join(self.temp_dir, 'segmentation')
         os.makedirs(seg_dir, exist_ok=True)
 
+        # Rolling cache for decoded tiles, bounded to decode_workers files at a
+        # time (~2GB each) -- wiped at the start of every run, files removed
+        # as soon as they're consumed so disk usage never grows past the window.
+        cache_dir = os.path.join(self.temp_dir, 'tile_cache')
+        shutil.rmtree(cache_dir, ignore_errors=True)
+        os.makedirs(cache_dir, exist_ok=True)
+
         transform = torchvision.transforms.Normalize(
             mean=(0.485, 0.456, 0.406),
             std =(0.229, 0.224, 0.225),
@@ -134,26 +179,55 @@ class Detection:
 
         tile_names = list(tile_paths.keys())
         jp2_paths  = list(tile_paths.values())
+        n_tiles    = len(jp2_paths)
+        n_workers  = max(1, min(self.decode_workers, n_tiles)) if n_tiles else 1
 
-        # Prefetch: while the GPU classifies tile i, a background thread reads
-        # and decodes tile i+1, so the (slow) JP2 decode of N+1 overlaps with
-        # the classification of N instead of happening back-to-back.
-        with ThreadPoolExecutor(max_workers=1) as tile_executor, \
+        # Decode pool: up to n_workers tiles decoded concurrently in separate
+        # OS processes (see _init_decode_worker/_decode_tile_to_disk for why
+        # processes instead of one more thread). pending holds the lookahead
+        # window of in-flight decode futures, depth n_workers -- as soon as one
+        # is consumed, the next not-yet-submitted tile is queued behind it.
+        # mp_context='spawn' (not the Linux default 'fork'): self.initialization()
+        # has already loaded the model onto CUDA by this point, and forking a
+        # process with an initialized CUDA context is a known source of flaky
+        # crashes/hangs even when the child never touches CUDA itself. spawn
+        # re-imports cleanly instead of copying the parent's memory; the extra
+        # startup cost is one-time (workers are reused for the whole run).
+        with ProcessPoolExecutor(max_workers=n_workers, initializer=_init_decode_worker,
+                                  mp_context=multiprocessing.get_context('spawn')) as tile_pool, \
              ThreadPoolExecutor(max_workers=1) as batch_executor:
 
-            pending_tile = tile_executor.submit(_read_tile, jp2_paths[0]) if jp2_paths else None
+            pending  = deque()
+            next_idx = 0
+
+            def _submit_next():
+                nonlocal next_idx
+                if next_idx < n_tiles:
+                    cache_path = os.path.join(cache_dir, '{}.tif'.format(tile_names[next_idx]))
+                    pending.append(tile_pool.submit(_decode_tile_to_disk, jp2_paths[next_idx], cache_path))
+                    next_idx += 1
+
+            for _ in range(n_workers):
+                _submit_next()
 
             for i, tile_name in enumerate(tile_names):
                 print('Processing tile {}...'.format(tile_name))
 
-                # Time spent blocked here is decode time NOT hidden by prefetch
-                # (0 for tile 0, since there is no previous tile to overlap with).
+                # Time spent blocked here is decode time NOT hidden by the
+                # lookahead window (expect ~0 once the window is warmed up and
+                # the decode pool's throughput keeps pace with classification).
                 t0 = time.perf_counter()
-                tile_arr, geotransform, width, height = pending_tile.result()
+                cache_path, geotransform, width, height = pending.popleft().result()
                 decode_wait_s = time.perf_counter() - t0
 
-                if i + 1 < len(jp2_paths):
-                    pending_tile = tile_executor.submit(_read_tile, jp2_paths[i + 1])
+                _submit_next()
+
+                # Cached file is an uncompressed GeoTIFF -- this is a plain
+                # fread, not a JP2/wavelet decode.
+                ds       = gdal.Open(cache_path)
+                tile_arr = ds.ReadAsArray()
+                ds       = None
+                os.remove(cache_path)   # keep disk usage bounded to the window
 
                 patch_meta = _build_patch_meta(width, height, self.patch_size)
                 dataset    = InMemoryTileDataset(
@@ -213,9 +287,9 @@ class Detection:
                         model_outputs[tile_name].append(name)
 
                 classify_s = time.perf_counter() - t1
-                hidden = '' if i == 0 else (
-                    ' [fully hidden by prefetch]' if decode_wait_s < 1
-                    else ' [decode NOT fully hidden -> decode is the bottleneck]'
+                hidden = '' if i < n_workers else (
+                    ' [fully hidden by decode pool]' if decode_wait_s < 1
+                    else ' [decode NOT fully hidden -> still the bottleneck]'
                 )
                 print('  decode_wait={:.1f}s, classify={:.1f}s{}'.format(
                     decode_wait_s, classify_s, hidden
@@ -223,6 +297,7 @@ class Detection:
 
                 del tile_arr   # free memory before next tile
 
+        shutil.rmtree(cache_dir, ignore_errors=True)
         self._save_results(model_outputs)
         print('Classification complete.')
 

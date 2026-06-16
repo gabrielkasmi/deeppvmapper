@@ -139,6 +139,7 @@ Only residential-scale installations (1.7–36.1 kWp) located on buildings are r
 | `outputs_dir` | `data` | Final outputs directory. |
 | `cls_threshold` | 0.4 | Classification confidence threshold |
 | `cls_batch_size` | 512 | Patches per GPU batch (classification) |
+| `decode_workers` | 3 | Concurrent JP2 decode processes feeding the GPU — tune to your real CPU quota, not host core count |
 | `seg_threshold` | 0.46 | Segmentation binarization threshold |
 | `seg_batch_size` | 64 | Images per GPU batch (segmentation) |
 | `filter_building` | True | Discard detections not on a building |
