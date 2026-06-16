@@ -182,10 +182,11 @@ class Detection:
                     with torch.no_grad():
                         inputs  = inputs.to(device)
                         probs   = F.softmax(model(inputs), dim=1)[:, 1]
-                        pos_idx = torch.where(probs >= self.threshold)[0]
+                        # Single GPU->CPU sync for the whole batch, instead of one
+                        # sync per positive patch (see Detection.run docstring history).
+                        pos_idx = torch.where(probs >= self.threshold)[0].cpu().tolist()
 
                     for j in pos_idx:
-                        j        = int(j)
                         name     = patch_names[j]
                         orig_idx = indices[j]
                         xOffset, yOffset, xNN, yNN = patch_meta[orig_idx]
