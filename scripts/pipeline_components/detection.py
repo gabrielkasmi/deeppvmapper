@@ -16,6 +16,7 @@ This eliminates the thousands of disk writes/reads that dominated preprocessing 
 
 import os
 import json
+import time
 import numpy as np
 import torch
 import tqdm
@@ -145,7 +146,11 @@ class Detection:
             for i, tile_name in enumerate(tile_names):
                 print('Processing tile {}...'.format(tile_name))
 
+                # Time spent blocked here is decode time NOT hidden by prefetch
+                # (0 for tile 0, since there is no previous tile to overlap with).
+                t0 = time.perf_counter()
                 tile_arr, geotransform, width, height = pending_tile.result()
+                decode_wait_s = time.perf_counter() - t0
 
                 if i + 1 < len(jp2_paths):
                     pending_tile = tile_executor.submit(_read_tile, jp2_paths[i + 1])
@@ -171,6 +176,7 @@ class Detection:
                     if batch_idx_list else None
                 )
 
+                t1 = time.perf_counter()
                 for b, idx_batch in enumerate(tqdm.tqdm(batch_idx_list, desc=tile_name)):
                     inputs, patch_names, indices = pending_batch.result()
 
@@ -205,6 +211,15 @@ class Detection:
                             os.path.join(seg_dir, name),
                         )
                         model_outputs[tile_name].append(name)
+
+                classify_s = time.perf_counter() - t1
+                hidden = '' if i == 0 else (
+                    ' [fully hidden by prefetch]' if decode_wait_s < 1
+                    else ' [decode NOT fully hidden -> decode is the bottleneck]'
+                )
+                print('  decode_wait={:.1f}s, classify={:.1f}s{}'.format(
+                    decode_wait_s, classify_s, hidden
+                ))
 
                 del tile_arr   # free memory before next tile
 
