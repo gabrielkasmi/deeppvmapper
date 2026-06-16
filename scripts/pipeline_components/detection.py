@@ -20,13 +20,48 @@ import numpy as np
 import torch
 import tqdm
 import torchvision
+from concurrent.futures import ThreadPoolExecutor
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
 
 try:
     from osgeo import gdal
 except ImportError:
     import gdal
+
+
+def _read_tile(jp2_path):
+    """
+    Opens and fully decodes a jp2 tile into memory.
+
+    Runs in a background thread so the next tile can be read/decoded while
+    the GPU is busy classifying the current one (see Detection.run).
+    """
+    ds           = gdal.Open(jp2_path)
+    geotransform = ds.GetGeoTransform()
+    width        = ds.RasterXSize
+    height       = ds.RasterYSize
+    tile_arr     = ds.ReadAsArray()          # the expensive part: JP2 decode
+    ds           = None
+    if tile_arr.ndim == 2:                   # single-band edge case
+        tile_arr = np.stack([tile_arr, tile_arr, tile_arr])
+    return tile_arr, geotransform, width, height
+
+
+def _prepare_batch(dataset, idx_batch):
+    """
+    Builds one classification batch (stacked tensor + names + original indices).
+
+    Runs in a background thread so batch b+1's slicing/padding/normalize work
+    (pure CPU/numpy) overlaps with the GPU forward pass on batch b, instead of
+    happening strictly before it (see Detection.run).
+    """
+    images, names, indices = [], [], []
+    for idx in idx_batch:
+        image, name, orig_idx = dataset[idx]
+        images.append(image)
+        names.append(name)
+        indices.append(orig_idx)
+    return torch.stack(images), names, indices
 
 
 def _build_patch_meta(width, height, patch_size):
@@ -96,55 +131,81 @@ class Detection:
         model_outputs = {}
         print('Starting classification. {} tiles to process.'.format(len(tile_paths)))
 
-        for tile_name, jp2_path in tile_paths.items():
-            print('Processing tile {}...'.format(tile_name))
+        tile_names = list(tile_paths.keys())
+        jp2_paths  = list(tile_paths.values())
 
-            ds           = gdal.Open(jp2_path)
-            geotransform = ds.GetGeoTransform()
-            width        = ds.RasterXSize
-            height       = ds.RasterYSize
+        # Prefetch: while the GPU classifies tile i, a background thread reads
+        # and decodes tile i+1, so the (slow) JP2 decode of N+1 overlaps with
+        # the classification of N instead of happening back-to-back.
+        with ThreadPoolExecutor(max_workers=1) as tile_executor, \
+             ThreadPoolExecutor(max_workers=1) as batch_executor:
 
-            # Read entire tile in one shot
-            tile_arr = ds.ReadAsArray()          # (bands, H, W) uint8
-            ds       = None
-            if tile_arr.ndim == 2:               # single-band edge case
-                tile_arr = np.stack([tile_arr, tile_arr, tile_arr])
+            pending_tile = tile_executor.submit(_read_tile, jp2_paths[0]) if jp2_paths else None
 
-            patch_meta = _build_patch_meta(width, height, self.patch_size)
-            dataset    = InMemoryTileDataset(
-                tile_arr, patch_meta, self.patch_size, geotransform, transform=transform
-            )
-            loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=0)
+            for i, tile_name in enumerate(tile_names):
+                print('Processing tile {}...'.format(tile_name))
 
-            model_outputs[tile_name] = []
+                tile_arr, geotransform, width, height = pending_tile.result()
 
-            for inputs, names, indices in tqdm.tqdm(loader, desc=tile_name):
-                with torch.no_grad():
-                    inputs  = inputs.to(device)
-                    probs   = F.softmax(model(inputs), dim=1)[:, 1]
-                    pos_idx = torch.where(probs >= self.threshold)[0]
+                if i + 1 < len(jp2_paths):
+                    pending_tile = tile_executor.submit(_read_tile, jp2_paths[i + 1])
 
-                for i in pos_idx:
-                    name     = names[i]
-                    orig_idx = indices[i].item()
-                    xOffset, yOffset, xNN, yNN = patch_meta[orig_idx]
+                patch_meta = _build_patch_meta(width, height, self.patch_size)
+                dataset    = InMemoryTileDataset(
+                    tile_arr, patch_meta, self.patch_size, geotransform, transform=transform
+                )
 
-                    patch = tile_arr[:, yOffset:yOffset + self.patch_size,
-                                      xOffset:xOffset + self.patch_size].copy()
-                    # Pad if at tile boundary
-                    ph = self.patch_size - patch.shape[1]
-                    pw = self.patch_size - patch.shape[2]
-                    if ph > 0 or pw > 0:
-                        patch = np.pad(patch, [(0, 0), (0, ph), (0, pw)])
+                n_patches      = len(dataset)
+                batch_idx_list = [
+                    list(range(b, min(b + self.batch_size, n_patches)))
+                    for b in range(0, n_patches, self.batch_size)
+                ]
 
-                    save_geotiff(
-                        patch[0], patch[1], patch[2],
-                        xNN, yNN, self.patch_size, geotransform,
-                        os.path.join(seg_dir, name),
-                    )
-                    model_outputs[tile_name].append(name)
+                model_outputs[tile_name] = []
 
-            del tile_arr   # free memory before next tile
+                # Prefetch: while the GPU classifies batch b, a background thread
+                # slices/pads/normalizes batch b+1 from tile_arr, so CPU prep overlaps
+                # with GPU compute instead of happening strictly before it.
+                pending_batch = (
+                    batch_executor.submit(_prepare_batch, dataset, batch_idx_list[0])
+                    if batch_idx_list else None
+                )
+
+                for b, idx_batch in enumerate(tqdm.tqdm(batch_idx_list, desc=tile_name)):
+                    inputs, patch_names, indices = pending_batch.result()
+
+                    if b + 1 < len(batch_idx_list):
+                        pending_batch = batch_executor.submit(
+                            _prepare_batch, dataset, batch_idx_list[b + 1]
+                        )
+
+                    with torch.no_grad():
+                        inputs  = inputs.to(device)
+                        probs   = F.softmax(model(inputs), dim=1)[:, 1]
+                        pos_idx = torch.where(probs >= self.threshold)[0]
+
+                    for j in pos_idx:
+                        j        = int(j)
+                        name     = patch_names[j]
+                        orig_idx = indices[j]
+                        xOffset, yOffset, xNN, yNN = patch_meta[orig_idx]
+
+                        patch = tile_arr[:, yOffset:yOffset + self.patch_size,
+                                          xOffset:xOffset + self.patch_size].copy()
+                        # Pad if at tile boundary
+                        ph = self.patch_size - patch.shape[1]
+                        pw = self.patch_size - patch.shape[2]
+                        if ph > 0 or pw > 0:
+                            patch = np.pad(patch, [(0, 0), (0, ph), (0, pw)])
+
+                        save_geotiff(
+                            patch[0], patch[1], patch[2],
+                            xNN, yNN, self.patch_size, geotransform,
+                            os.path.join(seg_dir, name),
+                        )
+                        model_outputs[tile_name].append(name)
+
+                del tile_arr   # free memory before next tile
 
         self._save_results(model_outputs)
         print('Classification complete.')
