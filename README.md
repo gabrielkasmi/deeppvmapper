@@ -159,18 +159,44 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution areas, setup instruc
 
 ## Known issues
 
-**GDAL Python bindings must match the system library exactly.** `pip install GDAL`
-fails to build (or segfaults later) if the version differs from the system `libgdal`.
-Always install with:
+**GDAL is fragile to install, for two distinct reasons — and the fix below handles both.**
+
+1. The pip `GDAL` binding must match the system `libgdal` version exactly. `pip install GDAL` fails to build, or segfaults at import, if its version differs from the system library.
+2. On images that ship a pre-installed `python3-gdal` apt package (common on RunPod/cloud GPU images), that package bundles its own `osgeo/`, which takes priority over the pip-installed one in `sys.path` — and its `.so` is often broken, regardless of what pip installs.
+
+Run this in place of a plain `pip install`, e.g. right when deploying the pipeline, around the `pip install -r requirements.txt` step:
 
 ```bash
-pip install gdal==$(gdal-config --version)
-```
+#!/usr/bin/env bash
+set -e
 
-**JP2 tiles silently fail to open without OpenJPEG.** GDAL needs the OpenJPEG driver
-to read IGN JP2 tiles; without `libopenjp2-7`, `gdal.Open()` returns `None` (no
-exception) and the pipeline fails downstream. Make sure it is installed
-(`apt-get install libopenjp2-7`).
+# --- native GDAL lib (gdal-config must exist before pip can build the python binding) ---
+apt-get update
+apt-get install -y --no-install-recommends gdal-bin libgdal-dev
+
+# --- purge python3-gdal if present: this apt package ships its own osgeo/,
+#     which takes priority over the pip-installed one in sys.path, and its
+#     .so is often broken ---
+dpkg -l | grep -q python3-gdal && apt-get remove --purge -y python3-gdal || true
+rm -rf /usr/lib/python3/dist-packages/osgeo
+
+# --- python deps ---
+pip install -r requirements.txt
+
+# --- repin the pip GDAL binding to exactly match the native lib version
+#     (requirements.txt only pins GDAL>=3.0, so pip can grab a newer
+#     version than the one apt just installed -> ABI mismatch at import) ---
+GDAL_VERSION=$(gdal-config --version)
+pip install --no-cache-dir --force-reinstall "GDAL==${GDAL_VERSION}"
+
+# --- check ---
+python -c "
+import torch
+from osgeo import gdal
+print('torch', torch.__version__, '| cuda', torch.cuda.is_available())
+print('gdal', gdal.__version__, '| GTiff driver:', gdal.GetDriverByName('GTiff') is not None)
+"
+```
 
 ---
 
