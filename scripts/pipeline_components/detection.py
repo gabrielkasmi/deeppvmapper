@@ -132,6 +132,19 @@ class Detection:
         # 6 vCPU container where one decode drives ~1.5-2 cores, 3 concurrent
         # decodes is the sweet spot, not 8-16.
         self.decode_workers = configuration.get('decode_workers', 3)
+        # Gap (seconds) between the n_workers initial decode submissions.
+        # Without this, all n_workers start at t=0, finish together (same
+        # duration each), and -- because each consumed result is replaced
+        # immediately -- stay locked in step for the whole run: one big
+        # decode_wait every n_workers tiles instead of a small one on every
+        # tile (confirmed in production logs: wait=59.5s then 0.0s x3, repeat).
+        # Staggering the initial submissions ~evenly across one decode's
+        # duration breaks that lockstep so completions arrive one at a time.
+        # Default of 35s approximates decode_time / decode_workers from
+        # observed runs (~113s / 3) -- if logs still show big bursty waits,
+        # nudge this up towards that ratio; if tiles are slower to start for
+        # no benefit, nudge it down.
+        self.decode_stagger_s = configuration.get('decode_stagger_s', 35)
 
     def initialization(self):
         if torch.cuda.is_available():
@@ -207,8 +220,16 @@ class Detection:
                     pending.append(tile_pool.submit(_decode_tile_to_disk, jp2_paths[next_idx], cache_path))
                     next_idx += 1
 
-            for _ in range(n_workers):
+            # Stagger the initial fill instead of firing all n_workers at
+            # once (see decode_stagger_s docstring in __init__): each sleep
+            # offsets one worker's start time, so their completions land
+            # spread out instead of bunched -- the offset persists on every
+            # later cycle too, since each result is replaced immediately on
+            # consumption, inheriting the same relative timing.
+            for k in range(n_workers):
                 _submit_next()
+                if k < n_workers - 1:
+                    time.sleep(self.decode_stagger_s)
 
             for i, tile_name in enumerate(tile_names):
                 print('Processing tile {}...'.format(tile_name))
@@ -287,8 +308,12 @@ class Detection:
                         model_outputs[tile_name].append(name)
 
                 classify_s = time.perf_counter() - t1
+                # Threshold loosened from 1s to 5s now that submissions are
+                # staggered: a steady few-second wait per tile is the expected
+                # residual (decode_time/decode_workers is still slightly above
+                # classify_s), not a sign the stagger isn't working.
                 hidden = '' if i < n_workers else (
-                    ' [fully hidden by decode pool]' if decode_wait_s < 1
+                    ' [fully hidden by decode pool]' if decode_wait_s < 5
                     else ' [decode NOT fully hidden -> still the bottleneck]'
                 )
                 print('  decode_wait={:.1f}s, classify={:.1f}s{}'.format(
