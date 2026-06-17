@@ -10,10 +10,10 @@
 # outputs_dir       : final outputs (geojson + csv)
 
 source_images_dir :
-model_dir : 
+model_dir :
 
-source_commune_dir : 
-source_topo_dir : 
+source_commune_dir :
+source_topo_dir :
 
 temp_dir    : 'temp'
 outputs_dir : 'data'
@@ -30,12 +30,22 @@ device : 'cuda'
 # tiles_list : optional list of tile names to restrict processing (local testing)
 #   example:  tiles_list : ['0630_6845', '0630_6850']
 tiles_list:
-  - 01-2024-0850-6565-LA93-0M20-E080
 
 # -------- Classification --------
 cls_batch_size : 512
 cls_threshold  : 0.4
 cls_model      : 'model_bdappv_cls'
+
+# decode_workers : concurrent JP2 decode processes feeding the GPU.
+#   Tune to your real CPU quota, not the host's core count -- one decode
+#   only drives ~1.5-2 cores, so on a 6 vCPU box 3 is the sweet spot.
+decode_workers : 3
+
+# decode_stagger_s : seconds between the initial decode submissions, so
+#   workers don't start/finish in lockstep (causes one big wait every
+#   decode_workers tiles instead of a small one on every tile).
+#   Rule of thumb: decode_time / decode_workers.
+decode_stagger_s : 35
 
 # -------- Segmentation --------
 seg_batch_size : 64
