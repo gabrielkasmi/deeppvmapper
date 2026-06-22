@@ -24,6 +24,11 @@ export const HEAT_TOPSHARE = { france: 0.10, region: 0.35, dept: 1.0 };
 
 export const FRANCE_BOUNDS = [[41.2, -5.3], [51.2, 9.7]];
 
+// IGN's ORTHOIMAGERY.ORTHOPHOTOS tile matrix is PM_0_19 (native tiles stop at
+// z19 — IGN dropped PM_0_21 support in 2025). Past this, the WMTS has nothing
+// to serve and tiles go blank. Locked here as the hard ceiling for the map.
+export const MAX_ZOOM = 19;
+
 // ─── Annotation backend (Supabase) ────────────────────────────────────────────
 // Paste your project values (Dashboard → Settings → API). The anon key is
 // designed to be public — RLS does the protecting. Leave empty to run the

@@ -1,6 +1,6 @@
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
-import { FRANCE_BOUNDS } from './config.js';
+import { FRANCE_BOUNDS, MAX_ZOOM } from './config.js';
 import { S, logEvent } from './store.js';
 import { initLayers } from './layers.js';
 import { initNav, exitTarget } from './nav.js';
@@ -27,7 +27,7 @@ function initIntro() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    S.map = L.map('map', { zoomControl: true }).fitBounds(FRANCE_BOUNDS);
+    S.map = L.map('map', { zoomControl: true, maxZoom: MAX_ZOOM }).fitBounds(FRANCE_BOUNDS);
 
     logEvent('visit_map');
     initIntro();

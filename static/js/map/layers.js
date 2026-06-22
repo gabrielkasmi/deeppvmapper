@@ -9,7 +9,7 @@
 // a commune is locked). Nav polygons (nav.js) live below detections.
 
 import { WFS_URL, WFS_LAYER, WFS_GEOM, BANDS, HEAT_FADE, IGN_ORTHO, IGN_PLAN,
-         PLAN_OVERLAY_OPACITY, HEAT_TOPSHARE } from './config.js';
+         PLAN_OVERLAY_OPACITY, HEAT_TOPSHARE, MAX_ZOOM } from './config.js';
 import { S, show, hide, centroid, pointInGeoJSON, featureKey, logEvent } from './store.js';
 
 let polyLayer, heatLayer, maskLayer, boundaryLayer;
@@ -38,12 +38,12 @@ export function initLayers() {
     // Default base: ortho with the Plan IGN drawn semi-transparent on top
     // (roads + labels stay readable over the imagery). Alternative: ortho only.
     const hybrid = L.layerGroup([
-        L.tileLayer(IGN_ORTHO, { attribution: ignAttrib, maxZoom: 20, minZoom: 2 }),
-        L.tileLayer(IGN_PLAN,  { maxZoom: 19, minZoom: 2, opacity: PLAN_OVERLAY_OPACITY }),
+        L.tileLayer(IGN_ORTHO, { attribution: ignAttrib, maxZoom: MAX_ZOOM, minZoom: 2 }),
+        L.tileLayer(IGN_PLAN,  { maxZoom: MAX_ZOOM, minZoom: 2, opacity: PLAN_OVERLAY_OPACITY }),
     ]).addTo(map);
 
     const orthoOnly = L.tileLayer(IGN_ORTHO, {
-        attribution: ignAttrib, maxZoom: 20, minZoom: 2
+        attribution: ignAttrib, maxZoom: MAX_ZOOM, minZoom: 2
     });
 
     L.control.layers(
