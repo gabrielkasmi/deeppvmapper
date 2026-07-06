@@ -1,26 +1,29 @@
 # DeepPVMapper — deployment requirements
-# Install: pip install -r requirements.txt
-# For GDAL, install system package first: apt-get install gdal-bin libgdal-dev
-# then: pip install gdal==$(gdal-config --version)
+# Install order matters:
+#   1. apt-get update && apt-get install -y gdal-bin libgdal-dev
+#   2. pip install "numpy<2"
+#   3. pip install gdal==$(gdal-config --version)
+#   4. pip install -r requirements.txt
+
+# Pin numpy first — GDAL system package requires numpy<2
+numpy>=1.22,<2
 
 torch>=1.12
 torchvision>=0.13
 
 # Geospatial
-GDAL>=3.0
 fiona>=1.8
 shapely>=1.8
 pyproj>=3.0
-rasterio>=1.3
+rasterio>=1.3,<1.4
 geojson>=2.5
 
 # Data
-numpy>=1.22
 pandas>=1.3
 scikit-learn>=1.0
 joblib>=1.1
-opencv-python-headless>=4.5
-scipy>=1.7
+opencv-python-headless>=4.5,<4.10
+scipy>=1.7,<1.14
 
 # Characteristics extraction
 pypvroof>=0.1.1
