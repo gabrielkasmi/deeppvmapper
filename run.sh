@@ -12,17 +12,83 @@ IMAGES_BASE="/workspace/images"
 TOPO_BASE="/workspace/topo"
 LOG_FILE="/workspace/deeppvmapper/pipeline_log.txt"
 
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+TILES_JSON="${SCRIPT_DIR}/tiles_list.json"
+
+USE_TILES=0
+
+# -------- Arguments --------
+for arg in "$@"; do
+    case "$arg" in
+        --tiles)
+            USE_TILES=1
+            ;;
+        *)
+            echo "Argument inconnu: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$USE_TILES" -eq 1 ] && [ ! -f "$TILES_JSON" ]; then
+    echo "ERREUR: --tiles demande mais ${TILES_JSON} introuvable." >&2
+    exit 1
+fi
+
 PREFETCH_IMG_PID=""
 PREFETCH_TOPO_PID=""
 
 echo "Pipeline demarre le $(date)" > $LOG_FILE
 
 # -------- Fonctions --------
+update_tiles_list() {
+    local dept=$1
+    local key="D${dept}"
+
+    python3 - "$CONFIG_FILE" "$TILES_JSON" "$key" <<'PYEOF'
+import sys, json, re
+
+config_file, tiles_json, key = sys.argv[1], sys.argv[2], sys.argv[3]
+
+with open(tiles_json) as f:
+    data = json.load(f)
+
+if key not in data:
+    print(f"[TILES] ATTENTION: cle {key} absente de {tiles_json}, tiles_list laisse vide.", file=sys.stderr)
+    tiles = []
+else:
+    tiles = data[key]
+
+lines = ["tiles_list:"]
+for t in tiles:
+    lines.append(f'  - "{t}"')
+new_block = "\n".join(lines)
+
+with open(config_file) as f:
+    content = f.read()
+
+pattern = re.compile(r"^tiles_list:.*?(?=^\S|\Z)", re.DOTALL | re.MULTILINE)
+if pattern.search(content):
+    content = pattern.sub(new_block + "\n", content, count=1)
+else:
+    content = content.rstrip("\n") + "\n\n" + new_block + "\n"
+
+with open(config_file, "w") as f:
+    f.write(content)
+
+print(f"[TILES] {len(tiles)} tuiles injectees pour {key}.")
+PYEOF
+}
+
 update_config() {
     local dept=$1
     local year=$2
     sed -i "s|source_images_dir : '.*'|source_images_dir : '../images/D${dept}_${year}'|" $CONFIG_FILE
     sed -i "s|source_topo_dir : '.*'|source_topo_dir : '../topo/D${dept}_${TOPO_YEAR}'|" $CONFIG_FILE
+
+    if [ "$USE_TILES" -eq 1 ]; then
+        update_tiles_list "$dept"
+    fi
 }
 
 download_next() {
