@@ -15,13 +15,14 @@
 // Requires leaflet-geoman (drawing) and @supabase/supabase-js (submission);
 // both optional — the UI degrades to local-only/disabled if missing.
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, ANNOT_MAX_SESSION, ANNOT_MIN_INTERVAL_MS } from './config.js';
-import { S, $, show, hide, fmtInt, featureKey } from './store.js';
+import { ANNOT_MAX_SESSION, ANNOT_MIN_INTERVAL_MS } from './config.js';
+import { S, $, show, hide, fmtInt, featureKey, getSupabase } from './store.js';
 import { rerenderDetections } from './layers.js';
 import { suspendNav, resumeNav } from './nav.js';
 
 let sb = null;
-let totalCount = null;          // lifetime counter from annotation_count()
+let totalCount = null;          // lifetime counter from annotation_stats()
+let lastContribAt = null;       // ISO timestamp of the last submission, from the same call
 let sessionCount = 0;
 let lastSubmitAt = 0;
 let pending = null;             // {action, feature?, layer?, geometry?}
@@ -32,8 +33,7 @@ const ADDED_STYLE = { color: '#34d399', weight: 2, dashArray: '5 4', fillColor: 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 export function initAnnotate() {
-    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
-        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = getSupabase();
 
     addedLayer = L.geoJSON(null, { style: ADDED_STYLE }).addTo(S.map);
 
@@ -41,6 +41,7 @@ export function initAnnotate() {
     $('annot-submit').addEventListener('click', submitForm);
     $('annot-cancel').addEventListener('click', cancelForm);
     $('annot-cancel-edit').addEventListener('click', cancelDrawing);
+    $('limit-reload').addEventListener('click', () => location.reload());
 
     // Called from the detection popup buttons (inline onclick)
     window.annotDelete = startDelete;
@@ -48,14 +49,17 @@ export function initAnnotate() {
 
     renderCounter();
     if (sb) {
-        sb.rpc('annotation_count')
-          .then(({ data, error }) => { if (!error) { totalCount = data; renderCounter(); } });
+        sb.rpc('annotation_stats')
+          .then(({ data, error }) => {
+              if (!error && data) { totalCount = data.count; lastContribAt = data.last_at; renderCounter(); }
+          });
     }
 }
 
 // ─── Delete (false positive) ──────────────────────────────────────────────────
 
 function startDelete() {
+    if (sessionCount >= ANNOT_MAX_SESSION) { showLimitReached(); return; }
     const ctx = S.lastClickedDetection;
     if (!ctx) return;
     S.map.closePopup();
@@ -67,6 +71,7 @@ function startDelete() {
 // ─── Modify (redraw the outline) ──────────────────────────────────────────────
 
 function startModify() {
+    if (sessionCount >= ANNOT_MAX_SESSION) { showLimitReached(); return; }
     const ctx = S.lastClickedDetection;
     if (!ctx) return;
     S.map.closePopup();
@@ -83,6 +88,7 @@ function startModify() {
 // ─── Add (draw a missed installation) ─────────────────────────────────────────
 
 function startAdd() {
+    if (sessionCount >= ANNOT_MAX_SESSION) { showLimitReached(); return; }
     if (!S.map.pm) { toast('Drawing unavailable (geoman not loaded)'); return; }
     if (S.drawing) return;
     pending = { action: 'add' };
@@ -133,7 +139,7 @@ function openForm(p, title, note) {
     $('annot-form-note').textContent = note;
     $('annot-comment').value = '';
     $('annot-surface').value = p.feature?.properties?.surface ?? '';
-    $('annot-kwp').value = p.feature?.properties?.kwp_approx ?? '';
+    $('annot-kwp').value = p.feature?.properties?.kwp ?? '';
     show('annot-form');
 }
 
@@ -153,7 +159,7 @@ function cancelForm() {
 async function submitForm() {
     if (!pending) return;
     const now = Date.now();
-    if (sessionCount >= ANNOT_MAX_SESSION) { toast('Session submission limit reached.'); return; }
+    if (sessionCount >= ANNOT_MAX_SESSION) { closeForm(); showLimitReached(); return; }
     if (now - lastSubmitAt < ANNOT_MIN_INTERVAL_MS) { toast('Easy — one submission every few seconds.'); return; }
 
     const { action, feature, geometry } = pending;
@@ -180,6 +186,7 @@ async function submitForm() {
             return;
         }
         if (totalCount != null) totalCount++;
+        lastContribAt = new Date().toISOString();
     }
 
     applyLocally(record, feature, geometry);
@@ -187,6 +194,8 @@ async function submitForm() {
     sessionCount++;
     renderCounter();
     closeForm();
+
+    if (sessionCount >= ANNOT_MAX_SESSION) { showLimitReached(); return; }
     toast(sb ? 'Thanks — submitted for review.' : 'Applied locally (backend not configured).');
 }
 
@@ -204,14 +213,27 @@ function applyLocally(record, feature, geometry) {
     }
 }
 
-// ─── Counter + toast ──────────────────────────────────────────────────────────
+// ─── Counter + toast + session limit ──────────────────────────────────────────
 
 function renderCounter() {
     const el = $('annot-counter');
-    const parts = [`✎ ${fmtInt(sessionCount)} this session`];
-    if (totalCount != null) parts.push(`${fmtInt(totalCount)} total`);
+    if (totalCount == null) { el.style.display = 'none'; return; }
+    const parts = [`${fmtInt(totalCount)} contributions`];
+    if (lastContribAt) parts.push(`last: ${relativeDays(lastContribAt)}`);
     el.textContent = parts.join(' · ');
     el.style.display = 'block';
+}
+
+function relativeDays(iso) {
+    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
+}
+
+function showLimitReached() {
+    $('annot-add-btn').disabled = true;
+    $('limit-overlay').style.display = 'flex';
 }
 
 let toastT;

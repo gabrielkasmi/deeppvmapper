@@ -46,6 +46,21 @@ as $$ select count(*) from public.annotations $$;
 
 grant execute on function public.annotation_count() to anon;
 
+-- Counter + last contribution timestamp in one round trip (front-end footer).
+create or replace function public.annotation_stats()
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+    select jsonb_build_object(
+        'count',   (select count(*) from public.annotations),
+        'last_at', (select max(created_at) from public.annotations)
+    )
+$$;
+
+grant execute on function public.annotation_stats() to anon;
+
 -- Convenience view for your moderation sessions (service role / dashboard only).
 create view public.annotations_pending as
     select id, created_at, action, target_id, comment, geometry, original

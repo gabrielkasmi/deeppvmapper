@@ -83,7 +83,7 @@ def load_local(path):
                 continue
             xs.append(x)
             ys.append(y)
-            kwps.append(float(prop(feat['properties'], 'kwp_approx', 'kWp_approx')))
+            kwps.append(float(prop(feat['properties'], 'kwp', 'kWp', 'kwp_approx', 'kWp_approx')))
     return np.array(xs), np.array(ys), np.array(kwps), crs
 
 
@@ -107,7 +107,7 @@ def load_wfs():
                 continue
             xs.append(x)
             ys.append(y)
-            kwps.append(float(prop(feat['properties'], 'kwp_approx', 'kWp_approx')))
+            kwps.append(float(prop(feat['properties'], 'kwp', 'kWp', 'kwp_approx', 'kWp_approx')))
         print(f'  WFS page startIndex={start}: {len(feats)} features '
               f'({len(xs)} total)', file=sys.stderr)
         if len(feats) < WFS_PAGE:

@@ -8,8 +8,8 @@
 // no tooltips, free zooming down to the detection polygons. Exit by clicking
 // anywhere outside the zone (or closing the stats card).
 
-import { GEO_BASE, STATS_BASE, FRANCE_BOUNDS, BANDS } from './config.js';
-import { S, $, fmtInt, pointInGeoJSON, logEvent } from './store.js';
+import { GEO_BASE, STATS_BASE, BANDS } from './config.js';
+import { S, fmtInt, pointInGeoJSON, logEvent } from './store.js';
 import { setBoundary, refreshHeat, setActiveCommune } from './layers.js';
 import { showZoneStats, hideStatsCard } from './stats.js';
 
@@ -85,7 +85,6 @@ export async function refreshZone(force = false) {
         S.path = [];
         setNavFeatures(S.regionsGeo.features, 'regions');
         highlight(region);                       // cyan outline on the hovered région
-        renderBreadcrumb();
         if (force) refreshHeat();
         return;
     }
@@ -97,7 +96,6 @@ export async function refreshZone(force = false) {
         S.path = region ? [pathEntry('region', region)] : [];
         setNavFeatures(S.deptsGeo.features, 'depts');
         highlight(dept);                         // cyan outline on the hovered dept
-        renderBreadcrumb();
         if (force) refreshHeat();
         return;
     }
@@ -113,7 +111,6 @@ export async function refreshZone(force = false) {
     S.path = [pathEntry('region', regionOf(dept)), pathEntry('dept', dept)];
     setNavFeatures(fc.features, `communes-${dept.properties.code}`);
     highlight(findContaining(fc.features, c.lng, c.lat) || dept);   // hovered commune
-    renderBreadcrumb();
     if (force) refreshHeat();
 }
 
@@ -136,7 +133,6 @@ export async function enterTarget(feature) {
     setBoundary({ type: 'FeatureCollection', features: [feature] });
     setActiveCommune(level === 'commune' ? feature : null);
     refreshHeat();
-    renderBreadcrumb();
     showZoneStats(level, feature.properties.code, feature.properties.nom, feature);
 
     const bounds = L.geoJSON(feature).getBounds();
@@ -262,37 +258,6 @@ export function resumeNav() {
     if (S.mode === 'target') return;
     navKey = null;
     refreshZone(true);
-}
-
-// ─── Breadcrumb ───────────────────────────────────────────────────────────────
-
-function renderBreadcrumb() {
-    const el = $('breadcrumb');
-    const locked = S.mode === 'target';
-    const parts = [`<span class="bc-item" data-idx="-1">France</span>`];
-    S.path.forEach((p, i) => {
-        const last = i === S.path.length - 1;
-        parts.push('<span class="bc-sep">›</span>');
-        parts.push(last && locked
-            ? `<span class="bc-item bc-current">${p.nom}</span>`
-            : `<span class="bc-item" data-idx="${i}">${p.nom}</span>`);
-    });
-    if (locked) parts.push('<span class="bc-sep" style="opacity:.6">●</span>');
-    el.innerHTML = parts.join('');
-    el.style.display = 'flex';
-
-    el.querySelectorAll('.bc-item[data-idx]').forEach(item => {
-        item.addEventListener('click', () => {
-            const idx = parseInt(item.dataset.idx, 10);
-            if (idx === -1) {
-                exitTarget();
-                S.map.flyToBounds(FRANCE_BOUNDS, { duration: 1.0 });
-                return;
-            }
-            const p = S.path[idx];
-            if (p?.feature) enterTarget(p.feature);
-        });
-    });
 }
 
 // ─── Commune geometry loading / prefetch ─────────────────────────────────────

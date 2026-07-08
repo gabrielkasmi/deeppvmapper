@@ -3,8 +3,9 @@
 // showZoneStats() — exact baked KPIs + distributions from a WFS sample.
 // Thresholds: n = 0 → explicit "no detections"; n < MIN_STATS_N → KPIs only.
 
-import { WFS_URL, WFS_LAYER, WFS_GEOM, STATS_SAMPLE, MIN_STATS_N } from './config.js';
-import { S, $, show, hide, fmtInt, centroid, filteredSample, logEvent } from './store.js';
+import { STATS_SAMPLE, MIN_STATS_N } from './config.js';
+import { S, $, show, hide, fmtInt, centroid, filteredSample, logEvent,
+         fetchDetectionsBBox, fetchDetectionsInZone } from './store.js';
 
 let chartKwp = null, chartSurface = null;
 let fetchSeq = 0;   // guards against out-of-order WFS responses
@@ -20,6 +21,9 @@ export function showZoneStats(level, code, nom, feature) {
     openCard(nom);
     S.areaLabel = nom;
     S.sampleFeatures = [];
+
+    // Region-wide zones are too large for a single exhaustive fetch — no export.
+    if (level === 'region') hide('sc-download');
 
     if (!n) {
         $('sc-kpis').innerHTML = level === 'commune'
@@ -88,23 +92,16 @@ function renderKpis(n, totalKwp) {
 
 async function fetchSample(minLon, minLat, maxLon, maxLat, onDone) {
     const seq = ++fetchSeq;
-    const params = new URLSearchParams({
-        SERVICE: 'WFS', VERSION: '2.0.0', request: 'GetFeature',
-        TYPENAMES: WFS_LAYER, COUNT: STATS_SAMPLE, outputFormat: 'application/json',
-        CQL_FILTER: `BBOX(${WFS_GEOM},${minLon.toFixed(5)},${minLat.toFixed(5)},${maxLon.toFixed(5)},${maxLat.toFixed(5)},'EPSG:4326')`
-    });
     try {
-        const resp = await fetch(`${WFS_URL}?${params}`);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
+        const features = await fetchDetectionsBBox(minLon, minLat, maxLon, maxLat, STATS_SAMPLE);
         if (seq !== fetchSeq) return;   // a newer request superseded this one
-        S.sampleFeatures = data.features || [];
+        S.sampleFeatures = features;
         onDone(S.sampleFeatures);
     } catch (e) {
         if (seq !== fetchSeq) return;
-        console.error('WFS stats error:', e);
-        logEvent('wfs_error', `stats: ${e.message}`);
-        setNote('<span style="color:#fc8181">Distributions unavailable (WFS service error).</span>');
+        console.error('Detections stats error:', e);
+        logEvent('detections_error', `stats: ${e.message || e}`);
+        setNote('<span style="color:#fc8181">Distributions unavailable (data service error).</span>');
         hide('sc-charts');
     }
 }
@@ -120,7 +117,7 @@ function renderCharts(features) {
     destroyCharts();
     show('sc-charts');
 
-    const kwps = features.map(f => parseFloat(f.properties.kwp_approx) || 0).filter(v => v > 0);
+    const kwps = features.map(f => parseFloat(f.properties.kwp) || 0).filter(v => v > 0);
 
     const KWP_BINS   = [0, 3, 6, 10, 20, 50, Infinity];
     const KWP_LABELS = ['0–3', '3–6', '6–10', '10–20', '20–50', '>50'];
@@ -163,33 +160,77 @@ function renderCharts(features) {
     });
 }
 
-// ─── CSV export (current zone sample) ─────────────────────────────────────────
+// ─── CSV export (exhaustive — all systems in the zone, not the chart sample) ──
 
-export function downloadAreaData() {
-    const features = filteredSample();
-    if (!features.length) return;
+export async function downloadAreaData() {
+    const zoneFeature = S.boundaryGeoJSON?.features?.[0];
+    if (!zoneFeature) return;
 
-    const header = 'lat,lng,surface_m2,kwp_approx,yield_kwh,detection_year';
-    const rows = features.map(f => {
-        const c = centroid(f.geometry);
-        const p = f.properties;
-        return [
-            c ? c[0].toFixed(6) : '',
-            c ? c[1].toFixed(6) : '',
-            p.surface     != null ? parseFloat(p.surface).toFixed(2)    : '',
-            p.kwp_approx  != null ? parseFloat(p.kwp_approx).toFixed(3) : '',
-            p.yield_kwh   != null ? Math.round(p.yield_kwh)             : '',
-            p.detection_year || ''
-        ].join(',');
-    });
+    const btn = $('sc-download');
+    const label = $('sc-download-label');
+    if (btn.disabled) return;   // already running
+    btn.disabled = true;
 
-    logEvent('download_csv', `${S.areaLabel} (${features.length} systems)`);
+    const flash = (msg, delay) => {
+        label.textContent = msg;
+        setTimeout(() => { label.textContent = 'Download CSV'; }, delay);
+    };
 
-    const csv  = [header, ...rows].join('\n');
-    const slug = S.areaLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    try {
+        label.textContent = 'Fetching…';   // no measurable progress on a single RPC call
+        const features = await fetchDetectionsInZone(zoneFeature);
+        if (!features.length) { flash('No data', 1500); return; }
+
+        const header = 'lat,lng,surface_m2,kwp,detection_year';
+        const rows = features.map(f => {
+            const c = centroid(f.geometry);
+            const p = f.properties;
+            return [
+                c ? c[0].toFixed(6) : '',
+                c ? c[1].toFixed(6) : '',
+                p.surface != null ? parseFloat(p.surface).toFixed(2) : '',
+                p.kwp     != null ? parseFloat(p.kwp).toFixed(3)     : '',
+                p.year || ''
+            ].join(',');
+        });
+
+        logEvent('download_csv', `${S.areaLabel} (${features.length} systems)`);
+
+        const csv  = [header, ...rows].join('\n');
+        const slug = S.areaLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+        await triggerDownload(csv, slug || 'area', pct => {
+            label.textContent = `Compressing… ${Math.round(pct)}%`;
+        });
+        label.textContent = 'Download CSV';
+    } catch (e) {
+        console.error('CSV export error:', e);
+        logEvent('detections_error', `csv_export: ${e.message || e}`);
+        flash('Error — retry', 2000);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+/** Always zips — JSZip's onUpdate gives real compression progress, unlike the fetch step. */
+async function triggerDownload(csv, slug, onProgress) {
+    if (!window.JSZip) {   // graceful fallback if the CDN script failed to load
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = `deeppvmapper_${slug}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        return;
+    }
+    const zip = new window.JSZip();
+    zip.file(`deeppvmapper_${slug}.csv`, csv);
+    const blob = await zip.generateAsync(
+        { type: 'blob', compression: 'DEFLATE' },
+        meta => onProgress?.(meta.percent)
+    );
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = `deeppvmapper_${slug || 'area'}.csv`;
+    a.href = URL.createObjectURL(blob);
+    a.download = `deeppvmapper_${slug}.zip`;
     a.click();
     URL.revokeObjectURL(a.href);
 }

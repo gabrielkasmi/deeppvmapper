@@ -1,8 +1,11 @@
 // ─── Shared configuration ─────────────────────────────────────────────────────
 
-export const WFS_URL   = 'https://data.geopf.fr/sandbox/wfs';
-export const WFS_LAYER = 'SANDBOX.france_detections_wgs84_geojson_09_06_2026_wfs:france_detections_wgs84';
-export const WFS_GEOM  = 'wkb_geometry';
+// Detection polygons: self-hosted PostGIS (Supabase), queried through a single
+// RPC that mirrors the old WFS BBOX GetFeature (see get_detections_bbox in the DB).
+export const DETECTIONS_RPC = 'get_detections_bbox';
+// Exact, uncapped fetch for a zone polygon — CSV export only (see get_detections_in_zone).
+export const ZONE_RPC = 'get_detections_in_zone';
+export const ZONE_FETCH_MAX = 300000;
 
 export const GEO_BASE   = '../static/data/geo';
 export const STATS_BASE = '../static/data/stats';
@@ -36,7 +39,7 @@ export const MAX_ZOOM = 19;
 export const SUPABASE_URL      = 'https://nvtjkzxoothrilrnlkym.supabase.co';
 export const SUPABASE_ANON_KEY = 'sb_publishable_9CSocTyHTZkVsZAPXDQwIw_Eo0CsBAM';   // Dashboard → Settings → API Keys → "anon public"
 
-export const ANNOT_MAX_SESSION = 30;    // submissions per session
+export const ANNOT_MAX_SESSION = 50;    // submissions per session
 export const ANNOT_MIN_INTERVAL_MS = 2000;
 
 export const IGN_ORTHO = 'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0' +

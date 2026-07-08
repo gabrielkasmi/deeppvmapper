@@ -8,9 +8,9 @@
 // Detection polygons are fetched from BANDS.commune up (commune-anchored when
 // a commune is locked). Nav polygons (nav.js) live below detections.
 
-import { WFS_URL, WFS_LAYER, WFS_GEOM, BANDS, HEAT_FADE, IGN_ORTHO, IGN_PLAN,
+import { BANDS, HEAT_FADE, IGN_ORTHO, IGN_PLAN,
          PLAN_OVERLAY_OPACITY, HEAT_TOPSHARE, MAX_ZOOM } from './config.js';
-import { S, show, hide, centroid, pointInGeoJSON, featureKey, logEvent } from './store.js';
+import { S, show, hide, centroid, pointInGeoJSON, featureKey, logEvent, fetchDetectionsBBox } from './store.js';
 
 let polyLayer, heatLayer, maskLayer, boundaryLayer;
 let wfsDebounce, wfsAbort = null;
@@ -223,21 +223,14 @@ export async function setActiveCommune(feature) {
     show('wfs-spinner');
 
     const b = L.geoJSON(feature).getBounds();
-    const bbox = `${b.getWest().toFixed(5)},${b.getSouth().toFixed(5)},${b.getEast().toFixed(5)},${b.getNorth().toFixed(5)}`;
     try {
-        const params = new URLSearchParams({
-            SERVICE: 'WFS', VERSION: '2.0.0', request: 'GetFeature',
-            TYPENAMES: WFS_LAYER, COUNT: COMMUNE_COUNT,
-            outputFormat: 'application/json',
-            CQL_FILTER: `BBOX(${WFS_GEOM},${bbox},'EPSG:4326')`
-        });
-        const resp = await fetch(`${WFS_URL}?${params}`, { signal: abort.signal });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
+        const features = await fetchDetectionsBBox(
+            b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), COMMUNE_COUNT, abort.signal
+        );
         if (abort.signal.aborted || communeCode !== code) return;
 
         const zone = { features: [feature] };
-        const inCommune = (data.features || []).filter(f => {
+        const inCommune = features.filter(f => {
             const c = centroid(f.geometry);
             return c && pointInGeoJSON(c[1], c[0], zone);
         });
@@ -246,9 +239,9 @@ export async function setActiveCommune(feature) {
         const z = S.map.getZoom();
         if (z >= BANDS.commune && z < HEAT_FADE) renderLiveHeat(applySessionEdits(inCommune));
     } catch (e) {
-        if (e.name !== 'AbortError') {
-            console.error('WFS commune fetch:', e);
-            logEvent('wfs_error', `commune: ${e.message}`);
+        if (!abort.signal.aborted) {
+            console.error('Detections commune fetch:', e);
+            logEvent('detections_error', `commune: ${e.message || e}`);
             if (communeCode === code) communeCode = null;   // allow retry
         }
     } finally {
@@ -256,7 +249,7 @@ export async function setActiveCommune(feature) {
     }
 }
 
-// ─── WFS viewport fetch (detection polygons + live heat) ─────────────────────
+// ─── Viewport fetch (detection polygons + live heat) ──────────────────────────
 
 function scheduleWfs() {
     if (wfsDebounce) clearTimeout(wfsDebounce);
@@ -274,24 +267,20 @@ async function fetchViewport() {
 
     const b = S.map.getBounds();
     const count = z >= BANDS.detail ? 2000 : 1000;
-    const params = new URLSearchParams({
-        SERVICE: 'WFS', VERSION: '2.0.0', request: 'GetFeature',
-        TYPENAMES: WFS_LAYER, COUNT: count, outputFormat: 'application/json',
-        CQL_FILTER: `BBOX(${WFS_GEOM},${b.getWest().toFixed(5)},${b.getSouth().toFixed(5)},${b.getEast().toFixed(5)},${b.getNorth().toFixed(5)},'EPSG:4326')`
-    });
 
     try {
-        const resp = await fetch(`${WFS_URL}?${params}`, { signal: abort.signal });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
-        lastViewportFeatures = data.features || [];
+        const features = await fetchDetectionsBBox(
+            b.getWest(), b.getSouth(), b.getEast(), b.getNorth(), count, abort.signal
+        );
+        if (abort.signal.aborted) return;
+        lastViewportFeatures = features;
         rerenderDetections();
         if (S.map.getZoom() < BANDS.detail && S.map.getZoom() >= BANDS.commune)
             renderLiveHeat(applySessionEdits(lastViewportFeatures));
     } catch (e) {
-        if (e.name !== 'AbortError') {
-            console.error('WFS error:', e);
-            logEvent('wfs_error', `viewport: ${e.message}`);
+        if (!abort.signal.aborted) {
+            console.error('Detections fetch error:', e);
+            logEvent('detections_error', `viewport: ${e.message || e}`);
         }
     } finally {
         if (wfsAbort === abort) { wfsAbort = null; hide('wfs-spinner'); }
@@ -310,7 +299,7 @@ function kwpColor(kwp) {
 }
 
 function stylePolygon(f) {
-    return { fillColor: kwpColor(f.properties.kwp_approx), fillOpacity: 0.65,
+    return { fillColor: kwpColor(f.properties.kwp), fillOpacity: 0.65,
              color: '#333', weight: 0.8, opacity: 0.9 };
 }
 
@@ -327,15 +316,13 @@ function bindPolyEvents(f, layer) {
 
 function showPolyPopup(p, latlng) {
     const fmt = (v, d) => (v != null && !isNaN(v)) ? parseFloat(v).toFixed(d) : '—';
-    const yld = p.yield_kwh ? Math.round(p.yield_kwh).toLocaleString('fr-FR') : '—';
     L.popup({ maxWidth: 240 }).setLatLng(latlng).setContent(`
         <div class="wfs-popup">
             <h4>Rooftop PV System</h4>
             <table>
                 <tr><td>Surface</td><td><strong>${fmt(p.surface, 1)} m²</strong></td></tr>
-                <tr><td>Capacity</td><td><strong>${fmt(p.kwp_approx, 2)} kWp</strong></td></tr>
-                <tr><td>Est. yield</td><td><strong>${yld} kWh/yr</strong></td></tr>
-                <tr><td>Detection year</td><td><strong>${p.detection_year || '—'}</strong></td></tr>
+                <tr><td>Capacity</td><td><strong>${fmt(p.kwp, 2)} kWp</strong></td></tr>
+                <tr><td>Detection year</td><td><strong>${p.year || '—'}</strong></td></tr>
             </table>
             <div class="wfs-actions">
                 <button onclick="annotModify()">✎ Fix shape</button>
