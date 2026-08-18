@@ -3,7 +3,7 @@
 import { FRANCE_BOUNDS, MAX_ZOOM } from './config.js';
 import { S, logEvent } from './store.js';
 import { initLayers } from './layers.js';
-import { initNav, exitTarget } from './nav.js';
+import { initNav, exitTarget, enterTarget } from './nav.js';
 import { initSearch } from './search.js';
 import { initAnnotate } from './annotate.js';
 import { downloadAreaData } from './stats.js';
@@ -36,6 +36,18 @@ function persistView(map) {
     } catch { /* storage full/blocked — non-critical, just skip persistence */ }
 }
 
+// ─── Deep link: ?dept=CODE (used by the static per-département Data pages)
+// Locks target mode straight onto that département on load, reusing the
+// same enterTarget() path the search box and explore-mode clicks use — no
+// separate zone-resolution logic. ─────────────────────────────────────────────
+
+function openDeptDeepLink() {
+    const code = new URLSearchParams(location.search).get('dept');
+    if (!code) return;
+    const feature = S.deptsGeo.features.find(f => f.properties.code === code);
+    if (feature) enterTarget(feature);
+}
+
 // ─── Intro popup ──────────────────────────────────────────────────────────────
 
 function initIntro() {
@@ -63,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         await initNav();
+        openDeptDeepLink();
     } catch (e) {
         console.error('Nav init failed:', e);
     }

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software &middot; DeepPVMapper</title>
+
+    <meta name="description" content="Open-source software behind DeepPVMapper: the detection pipeline, the pypvroof characterization package, trained model weights, and an interactive demo.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/software.html">
+    <meta property="og:title" content="Software &middot; DeepPVMapper">
+    <meta property="og:description" content="The DeepPVMapper pipeline, trained models, and the packages built around them — all open source.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/assets/flowchart.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/software.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .demo-embed {
+            max-width: 900px;
+            margin: 0 auto 60px auto;
+            text-align: center;
+        }
+        .demo-embed .hf-badge {
+            height: 22px;
+            margin-bottom: 16px;
+        }
+        .demo-embed p.demo-sub {
+            color: #6c757d;
+            max-width: 620px;
+            margin: 0 auto 24px auto;
+        }
+        .demo-frame-wrap {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(44, 62, 80, 0.08);
+            background-color: #f8f9fa;
+        }
+        .demo-frame-wrap iframe {
+            display: block;
+            width: 100%;
+            height: 560px;
+            border: none;
+        }
+        .demo-fallback {
+            margin-top: 14px;
+            font-size: 0.86rem;
+            color: #adb5bd;
+        }
+        .software-group-title {
+            margin-top: 60px;
+        }
+        .software-group-title:first-of-type {
+            margin-top: 0;
+        }
+        .card-grid--narrow {
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 600px) {
+            .demo-frame-wrap iframe {
+                height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link is-active">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <a href="resources.html" class="topnav-link">Resources</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <p class="page-eyebrow">Software</p>
+            <h1 class="title">Open-Source Software</h1>
+            <p class="subtitle">The pipeline, the packages, and the models — everything is open source and usable on its own.</p>
+
+            <div class="quick-links">
+                <a href="#demo" class="quick-link">Demo</a>
+                <a href="#source-code" class="quick-link">Source Code</a>
+                <div class="dropdown">
+                    <span class="quick-link dropdown-btn">Packages &#9662;</span>
+                    <div class="dropdown-content">
+                        <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
+                            pypvroof
+                            <span class="dropdown-item-sub">Rooftop PV characteristics from remote sensing</span>
+                        </a>
+                        <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="dropdown-item">
+                            bayesian-pv-census
+                            <span class="dropdown-item-sub">Bayesian bias-correction &amp; registry auditing</span>
+                        </a>
+                    </div>
+                </div>
+                <a href="#model-weights" class="quick-link">Model Weights</a>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+
+            <!-- Try it live: embedded HF Space, front and center -->
+            <div class="demo-embed" id="demo">
+                <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue" alt="Hugging Face Space" class="hf-badge">
+                <h2 style="margin-bottom: 10px;">Try It Live</h2>
+                <p class="demo-sub">Run DeepPVMapper on a sample of aerial imagery directly in your browser — no installation, no setup.</p>
+                <div class="demo-frame-wrap">
+                    <iframe src="https://gabrielkasmi-deeppvmapper.hf.space?__theme=light" title="DeepPVMapper interactive demo on Hugging Face Spaces" loading="lazy"></iframe>
+                </div>
+                <p class="demo-fallback">
+                    Not loading, or the Space is asleep? <a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank">Open it directly on Hugging Face &rarr;</a>
+                </p>
+            </div>
+
+            <h2 class="software-group-title" id="source-code">Source Code</h2>
+            <div class="card-grid card-grid--narrow">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/badge/GitHub-Source-181717?logo=github&logoColor=white" alt="GitHub" class="hub-card-badge">
+                    <h3>DeepPVMapper &mdash; pipeline source</h3>
+                    <p>The full detection and characterization pipeline: tiling, classification, segmentation, and characteristic extraction — from raw aerial imagery to a geolocated PV registry. MIT licensed, contributions welcome.</p>
+                    <span class="btn">View on GitHub &rarr;</span>
+                </a>
+            </div>
+
+            <h2 class="software-group-title" id="packages">Packages</h2>
+            <div class="card-grid">
+
+                <a href="https://pypi.org/project/pypvroof/" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/pypi/v/pypvroof?label=PyPI&color=3775A9&logo=pypi&logoColor=white" alt="PyPI" class="hub-card-badge">
+                    <h3>pypvroof</h3>
+                    <p>A standalone Python package that extracts rooftop PV system characteristics — surface, tilt, orientation, and installed capacity — from segmentation masks and building footprints. Used internally by DeepPVMapper, and usable on its own on any rooftop PV detection dataset.</p>
+                    <span class="btn">View on PyPI &rarr;</span>
+                </a>
+
+                <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/pypi/v/bayesian-pv-census?label=PyPI&color=3775A9&logo=pypi&logoColor=white" alt="PyPI" class="hub-card-badge">
+                    <h3>bayesian-pv-census</h3>
+                    <p>The Bayesian bias-correction methodology behind the Registry Audit, extracted as a standalone, domain-agnostic package: turns imperfect detector counts — given a validated precision/recall sample — into posterior credible intervals, then checks whether a registry's reported values fall inside them.</p>
+                    <span class="btn">View on PyPI &rarr;</span>
+                </a>
+
+            </div>
+
+            <h2 class="software-group-title" id="model-weights">Model Weights</h2>
+            <div class="card-grid card-grid--narrow">
+                <a href="https://huggingface.co/gabrielkasmi/bdappv-models" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue" alt="Hugging Face Model" class="hub-card-badge">
+                    <h3>Model weights</h3>
+                    <p>Trained weights for the classification (Inception v3) and segmentation (DeepLab v3) models behind DeepPVMapper — ready to drop into the pipeline, or to fine-tune on your own imagery.</p>
+                    <span class="btn">View on HuggingFace &rarr;</span>
+                </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 50px; padding-top: 40px; border-top: 1px solid #e9ecef;">
+                <p style="color: #6c757d; margin-bottom: 10px;">Want the detailed architecture, training setup, and methodology behind the pipeline?</p>
+                <a href="resources.html" class="text-link">Read the full pipeline presentation on Resources &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

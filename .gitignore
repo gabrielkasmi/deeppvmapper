@@ -9,3 +9,13 @@ static/data/aggregated_data.geojson
 /aux/
 /data/
 /notebooks/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Pipeline scratch output (tiles, segmentation rasters, locality lookups)
+/temp/
+
+# Large local detection dump used to build department pages (regenerate via scripts/build_department_pages.py)
+scripts/france_detections.geojson

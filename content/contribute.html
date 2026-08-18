@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contribute &middot; DeepPVMapper</title>
+
+    <meta name="description" content="How to contribute to DeepPVMapper: correct or add PV installations on the interactive map, or contribute to the detection pipeline itself.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/contribute.html">
+    <meta property="og:title" content="Contribute &middot; DeepPVMapper">
+    <meta property="og:description" content="Help annotate detections, pick up an open issue, or join an upcoming community challenge.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/contribute.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .persona-card {
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .persona-card:hover {
+            transform: translateY(-3px);
+            border-color: #34495e;
+            box-shadow: 0 12px 28px rgba(44, 62, 80, 0.1);
+        }
+        .persona-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 16px auto;
+            color: #34495e;
+        }
+        .persona-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        .persona-card h3 {
+            text-align: center;
+        }
+        .persona-card p {
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .sub-block {
+            margin-top: 30px;
+            padding-top: 26px;
+            border-top: 1px solid #e9ecef;
+        }
+        .sub-block h4 {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .issues-list {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0 22px 0;
+        }
+        .issues-loading, .issues-empty {
+            color: #868e96;
+            font-size: 0.92rem;
+            font-style: italic;
+        }
+        .issue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 14px 18px;
+            text-decoration: none;
+            transition: border-color 0.2s ease, transform 0.15s ease;
+        }
+        .issue-item:hover {
+            border-color: #34495e;
+            transform: translateX(2px);
+        }
+        .issue-title {
+            font-size: 0.94rem;
+            color: #2c3e50;
+            font-weight: 400;
+        }
+        .issue-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .issue-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: 999px;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+
+        /* Persona modals (Enthusiast / Mapper / Coder): reuse the shared
+           .modal-overlay/.modal-box from style.css (same as the citation
+           popover), just with a centered icon + title header. */
+        .persona-modal-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .persona-modal-header .persona-icon {
+            margin-bottom: 12px;
+        }
+        .persona-modal-header h3 {
+            margin-bottom: 4px;
+        }
+        .persona-modal-header .persona-modal-sub {
+            font-size: 0.82rem;
+            color: #868e96;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link is-active">Contribute</a>
+                    <a href="resources.html" class="topnav-link">Resources</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <p class="page-eyebrow">Contribute</p>
+            <h1 class="title">Get Involved</h1>
+            <p class="subtitle">Thanks for your interest in this project! Pick the way that fits you best.</p>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+
+            <div class="card-grid" style="margin-top: 0;">
+
+                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-enthusiast">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Enthusiast</h3>
+                    <p>New to the project? Take on a structured challenge &mdash; no coding or GIS skills needed.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-mapper">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <h3>Mapper</h3>
+                    <p>Correct or add PV installations directly on the interactive map.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-coder">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Coder</h3>
+                    <p>Pick up an open issue and contribute to the detection pipeline.</p>
+                </a>
+
+            </div>
+
+            <div class="contribute-way" style="margin-top: 50px;">
+                <h3>Questions</h3>
+                <p>
+                    For anything else &mdash; data requests, feedback, collaboration ideas &mdash;
+                    <a href="mailto:gabriel.kasmi@deeppvmapper.fr">contact Gabriel</a>.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Persona modals: opened by the Enthusiast/Mapper/Coder cards above
+         (see [data-modal-target] handling in script.js). -->
+    <div class="modal-overlay" id="modal-enthusiast">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                </div>
+                <h3>Enthusiast</h3>
+                <p class="persona-modal-sub">No coding or mapping skills required</p>
+            </div>
+            <p>
+                Curious about the project and want to help without writing code or drawing rooftops? Structured,
+                self-contained challenges are the best fit &mdash; nothing to install, just follow the brief.
+            </p>
+            <div class="placeholder-box">
+                Coming soon &mdash; the first community challenge is in the works.
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-mapper">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <h3>Mapper</h3>
+                <p class="persona-modal-sub">No coding required</p>
+            </div>
+            <p>
+                The fastest way to improve the registry is via the
+                <a href="map.html">interactive map</a>:
+            </p>
+            <ul style="padding-left: 22px; margin-bottom: 16px;">
+                <li style="margin-bottom: 8px; line-height: 1.7;">Spot a false detection? Click it and report it.</li>
+                <li style="margin-bottom: 8px; line-height: 1.7;">A PV system is missing? Use "Add installation" and draw its outline.</li>
+                <li style="margin-bottom: 8px; line-height: 1.7;">An outline is wrong? Redraw it.</li>
+            </ul>
+            <p>
+                Submissions are reviewed and merged into future releases of the registry. No setup, no code —
+                just your local knowledge of rooftops.
+            </p>
+            <p style="text-align: center; margin-top: 24px;">
+                <a href="map.html" class="btn">Open the map &rarr;</a>
+            </p>
+
+            <div class="sub-block">
+                <h4>MapRoulette challenges</h4>
+                <p>
+                    Prefer working through structured, bite-sized mapping tasks instead of free-form annotation?
+                    MapRoulette challenges built on top of the registry are on the way.
+                </p>
+                <div class="placeholder-box">
+                    Coming soon &mdash; MapRoulette challenges for targeted correction tasks.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-coder">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                </div>
+                <h3>Coder</h3>
+                <p class="persona-modal-sub">Code</p>
+            </div>
+            <p>
+                The fastest way in is to pick up an open issue &mdash; issues labelled <code>good first issue</code>
+                are the best entry points. Here's what's currently open:
+            </p>
+
+            <div id="gh-issues-list" class="issues-list">
+                <p class="issues-loading">Loading open issues&hellip;</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank" class="btn">View all issues on GitHub &rarr;</a>
+            </p>
+
+            <p style="text-align: center; color: #868e96; font-size: 0.88rem; margin-top: 18px;">
+                Full setup instructions (environment, model weights, testing) are in
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a>
+                on GitHub.
+            </p>
+
+            <div class="sub-block">
+                <h4>Reporting bugs</h4>
+                <p>
+                    Open an <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank">issue</a> with:
+                    what you ran (exact command + config), what you expected, what happened instead, and your
+                    environment (OS, GPU, CUDA version).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

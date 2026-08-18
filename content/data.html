@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data &middot; DeepPVMapper</title>
+
+    <meta name="description" content="Explore the DeepPVMapper interactive registry of rooftop PV systems across France, browse results département by département, and download the data — full batch or custom subsets.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/data.html">
+    <meta property="og:title" content="Data &middot; DeepPVMapper">
+    <meta property="og:description" content="Explore the interactive registry, browse by département, and download the data — full batch or custom subsets.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/assets/mapping.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/data.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="data.html" class="topnav-link is-active">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <a href="resources.html" class="topnav-link">Resources</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <p class="page-eyebrow">Data</p>
+            <h1 class="title">The Registry</h1>
+            <p class="subtitle">Explore, browse by département, and download — the full DeepPVMapper detection registry.</p>
+
+            <div class="quick-links">
+                <a href="#map" class="quick-link">Map</a>
+                <a href="#departements" class="quick-link">D&eacute;partements</a>
+                <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="quick-link">Raw Data</a>
+                <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="quick-link">Training Dataset</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Interactive map: the primary way in -->
+    <section id="map">
+        <div class="container">
+            <h2>Explore the Interactive Map</h2>
+            <div class="validation-stats">
+                <div class="stat-item">
+                    <span class="stat-number">520k+</span>
+                    <span class="stat-label">PV systems mapped</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">2.7 GWp</span>
+                    <span class="stat-label">Estimated installed capacity</span>
+                </div>
+                <div class="stat-item" id="community-stat" style="display:none;">
+                    <span class="stat-number" id="community-count">&mdash;</span>
+                    <span class="stat-label">Community contributions</span>
+                </div>
+            </div>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="../static/images/assets/mapping.webp" alt="DeepPVMapper mapping results" class="teaser-image" style="max-width: 700px;">
+                <figcaption class="caption">Overview of the mapping of rooftop PV systems by DeepPVMapper. The darker, the higher the installed capacity.</figcaption>
+            </figure>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="map.html" class="btn">Explore the interactive map &rarr;</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Downloads -->
+    <section>
+        <div class="container">
+            <h2>Download the Data</h2>
+            <p class="hub-intro">
+                <span style="display:block; text-align:center;">Grab the full registry in one file, pull a custom subset for the area you care about, or get the annotated training dataset the models were built on.</span>
+            </p>
+            <div class="card-grid">
+                <div class="hub-card">
+                    <h3>OpenPVMapper</h3>
+                    <p>The full multi-source registry — AI detections, OpenStreetMap contributions, and manual corrections combined — 1.14M+ installations and roughly 15 GWp of capacity across metropolitan France, as a single GeoJSON file archived on Zenodo with a permanent DOI.</p>
+                    <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="btn">Download on Zenodo &rarr;</a>
+                </div>
+                <div class="hub-card">
+                    <h3>Custom subset</h3>
+                    <p>Need just one département or commune? Lock onto it on the map — its stats card includes an exhaustive CSV export for that zone, every detection, not a sample.</p>
+                    <a href="map.html" class="btn">Open the map &rarr;</a>
+                </div>
+                <div class="hub-card">
+                    <h3>Training dataset (BD-PV)</h3>
+                    <p>The annotated aerial-imagery dataset used to train DeepPVMapper's models — PV array outlines and installation metadata.</p>
+                    <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="btn">View on HuggingFace &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browse by département: static, crawlable links (SEO) -->
+    <section id="departements">
+        <div class="container">
+            <h2>Browse by D&eacute;partement</h2>
+            <p class="hub-intro">
+                <span style="display:block; text-align:center;">Each département has its own page with headline stats and a direct link into the map, pre-zoomed to that area.</span>
+            </p>
+            <div class="dept-grid">
+                <!-- DEPARTMENTS_GRID_START -->
+                <div class="dept-region">
+                    <h3>Auvergne-Rhône-Alpes</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/01.html">Ain <span class="dept-link-code">01</span></a>
+                    <a class="dept-link" href="data/03.html">Allier <span class="dept-link-code">03</span></a>
+                    <a class="dept-link" href="data/07.html">Ardèche <span class="dept-link-code">07</span></a>
+                    <a class="dept-link" href="data/15.html">Cantal <span class="dept-link-code">15</span></a>
+                    <a class="dept-link" href="data/26.html">Drôme <span class="dept-link-code">26</span></a>
+                    <a class="dept-link" href="data/43.html">Haute-Loire <span class="dept-link-code">43</span></a>
+                    <a class="dept-link" href="data/74.html">Haute-Savoie <span class="dept-link-code">74</span></a>
+                    <a class="dept-link" href="data/38.html">Isère <span class="dept-link-code">38</span></a>
+                    <a class="dept-link" href="data/42.html">Loire <span class="dept-link-code">42</span></a>
+                    <a class="dept-link" href="data/63.html">Puy-de-Dôme <span class="dept-link-code">63</span></a>
+                    <a class="dept-link" href="data/69.html">Rhône <span class="dept-link-code">69</span></a>
+                    <a class="dept-link" href="data/73.html">Savoie <span class="dept-link-code">73</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Bourgogne-Franche-Comté</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/21.html">Côte-d'Or <span class="dept-link-code">21</span></a>
+                    <a class="dept-link" href="data/25.html">Doubs <span class="dept-link-code">25</span></a>
+                    <a class="dept-link" href="data/70.html">Haute-Saône <span class="dept-link-code">70</span></a>
+                    <a class="dept-link" href="data/39.html">Jura <span class="dept-link-code">39</span></a>
+                    <a class="dept-link" href="data/58.html">Nièvre <span class="dept-link-code">58</span></a>
+                    <a class="dept-link" href="data/71.html">Saône-et-Loire <span class="dept-link-code">71</span></a>
+                    <a class="dept-link" href="data/90.html">Territoire de Belfort <span class="dept-link-code">90</span></a>
+                    <a class="dept-link" href="data/89.html">Yonne <span class="dept-link-code">89</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Bretagne</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/22.html">Côtes-d'Armor <span class="dept-link-code">22</span></a>
+                    <a class="dept-link" href="data/29.html">Finistère <span class="dept-link-code">29</span></a>
+                    <a class="dept-link" href="data/35.html">Ille-et-Vilaine <span class="dept-link-code">35</span></a>
+                    <a class="dept-link" href="data/56.html">Morbihan <span class="dept-link-code">56</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Centre-Val de Loire</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/18.html">Cher <span class="dept-link-code">18</span></a>
+                    <a class="dept-link" href="data/28.html">Eure-et-Loir <span class="dept-link-code">28</span></a>
+                    <a class="dept-link" href="data/36.html">Indre <span class="dept-link-code">36</span></a>
+                    <a class="dept-link" href="data/37.html">Indre-et-Loire <span class="dept-link-code">37</span></a>
+                    <a class="dept-link" href="data/41.html">Loir-et-Cher <span class="dept-link-code">41</span></a>
+                    <a class="dept-link" href="data/45.html">Loiret <span class="dept-link-code">45</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Grand Est</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/08.html">Ardennes <span class="dept-link-code">08</span></a>
+                    <a class="dept-link" href="data/10.html">Aube <span class="dept-link-code">10</span></a>
+                    <a class="dept-link" href="data/67.html">Bas-Rhin <span class="dept-link-code">67</span></a>
+                    <a class="dept-link" href="data/68.html">Haut-Rhin <span class="dept-link-code">68</span></a>
+                    <a class="dept-link" href="data/52.html">Haute-Marne <span class="dept-link-code">52</span></a>
+                    <a class="dept-link" href="data/51.html">Marne <span class="dept-link-code">51</span></a>
+                    <a class="dept-link" href="data/54.html">Meurthe-et-Moselle <span class="dept-link-code">54</span></a>
+                    <a class="dept-link" href="data/55.html">Meuse <span class="dept-link-code">55</span></a>
+                    <a class="dept-link" href="data/57.html">Moselle <span class="dept-link-code">57</span></a>
+                    <a class="dept-link" href="data/88.html">Vosges <span class="dept-link-code">88</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Hauts-de-France</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/02.html">Aisne <span class="dept-link-code">02</span></a>
+                    <a class="dept-link" href="data/59.html">Nord <span class="dept-link-code">59</span></a>
+                    <a class="dept-link" href="data/60.html">Oise <span class="dept-link-code">60</span></a>
+                    <a class="dept-link" href="data/62.html">Pas-de-Calais <span class="dept-link-code">62</span></a>
+                    <a class="dept-link" href="data/80.html">Somme <span class="dept-link-code">80</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Normandie</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/14.html">Calvados <span class="dept-link-code">14</span></a>
+                    <a class="dept-link" href="data/27.html">Eure <span class="dept-link-code">27</span></a>
+                    <a class="dept-link" href="data/50.html">Manche <span class="dept-link-code">50</span></a>
+                    <a class="dept-link" href="data/61.html">Orne <span class="dept-link-code">61</span></a>
+                    <a class="dept-link" href="data/76.html">Seine-Maritime <span class="dept-link-code">76</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Nouvelle-Aquitaine</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/16.html">Charente <span class="dept-link-code">16</span></a>
+                    <a class="dept-link" href="data/17.html">Charente-Maritime <span class="dept-link-code">17</span></a>
+                    <a class="dept-link" href="data/19.html">Corrèze <span class="dept-link-code">19</span></a>
+                    <a class="dept-link" href="data/23.html">Creuse <span class="dept-link-code">23</span></a>
+                    <a class="dept-link" href="data/79.html">Deux-Sèvres <span class="dept-link-code">79</span></a>
+                    <a class="dept-link" href="data/24.html">Dordogne <span class="dept-link-code">24</span></a>
+                    <a class="dept-link" href="data/33.html">Gironde <span class="dept-link-code">33</span></a>
+                    <a class="dept-link" href="data/87.html">Haute-Vienne <span class="dept-link-code">87</span></a>
+                    <a class="dept-link" href="data/40.html">Landes <span class="dept-link-code">40</span></a>
+                    <a class="dept-link" href="data/47.html">Lot-et-Garonne <span class="dept-link-code">47</span></a>
+                    <a class="dept-link" href="data/64.html">Pyrénées-Atlantiques <span class="dept-link-code">64</span></a>
+                    <a class="dept-link" href="data/86.html">Vienne <span class="dept-link-code">86</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Occitanie</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/09.html">Ariège <span class="dept-link-code">09</span></a>
+                    <a class="dept-link" href="data/11.html">Aude <span class="dept-link-code">11</span></a>
+                    <a class="dept-link" href="data/12.html">Aveyron <span class="dept-link-code">12</span></a>
+                    <a class="dept-link" href="data/30.html">Gard <span class="dept-link-code">30</span></a>
+                    <a class="dept-link" href="data/32.html">Gers <span class="dept-link-code">32</span></a>
+                    <a class="dept-link" href="data/31.html">Haute-Garonne <span class="dept-link-code">31</span></a>
+                    <a class="dept-link" href="data/65.html">Hautes-Pyrénées <span class="dept-link-code">65</span></a>
+                    <a class="dept-link" href="data/34.html">Hérault <span class="dept-link-code">34</span></a>
+                    <a class="dept-link" href="data/46.html">Lot <span class="dept-link-code">46</span></a>
+                    <a class="dept-link" href="data/48.html">Lozère <span class="dept-link-code">48</span></a>
+                    <a class="dept-link" href="data/66.html">Pyrénées-Orientales <span class="dept-link-code">66</span></a>
+                    <a class="dept-link" href="data/81.html">Tarn <span class="dept-link-code">81</span></a>
+                    <a class="dept-link" href="data/82.html">Tarn-et-Garonne <span class="dept-link-code">82</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Pays de la Loire</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/44.html">Loire-Atlantique <span class="dept-link-code">44</span></a>
+                    <a class="dept-link" href="data/49.html">Maine-et-Loire <span class="dept-link-code">49</span></a>
+                    <a class="dept-link" href="data/53.html">Mayenne <span class="dept-link-code">53</span></a>
+                    <a class="dept-link" href="data/72.html">Sarthe <span class="dept-link-code">72</span></a>
+                    <a class="dept-link" href="data/85.html">Vendée <span class="dept-link-code">85</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Provence-Alpes-Côte d'Azur</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/06.html">Alpes-Maritimes <span class="dept-link-code">06</span></a>
+                    <a class="dept-link" href="data/04.html">Alpes-de-Haute-Provence <span class="dept-link-code">04</span></a>
+                    <a class="dept-link" href="data/13.html">Bouches-du-Rhône <span class="dept-link-code">13</span></a>
+                    <a class="dept-link" href="data/05.html">Hautes-Alpes <span class="dept-link-code">05</span></a>
+                    <a class="dept-link" href="data/83.html">Var <span class="dept-link-code">83</span></a>
+                    <a class="dept-link" href="data/84.html">Vaucluse <span class="dept-link-code">84</span></a>
+                    </div>
+                </div>
+                <div class="dept-region">
+                    <h3>Île-de-France</h3>
+                    <div class="dept-list">
+                    <a class="dept-link" href="data/91.html">Essonne <span class="dept-link-code">91</span></a>
+                    <a class="dept-link" href="data/92.html">Hauts-de-Seine <span class="dept-link-code">92</span></a>
+                    <a class="dept-link" href="data/75.html">Paris <span class="dept-link-code">75</span></a>
+                    <a class="dept-link" href="data/93.html">Seine-Saint-Denis <span class="dept-link-code">93</span></a>
+                    <a class="dept-link" href="data/77.html">Seine-et-Marne <span class="dept-link-code">77</span></a>
+                    <a class="dept-link" href="data/95.html">Val-d'Oise <span class="dept-link-code">95</span></a>
+                    <a class="dept-link" href="data/94.html">Val-de-Marne <span class="dept-link-code">94</span></a>
+                    <a class="dept-link" href="data/78.html">Yvelines <span class="dept-link-code">78</span></a>
+                    </div>
+                </div>
+                <!-- DEPARTMENTS_GRID_END -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../static/js/map/config.js';
+        const THRESHOLD = 25;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_count`, {
+                method: 'POST',
+                headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                           'Content-Type': 'application/json' },
+                body: '{}'
+            })
+            .then(r => r.json())
+            .then(count => {
+                const force = new URLSearchParams(location.search).has('contrib');
+                if (typeof count === 'number' && (count >= THRESHOLD || force)) {
+                    document.getElementById('community-count').textContent = count.toLocaleString('en-US');
+                    document.getElementById('community-stat').style.display = '';
+                }
+            })
+            .catch(() => {});
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources &middot; DeepPVMapper</title>
+
+    <meta name="description" content="Academic results, related work, press coverage, pipeline documentation, and publications behind DeepPVMapper.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/resources.html">
+    <meta property="og:title" content="Resources &middot; DeepPVMapper">
+    <meta property="og:description" content="The academic side of DeepPVMapper: the registry audit, related work, press coverage, pipeline documentation, and publications.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/assets/rni_before_after_correction.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/resources.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .pub-list {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 4px;
+        }
+        .pub-item {
+            display: block;
+            padding: 16px 20px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+        .pub-item:hover {
+            background-color: #f8f9fa;
+        }
+        .pub-item .pub-title {
+            display: block;
+            font-size: 0.98rem;
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+        .pub-item.no-link .pub-title {
+            color: #495057;
+        }
+        .pub-item .pub-authors {
+            display: block;
+            font-size: 0.84rem;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+        .pub-item .pub-year {
+            display: block;
+            font-size: 0.78rem;
+            color: #adb5bd;
+        }
+        .featured-card {
+            max-width: 800px;
+            margin: 0 auto 50px auto;
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px 34px;
+            border: 1px solid #e9ecef;
+        }
+        .featured-card-text { flex: 1; }
+        .featured-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: white;
+            background-color: #34495e;
+            border-radius: 999px;
+            padding: 4px 11px;
+            margin-bottom: 12px;
+        }
+        .featured-card h3 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .featured-card p {
+            color: #495057;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 600px) {
+            .featured-card { flex-direction: column; padding: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <a href="resources.html" class="topnav-link is-active">Resources</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <p class="page-eyebrow">Resources</p>
+            <h1 class="title">Academic Resources</h1>
+            <p class="subtitle">The research behind DeepPVMapper &mdash; results, related work, press coverage, and publications.</p>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+
+            <div class="featured-card">
+                <div class="featured-card-text">
+                    <span class="featured-tag">Flagship result</span>
+                    <h3>Registry Audit &mdash; How reliable are France's PV grid-connection registries?</h3>
+                    <p>Using DeepPVMapper's detections as an independent, remote-sensing-based ground truth, this study audits the RNI and RTE's internal grid-connection data &mdash; and finds a systematic downward bias in both.</p>
+                    <a href="main-results.html" class="btn">Read the audit &rarr;</a>
+                </div>
+            </div>
+
+            <div class="card-grid">
+
+                <div class="hub-card">
+                    <h3>Related Work</h3>
+                    <p>Papers and projects that build on or relate to DeepPVMapper &mdash; production estimation, TSO benchmarking, adoption determinants, explainability, and external mapping &amp; GIS projects using the registry.</p>
+                    <a href="outlook.html" class="btn">Browse related work &rarr;</a>
+                </div>
+
+                <div class="hub-card">
+                    <h3>In Press</h3>
+                    <p>Popular-science coverage and press articles about DeepPVMapper and the registry audit, including a three-part series in PV Magazine France.</p>
+                    <a href="in-press.html" class="btn">Read the coverage &rarr;</a>
+                </div>
+
+                <div class="hub-card">
+                    <h3>Pipeline Documentation</h3>
+                    <p>The detailed architecture, training setup, and validation methodology behind the detection pipeline &mdash; tiling, classification, segmentation, and characteristic extraction.</p>
+                    <a href="pipeline.html" class="btn">Read the pipeline &rarr;</a>
+                </div>
+
+            </div>
+
+            <h2 style="margin-top: 60px;">Publications</h2>
+            <div class="pub-list">
+                <a href="main-results.html" class="pub-item no-link">
+                    <span class="pub-title">Nationally Consistent, Locally Incomplete: A Bayesian Remote-Sensing Audit of Rooftop Photovoltaic Registries</span>
+                    <span class="pub-authors">Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan</span>
+                    <span class="pub-year">2026 &middot; Upcoming &mdash; see the Registry Audit page</span>
+                </a>
+                <a href="https://arxiv.org/abs/2607.25153" target="_blank" class="pub-item">
+                    <span class="pub-title">OpenPVMapper: A Multi-source, Nationwide Database of Rooftop Photovoltaic Systems in France</span>
+                    <span class="pub-authors">Gabriel Kasmi</span>
+                    <span class="pub-year">2026 &middot; arXiv preprint</span>
+                </a>
+                <a href="https://theses.fr/2024UPSLM027" target="_blank" class="pub-item">
+                    <span class="pub-title">Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations</span>
+                    <span class="pub-authors">Gabriel Kasmi</span>
+                    <span class="pub-year">2024 &middot; PhD Thesis, Universit&eacute; Paris sciences et lettres</span>
+                </a>
+                <a href="https://www.nature.com/articles/s41597-023-01951-4" target="_blank" class="pub-item">
+                    <span class="pub-title">A crowdsourced dataset of aerial images with annotated solar photovoltaic arrays and installation metadata (BDAPPV)</span>
+                    <span class="pub-authors">Gabriel Kasmi, Yves-Marie Saint-Drenan, David Trebosc, Rapha&euml;l Jolivet, Jonathan Leloux, Babacar Sarr, Laurent Dubus</span>
+                    <span class="pub-year">2023 &middot; Scientific Data</span>
+                </a>
+                <a href="https://arxiv.org/abs/2309.07143" target="_blank" class="pub-item">
+                    <span class="pub-title">PyPVRoof: a Python package for extracting the characteristics of rooftop PV installations using remote sensing data</span>
+                    <span class="pub-authors">Yann Tremenbert, Gabriel Kasmi, Laurent Dubus, Yves-Marie Saint-Drenan, Philippe Blanc</span>
+                    <span class="pub-year">2023 &middot; arXiv preprint</span>
+                </a>
+                <a href="https://arxiv.org/pdf/2207.07466" target="_blank" class="pub-item">
+                    <span class="pub-title">Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping</span>
+                    <span class="pub-authors">Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan</span>
+                    <span class="pub-year">2022 &middot; MACLEAN Workshop @ECML-PKDD</span>
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

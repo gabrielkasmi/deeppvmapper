@@ -20,13 +20,232 @@ body {
     padding: 0 20px;
 }
 
-/* Header */
+/* Top nav: slim, persistent site-wide navigation (every page except the map,
+   which is a full-screen app with its own topbar). Separate from the hero
+   CTA cards on the landing page — this is for wayfinding once you're
+   already browsing, not the primary call to action.
+   Default variant: solid, for pages with no big banner (hub pages).
+   .topnav--overlay variant: transparent, laid over the hero banner (index). */
+.topnav {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+    z-index: 20;
+}
+
+.topnav--overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: transparent;
+    border-bottom: none;
+}
+
+.topnav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    gap: 20px;
+}
+
+.topnav-logo {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #2c3e50;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+}
+
+.topnav--overlay .topnav-logo {
+    color: #ffffff;
+}
+
+.topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    flex-wrap: wrap;
+}
+
+.topnav-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.topnav-link:hover,
+.topnav-link.is-active {
+    color: #2c3e50;
+}
+
+.topnav-link--muted {
+    color: #868e96;
+    font-weight: 400;
+}
+
+.topnav--overlay .topnav-link {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.topnav--overlay .topnav-link:hover {
+    color: #ffffff;
+}
+
+.topnav--overlay .topnav-link--muted {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.topnav-icon {
+    display: inline-flex;
+    color: #495057;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.topnav-icon:hover {
+    color: #2c3e50;
+}
+
+.topnav-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.topnav-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: 6px;
+    padding-left: 18px;
+    border-left: 1px solid #e9ecef;
+}
+
+.topnav--overlay .topnav-right {
+    border-left-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Cite badge: small pill button, opens the citation modal */
+.cite-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid #ced4da;
+    border-radius: 999px;
+    padding: 5px 12px 5px 10px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cite-badge:hover {
+    color: #2c3e50;
+    border-color: #34495e;
+}
+
+.cite-badge .cite-mark {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.05rem;
+    line-height: 1;
+    transform: translateY(-1px);
+}
+
+.topnav--overlay .cite-badge {
+    color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.topnav--overlay .cite-badge:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+/* GitHub repo badge: icon + live star/fork counts (populated by script.js) */
+.topnav-repo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #495057;
+    text-decoration: none;
+}
+
+.topnav-repo:hover {
+    color: #2c3e50;
+}
+
+.topnav--overlay .topnav-repo {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.topnav--overlay .topnav-repo:hover {
+    color: #ffffff;
+}
+
+.topnav-repo .topnav-icon-svg {
+    width: 20px;
+    height: 20px;
+}
+
+.repo-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.repo-stat svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* Header / hero: the entire landing is meant to fit without scrolling —
+   name, byline, description and the core CTA all live in this one block,
+   overlaid on the banner image. The top nav is absolutely positioned inside
+   it (transparent, see .topnav--overlay), not a separate white bar. */
 .header {
     position: relative;
     color: white;
-    padding: 80px 0;
+    padding: 100px 0 60px 0;
     text-align: center;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Compact header: same banner treatment as the landing hero, but short —
+   used by hub and sub-pages (title + one-liner), not a full-viewport hero. */
+.header--compact {
+    min-height: auto;
+    padding: 90px 0 50px 0;
+}
+
+.header--compact .title {
+    font-size: 2.4rem;
+}
+
+.header--compact .subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.page-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 10px;
 }
 
 .header-background {
@@ -169,6 +388,60 @@ body {
     background-color: #f8f9fa;
     transform: translateY(-1px);
     text-decoration: none;
+}
+
+/* Header quick-links: small pills sitting on a dark compact-header banner,
+   jumping to a category further down the page (or, for items that map to a
+   single external resource, linking straight out to it). A quick-link can
+   optionally be a .dropdown trigger when it fans out to more than one
+   resource (e.g. several packages) — too many items for a flat pill row,
+   but too few to deserve their own page. */
+.quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.quick-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: white;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    padding: 7px 16px;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+}
+
+.quick-link:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+.quick-links .dropdown-content {
+    top: 100%;
+    margin-top: 10px;
+    min-width: 260px;
+}
+
+.quick-links .dropdown-item {
+    padding: 12px 16px;
+    margin: 4px;
+    font-size: 0.88rem;
+}
+
+.quick-links .dropdown-item .dropdown-item-sub {
+    display: block;
+    font-size: 0.74rem;
+    color: #868e96;
+    margin-top: 2px;
 }
 
 .pub-title {
@@ -335,6 +608,419 @@ h2 {
     font-weight: 500;
 }
 
+/* Icon link (GitHub, LinkedIn, ...) inline with nav/author links */
+.icon-link {
+    display: inline-flex;
+    vertical-align: middle;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.icon-link:hover {
+    opacity: 1;
+}
+
+/* Hero CTA: the 3 core-pillar cards overlaid on the banner image (icon +
+   title + one-line description) — the landing's one and only call to
+   action, no separate section below. "Glass" style so the banner still
+   reads through, same spirit as the map's dark glass UI. */
+.hero-cta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 260px));
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.hero-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    padding: 16px 18px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    text-decoration: none;
+    color: white;
+    transition: all 0.25s ease;
+}
+
+.hero-card:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.hero-card-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-card-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.hero-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.hero-card p {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    opacity: 0.8;
+}
+
+/* Modal overlay (citation popover, and reused by the map's intro popup pattern) */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 25, 35, 0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-box {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    color: #2c3e50;
+    text-align: left;
+}
+
+.modal-box h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #868e96;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.modal-close:hover {
+    color: #2c3e50;
+}
+
+/* Hub pages: intro block under the header (used by data/software/contribute/results hubs) */
+.hub-intro p {
+    font-size: 1.1rem;
+    line-height: 1.75;
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
+    color: #495057;
+}
+
+/* Cards grid used inside hub pages (fewer / wider cards than .pillars-grid) */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+}
+
+.hub-card {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 30px;
+}
+
+.hub-card h3 {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.hub-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #6c757d;
+    margin-bottom: 16px;
+}
+
+/* Whole-card links: some .hub-card tiles are entirely clickable <a>
+   elements (badge + title + description + a CTA that's just styled text,
+   not a separate nested link) rather than a div with a button inside. */
+a.hub-card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+a.hub-card:hover {
+    transform: translateY(-3px);
+    border-color: #34495e;
+    box-shadow: 0 12px 28px rgba(44, 62, 80, 0.1);
+}
+
+.hub-card-badge {
+    height: 20px;
+    margin-bottom: 14px;
+}
+
+/* Hero byline: de-emphasized author/affiliation credit, secondary to the
+   name + description + CTA hierarchy of the hero. */
+.hero-byline {
+    font-size: 0.95rem;
+    opacity: 0.75;
+    margin-top: 6px;
+}
+
+.hero-byline a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.hero-byline a:hover {
+    text-decoration: underline;
+}
+
+/* Research note: the secondary "content" band (academic results, publications,
+   press, citation) — deliberately quieter than the core Data/Software/
+   Contribute pillars above, per the core-vs-content split of the site. */
+.research-note {
+    background-color: #eef1f4;
+    padding: 60px 0;
+}
+
+.research-note .container {
+    max-width: 820px;
+}
+
+.eyebrow {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #868e96;
+    margin-bottom: 10px;
+}
+
+.research-note h2 {
+    font-size: 1.9rem;
+    margin-bottom: 18px;
+}
+
+.mini-stats {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.92rem;
+    color: #495057;
+    margin: 22px 0 26px 0;
+    text-align: center;
+}
+
+.mini-stats strong {
+    color: #2c3e50;
+}
+
+.mini-stats .sep {
+    opacity: 0.4;
+}
+
+.text-link {
+    display: block;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #34495e;
+    text-decoration: none;
+}
+
+.text-link:hover {
+    color: #2c3e50;
+    text-decoration: underline;
+}
+
+.research-note .citation-box {
+    margin-top: 34px;
+}
+
+/* Browse-by-département grid (Data hub): grouped by région, plain crawlable
+   links — deliberately static HTML (baked in at build time), not JS-rendered,
+   so search engines can index every département page. */
+.dept-grid {
+    margin-top: 20px;
+}
+
+.dept-region {
+    margin-bottom: 34px;
+}
+
+.dept-region h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 14px;
+}
+
+.dept-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dept-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 6px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dept-link:hover {
+    background-color: #34495e;
+    border-color: #34495e;
+    color: white;
+}
+
+.dept-link .dept-link-code {
+    font-size: 0.72rem;
+    opacity: 0.65;
+}
+
+/* Placeholder box: used for not-yet-built content (e.g. Contribute's
+   upcoming Challenges) so it reads as "coming soon", not a dead end. */
+.placeholder-box {
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    color: #adb5bd;
+    font-style: italic;
+    margin: 20px 0;
+}
+
+/* Contribute page: task lists grouped under sub-headings, and numbered
+   how-to steps. Reuses the site's existing prose/list conventions. */
+.task-group {
+    margin-bottom: 26px;
+}
+
+.task-group h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.task-group ul {
+    padding-left: 22px;
+}
+
+.task-group li {
+    font-size: 0.98rem;
+    line-height: 1.7;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.task-group li strong {
+    color: #2c3e50;
+}
+
+.steps-list {
+    counter-reset: step;
+    list-style: none;
+    padding-left: 0;
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.steps-list li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 42px;
+    margin-bottom: 18px;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #495057;
+}
+
+.steps-list li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #34495e;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contribute-way {
+    max-width: 780px;
+    margin: 0 auto 60px auto;
+}
+
+.contribute-way h3 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.contribute-way p {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #495057;
+    margin-bottom: 16px;
+}
+
+.contribute-way code {
+    background-color: #f1f3f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'Courier New', monospace;
+}
+
 /* Footer */
 .footer {
     background-color: #2c3e50;
@@ -410,7 +1096,38 @@ h2 {
     }
     
     .header {
-        padding: 60px 0;
+        padding: 220px 0 60px 0;
+        min-height: auto;
+    }
+
+    .topnav--overlay {
+        position: absolute;
+    }
+
+    .hero-cta {
+        grid-template-columns: 1fr;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .topnav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .topnav-links {
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    .topnav-right {
+        padding-left: 0;
+        border-left: none;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+        width: 100%;
     }
 }
 

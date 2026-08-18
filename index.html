@@ -12,19 +12,19 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
+    <meta property="og:url" content="https://deeppvmapper.fr/">
     <meta property="og:title" content="DeepPVMapper: Open Source Rooftop PV Mapping">
     <meta property="og:description" content="Open source deep learning for remote sensing of rooftop solar systems at national scale.">
-    <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/">
+    <meta property="twitter:url" content="https://deeppvmapper.fr/">
     <meta property="twitter:title" content="DeepPVMapper: Open Source Rooftop PV Mapping">
     <meta property="twitter:description" content="Open source deep learning for remote sensing of rooftop solar systems at national scale.">
-    <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+    <meta property="twitter:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
-    <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/">
+    <link rel="canonical" href="https://deeppvmapper.fr/">
     <meta name="google-site-verification" content="cUstfZ-WA3aiXm6D3zJg0On-cB58Vsyt5FJsgnSXP78" />
 
     <!-- Favicon -->
@@ -36,218 +36,113 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        .reveal-group {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        .reveal-group.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Hero: the whole landing fits here — nav, name, byline, description, core CTA — no scrolling required -->
     <header class="header">
         <div class="header-background"></div>
+
+        <!-- Top nav: persistent, site-wide (every page except the full-screen map).
+             Transparent overlay here on the hero; solid on hub pages without a banner. -->
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <span class="topnav-logo">DeepPVMapper</span>
+                <div class="topnav-links">
+                    <a href="content/data.html" class="topnav-link">Data</a>
+                    <a href="content/software.html" class="topnav-link">Software</a>
+                    <a href="content/contribute.html" class="topnav-link">Contribute</a>
+                    <a href="content/resources.html" class="topnav-link">Resources</a>
+                </div>
+                <div class="topnav-right">
+                    <button type="button" id="citation-trigger" class="cite-badge" aria-label="Cite this project" title="Cite this project">
+                        <span class="cite-mark" aria-hidden="true">&rdquo;</span> Cite
+                    </button>
+                    <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="topnav-repo" aria-label="GitHub repository">
+                        <svg class="topnav-icon-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.38 2.89-.39.98 0 1.97.13 2.89.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.44-2.7 5.42-5.27 5.7.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.2.67.8.56C20.21 21.38 23.5 17.08 23.5 12c0-6.35-5.15-11.5-11.5-11.5z"/>
+                        </svg>
+                        <span class="repo-stat">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span id="gh-stars">&ndash;</span>
+                        </span>
+                        <span class="repo-stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                            <span id="gh-forks">&ndash;</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
         <div class="container">
             <h1 class="title">DeepPVMapper</h1>
-            <p class="subtitle">Open source deep learning for remote sensing of rooftop solar systems at national scale</p>
-            <div class="authors">
-                <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
-                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="Gabriel Kasmi on LinkedIn" style="display: inline-flex; vertical-align: middle; margin-left: 8px; opacity: 0.6; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <p class="hero-byline">
+                By <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="Gabriel Kasmi on LinkedIn" class="icon-link" style="margin: 0 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
                     </svg>
                 </a>
-            </div>
-            <div class="affiliations">
-                Mines Paris - PSL University and RTE France
-            </div>
-
-            <div class="links">
-                <a href="content/pipeline.html" class="btn">Pipeline</a>
-                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="btn">GitHub</a>
-                <a href="content/map.html" class="btn">Map</a>
-                <a href="content/main-results.html" class="btn">Registry Audit</a>
-                <a href="content/outlook.html" class="btn">Related Work</a>
-                <div class="dropdown">
-                    <a href="#" class="btn dropdown-btn">Publications ▼</a>
-                    <div class="dropdown-content">
-                        <a href="" target="_blank" class="dropdown-item">
-                            <span class="pub-title">From detection to audit: using nationwide remote sensing to evaluate public rooftop solar data</span>
-                            <span class="pub-authors">Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan</span>
-                            <span class="pub-year">2026 • Upcoming</span>
-                        </a>
-                        <a href="https://theses.fr/2024UPSLM027" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations</span>
-                            <span class="pub-authors">Gabriel Kasmi</span>
-                            <span class="pub-year">2024 • PhD Thesis, Université Paris sciences et lettres</span>
-                        </a>
-                        <a href="https://www.nature.com/articles/s41597-023-01951-4" target="_blank" class="dropdown-item">
-                            <span class="pub-title">A crowdsourced dataset of aerial images with annotated solar photovoltaic arrays and installation metadata (BDAPPV)</span>
-                            <span class="pub-authors">Gabriel Kasmi, Yves-Marie Saint-Drenan, David Trebosc, Raphaël Jolivet, Jonathan Leloux, Babacar Sarr, Laurent Dubus</span>
-                            <span class="pub-year">2023 • Scientific Data</span>
-                        </a>
-                        <a href="https://arxiv.org/abs/2309.07143" target="_blank" class="dropdown-item">
-                            <span class="pub-title">PyPVRoof: a Python package for extracting the characteristics of rooftop PV installations using remote sensing data</span>
-                            <span class="pub-authors">Yann Tremenbert, Gabriel Kasmi, Laurent Dubus, Yves-Marie Saint-Drenan, Philippe Blanc</span>
-                            <span class="pub-year">2023 • arXiv preprint</span>
-                        </a>
-                        <a href="https://arxiv.org/pdf/2207.07466" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping</span>
-                            <span class="pub-authors">Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan</span>
-                            <span class="pub-year">2022 • MACLEAN Workshop @ECML-PKDD</span>
-                        </a>
+                — Mines Paris (PSL University) &amp; RTE France
+            </p>
+            <p class="subtitle">An open, community-driven registry of rooftop solar systems across France — mapped with deep learning on national aerial imagery.</p>
+            <div class="hero-cta">
+                <a class="hero-card" href="content/data.html">
+                    <div class="hero-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
                     </div>
-                </div>
-                <a href="content/in-press.html" class="btn">In Press</a>
-                <div class="dropdown">
-                    <a href="#" class="btn dropdown-btn">Useful Links ▼</a>
-                    <div class="dropdown-content">
-                        <a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Interactive demo</span>
-                            <span class="pub-authors">Try DeepPVMapper on HuggingFace Spaces</span>
-                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue" alt="Hugging Face Space badge" style="margin-top: 4px; height: 20px;">
-                        </a>
-                        <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Training data &mdash; BDAPPV</span>
-                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset badge" style="margin-top: 4px; height: 20px;">
-                        </a>
-                        <a href="https://huggingface.co/gabrielkasmi/bdappv-models" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Model weights</span>
-                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue" alt="Hugging Face Model badge" style="margin-top: 4px; height: 20px;">
-                        </a>
-                        <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
-                            <span class="pub-title">pypvroof</span>
-                            <span class="pub-authors">Package on PyPI for extracting PV system characteristics</span>
-                            <img src="https://img.shields.io/pypi/v/pypvroof?label=PyPI&color=blue" alt="PyPI version badge" style="margin-top: 4px; height: 20px;">
-                        </a>
-                        <a href="https://doi.org/10.5281/zenodo.18630258" target="_blank" class="dropdown-item">
-                            <span class="pub-title">Download detections</span>
-                            <span class="pub-authors">Full registry of 520k+ detected PV systems</span>
-                            <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18630258.svg" alt="DOI" style="margin-top: 4px; height: 20px;">
-                        </a>
+                    <div>
+                        <h3>Data</h3>
+                        <p>Interactive map, browse by département, download</p>
                     </div>
-                </div>
+                </a>
+                <a class="hero-card" href="content/software.html">
+                    <div class="hero-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Software</h3>
+                        <p>Pipeline, trained models, and open-source packages</p>
+                    </div>
+                </a>
+                <a class="hero-card" href="content/contribute.html">
+                    <div class="hero-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Contribute</h3>
+                        <p>Annotate detections, tackle issues, join challenges</p>
+                    </div>
+                </a>
             </div>
         </div>
     </header>
 
-    <!-- Cartography overview -->
-    <section class="results">
+    <!-- Footer -->
+    <footer class="footer">
         <div class="container">
-            <div class="reveal-group">
-                <h2>Mapping Rooftop PV at National Scale</h2>
-                <p>
-                    DeepPVMapper is a, open source, remote sensing-based rooftop PV mapping algorithm. It is part of a
-                    PhD project carried out at RTE, the French transmission operator.
-                    Applied across France on IGN BD ORTHO&reg; imagery acquired between 2018 and 2024, DeepPVMapper has
-                    produced the largest registry of rooftop PV systems at this level of detail anywhere in the world.
-                    For each system, the registry reports its surface, tilt, orientation, estimated installed capacity,
-                    and precise location (latitude/longitude).
-                </p>
-            </div>
-            <div class="reveal-group">
-                <div class="validation-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">520k+</span>
-                        <span class="stat-label">PV systems mapped</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">2.7 GWp</span>
-                        <span class="stat-label">Estimated installed capacity</span>
-                    </div>
-                    <!-- Shown once the community counter passes the threshold (see script at end of body) -->
-                    <div class="stat-item" id="community-stat" style="display:none;">
-                        <span class="stat-number" id="community-count">—</span>
-                        <span class="stat-label">Community contributions</span>
-                    </div>
-                </div>
-                <figure style="margin-top: 40px; text-align: center;">
-                    <img src="static/images/assets/mapping.webp" alt="DeepPVMapper mapping results" class="teaser-image" style="max-width: 700px;">
-                    <figcaption class="caption">Overview of the mapping of rooftop PV systems by DeepPVMapper. The darker, the higher the installed capacity.</figcaption>
-                </figure>
-            </div>
-            <div class="reveal-group">
-                <p style="text-align: center; margin-top: 30px;">
-                    <a href="content/map.html" class="btn">Explore the interactive map →</a>
-                    &nbsp;
-                    <a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank" class="btn">See the interactive demo →</a>
-                </p>
-            </div>
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
-    </section>
+    </footer>
 
-    <!-- Pipeline overview -->
-    <!-- Grid-connection data study overview -->
-    <section class="abstract">
-        <div class="container">
-            <h2>How Reliable Are Grid-Connection Registries?</h2>
-            <p>
-                Using DeepPVMapper's detections as an independent ground truth, we estimate &mdash; after correcting
-                for the pipeline's measured precision and recall by département &mdash; the actual distribution of
-                installed capacity and number of systems across France, and compare these estimates to official
-                grid-connection data (RNI/RTE) using a confidence-interval approach. The results reveal a clear and
-                quantifiable <strong>underestimation</strong> of rooftop PV in official registries, particularly
-                in rural areas &mdash; reversing the usual paradigm where registries serve as ground truth for
-                remote-sensing methods, and instead using remote sensing to audit the registries themselves.
-            </p>
-            <div class="validation-stats">
-                <div class="stat-item">
-                    <span class="stat-number">34k</span>
-                    <span class="stat-label">Samples used for validation</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">&minus;10.1%</span>
-                    <span class="stat-label">Global underestimation in official registries</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">36</span>
-                    <span class="stat-label">Départements with significant underestimation</span>
-                </div>
-            </div>
-            <figure style="margin-top: 40px; text-align: center;">
-                <img src="static/images/assets/rte_year_absolute_over_under.webp" alt="RTE vs. corrected remote-sensing estimates by département" class="teaser-image" style="max-width: 800px;">
-                <figcaption class="caption">RTE vs. corrected remote-sensing estimates, by département: absolute gap in MWp (left), and the same gap expressed as a share of each département's installed capacity, split between over- (middle) and under-estimations (right).</figcaption>
-            </figure>
-            <p style="text-align: center; margin-top: 30px;">
-                <a href="content/main-results.html" class="btn">Read the full analysis →</a>
-            </p>
-        </div>
-    </section>
-
-    <section class="abstract">
-        <div class="container">
-            <h2>The Pipeline</h2>
-            <p>
-                DeepPVMapper is a deep learning pipeline, inspired by 3D-PV-Locator (Meyer et al., 2022), that detects
-                rooftop photovoltaic systems from aerial imagery and characterizes them. It proceeds in two stages:
-                a classification model (Inception v3) flags candidate image patches, which are then segmented
-                (DeepLab v3) to extract precise polygon boundaries. The resulting polygons are processed with
-                <strong>pypvroof</strong>, a purpose-built package (available on PyPI) that estimates each
-                system's characteristics &mdash; surface, tilt, orientation, and installed capacity &mdash; and
-                cross-referenced with the BD TOPO&reg; building database to keep only rooftop-mounted detections and
-                merge detections belonging to the same roof. The output is a geolocated PV registry. The models are
-                trained on <strong>BD-PV</strong>, a novel annotated dataset built on IGN's BD ORTHO&reg; aerial imagery.
-            </p>
-            <figure style="margin-top: 40px; text-align: center;">
-                <img src="static/images/assets/flowchart.webp" alt="DeepPVMapper pipeline flowchart" class="teaser-image" style="max-width: 800px;">
-                <figcaption class="caption">Overview of the DeepPVMapper pipeline, from aerial imagery acquisition to geolocated PV registry.</figcaption>
-            </figure>
-            <p style="text-align: center; margin-top: 30px;">
-                <a href="content/pipeline.html" class="btn">Explore the pipeline in detail →</a>
-            </p>
-        </div>
-    </section>
-
-    <!-- Citation -->
-    <section class="citation">
-        <div class="container">
-            <h2>Citation</h2>
+    <!-- Citation modal (triggered by the quote icon in the top nav) -->
+    <div class="modal-overlay" id="citation-overlay">
+        <div class="modal-box">
+            <button type="button" class="modal-close citation-close" aria-label="Close">&times;</button>
+            <h3>Cite this project</h3>
             <div class="citation-box">
                 <pre><code>@phdthesis{kasmi2024enhancing,
   title={Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations},
@@ -257,57 +152,9 @@
 }</code></pre>
             </div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
-        </div>
-    </footer>
+    </div>
 
     <!-- JavaScript -->
     <script src="static/js/script.js"></script>
-    <script>
-        // Staggered reveal for grouped content within a section (e.g. the
-        // "Mapping Rooftop PV" section): each .reveal-group fades in on its
-        // own as it enters the viewport, on top of the section-level fade-in.
-        document.addEventListener('DOMContentLoaded', function() {
-            const groups = document.querySelectorAll('.reveal-group');
-            const groupObserver = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        groupObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-
-            groups.forEach(group => groupObserver.observe(group));
-        });
-    </script>
-
-    <!-- Community contributions counter (Supabase RPC; shown above threshold, ?contrib forces display) -->
-    <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './static/js/map/config.js';
-        const THRESHOLD = 25;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_count`, {
-                method: 'POST',
-                headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                           'Content-Type': 'application/json' },
-                body: '{}'
-            })
-            .then(r => r.json())
-            .then(count => {
-                const force = new URLSearchParams(location.search).has('contrib');
-                if (typeof count === 'number' && (count >= THRESHOLD || force)) {
-                    document.getElementById('community-count').textContent = count.toLocaleString('en-US');
-                    document.getElementById('community-stat').style.display = '';
-                }
-            })
-            .catch(() => {});   // counter is decorative — never break the page
-        }
-    </script>
 </body>
 </html>

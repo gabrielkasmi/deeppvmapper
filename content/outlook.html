@@ -10,19 +10,19 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/outlook.html">
     <meta property="og:title" content="Related Work · DeepPVMapper">
     <meta property="og:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
-    <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+    <meta property="twitter:url" content="https://deeppvmapper.fr/content/outlook.html">
     <meta property="twitter:title" content="Related Work · DeepPVMapper">
     <meta property="twitter:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
-    <meta property="twitter:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
+    <meta property="twitter:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
-    <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/content/outlook.html">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/outlook.html">
 
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
     <link rel="stylesheet" href="../static/css/style.css">
@@ -124,7 +124,7 @@
         .work-card.has-image:hover .keyword-chip {
             background-color: rgba(255, 255, 255, 0.32);
         }
-        .work-date {
+        .work-card.has-image .work-date {
             position: absolute;
             top: 16px;
             right: 18px;
@@ -187,6 +187,30 @@
             color: #6c757d;
             font-weight: 400;
             line-height: 1.5;
+        }
+
+        .work-card.featured {
+            box-shadow: 0 14px 32px rgba(44, 62, 80, 0.22);
+        }
+        @media (min-width: 700px) {
+            .work-card.featured {
+                grid-column: span 2;
+                min-height: 210px;
+            }
+        }
+        .work-card.featured .featured-badge {
+            position: absolute;
+            top: 16px;
+            left: 18px;
+            z-index: 3;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: white;
+            background-color: #34495e;
+            border-radius: 999px;
+            padding: 4px 11px;
         }
 
         .no-results {
@@ -343,14 +367,23 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
+    <header class="header header--compact">
         <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <a href="resources.html" class="topnav-link is-active">Resources</a>
+                </div>
+            </div>
+        </nav>
         <div class="container">
+            <p class="page-eyebrow">Resources &middot; Related Work</p>
             <h1 class="title">Related Work</h1>
             <p class="subtitle">Related works and what builds on it</p>
-            <div class="links">
-                <a href="../index.html" class="btn">← Back to Homepage</a>
-            </div>
         </div>
     </header>
 
@@ -401,6 +434,34 @@
     <script src="../static/js/script.js"></script>
     <script>
         const works = [
+            {
+                title: "Nationally Consistent, Locally Incomplete: A Bayesian Remote-Sensing Audit of Rooftop Photovoltaic Registries",
+                authors: "Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan",
+                date: "Upcoming 2026",
+                image: "../static/images/assets/rni_before_after_correction.webp",
+                featured: true,
+                link_label: "Read the full audit →",
+                keywords: ["registry", "audit", "raccordement", "grid-connection", "rni", "rte", "reliability", "flagship"],
+                text: "<h4>Turning DeepPVMapper into an independent auditor</h4>" +
+                      "<p>Monitoring the deployment of rooftop PV at national scale requires a reliable census of " +
+                      "grid-connected installations. In France that role is filled by two RTE-produced sources: the " +
+                      "public <strong>RNI</strong> registry and RTE's own <strong>internal grid-connection data</strong>, " +
+                      "which RTE treats as ground truth. This study flips the usual validation logic on its head: " +
+                      "instead of using grid-connection data to evaluate a remote-sensing method, it uses " +
+                      "DeepPVMapper's detections &mdash; an independent, remote-sensing-based source &mdash; " +
+                      "<strong>as the ground truth to audit the registries themselves</strong>.</p>" +
+                      "<h4>What the audit finds</h4>" +
+                      "<p>Once corrected for detection bias and a communal-level truncation artefact, the RNI shows a " +
+                      "clear downward bias relative to the remote-sensing estimates. RTE's internal data are, if " +
+                      "anything, more concerning: <strong>36 d&eacute;partements</strong> see RTE underestimate " +
+                      "installed capacity against just 6 that see an overestimate, netting out to a national " +
+                      "<strong>10.1% underestimation</strong> (&minus;271.2 MWp) of installed capacity &mdash; a gap " +
+                      "that matters for a source used in grid planning.</p>" +
+                      "<p>This is the flagship result of the DeepPVMapper project: the full method (bootstrapped " +
+                      "confidence intervals, département-level bias correction) and figures are presented in detail " +
+                      "on the <a href=\"main-results.html\">Registry Audit</a> page.</p>",
+                link: "main-results.html"
+            },
             {
                 title: "Remote-Sensing-Based Estimation of Rooftop Photovoltaic Power Production Using Physical Conversion Models and Weather Data",
                 authors: "Gabriel Kasmi, Augustin Touron, Philippe Blanc, Yves-Marie Saint-Drenan, Maxime Fortin, Laurent Dubus",
@@ -763,12 +824,16 @@
                 card.classList.add('has-image');
                 card.style.backgroundImage = `url('${work.image}')`;
             }
+            if (work.featured) {
+                card.classList.add('featured');
+            }
             card.dataset.keywords = work.keywords.join(' ').toLowerCase();
             card.dataset.title = work.title.toLowerCase();
             card.innerHTML = `
                 ${work.date ? `<span class="work-date">${work.date}</span>` : ''}
                 <h3 class="work-title">${work.title}</h3>
                 <div class="work-keywords">${chips(work.keywords)}</div>
+                ${work.featured ? `<span class="featured-badge">&#9733; Flagship result</span>` : ''}
             `;
             card.addEventListener('click', () => openModal(idx));
             grid.appendChild(card);
@@ -777,7 +842,7 @@
         // CTA card inviting people to suggest related work to feature
         const cta = document.createElement('a');
         cta.className = 'work-card cta-card';
-        cta.href = 'mailto:gabriel.kasmi.services@gmail.com?subject=DeepPVMapper%20%E2%80%94%20Related%20work%20to%20feature';
+        cta.href = 'mailto:gabriel.kasmi@deeppvmapper.fr?subject=DeepPVMapper%20%E2%80%94%20Related%20work%20to%20feature';
         cta.dataset.keywords = 'contact suggest propose feature contribute related work';
         cta.dataset.title = 'got something to add';
         cta.innerHTML = `

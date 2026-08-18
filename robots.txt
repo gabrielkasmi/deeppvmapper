@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gabrielkasmi.github.io/deeppvmapper/sitemap.xml
+Sitemap: https://deeppvmapper.fr/sitemap.xml
