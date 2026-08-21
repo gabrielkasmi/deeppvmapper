@@ -122,6 +122,14 @@
             font-size: 0.82rem;
             color: #868e96;
         }
+
+        .mapper-contrib-count {
+            text-align: center;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #34495e;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +264,7 @@
                 Submissions are reviewed and merged into future releases of the registry. No setup, no code —
                 just your local knowledge of rooftops.
             </p>
+            <p id="mapper-contrib-count" class="mapper-contrib-count"></p>
             <p style="text-align: center; margin-top: 24px;">
                 <a href="map.html" class="btn">Open the map &rarr;</a>
             </p>
@@ -323,5 +332,37 @@
     </footer>
 
     <script src="../static/js/script.js"></script>
+
+    <!-- Lifetime contribution counter for the Mapper modal — a plain REST
+         call to the same Supabase RPC annotate.js uses on the map page
+         itself, so no Supabase client library needs loading on this page. -->
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../static/js/map/config.js';
+
+        async function loadContributionCount() {
+            const el = document.getElementById('mapper-contrib-count');
+            if (!el || !SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_stats`, {
+                    method: 'POST',
+                    headers: {
+                        apikey: SUPABASE_ANON_KEY,
+                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: '{}'
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const count = data?.count ?? 0;
+                el.textContent = `Already ${count.toLocaleString('fr-FR')} contribution${count === 1 ? '' : 's'}!`;
+            } catch (e) {
+                // Silent by design — a failed fetch just leaves the line blank
+                // rather than showing an error in this modal.
+                console.error('Contribution count fetch failed:', e);
+            }
+        }
+        loadContributionCount();
+    </script>
 </body>
 </html>

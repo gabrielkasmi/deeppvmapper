@@ -5,7 +5,8 @@
 
 import { FRANCE_BOUNDS } from './config.js';
 import { S, $, logEvent } from './store.js';
-import { targetAt, exitTarget } from './nav.js';
+import { setSelectionFromBounds, setSelectionFromFeature, clearSelection } from './selection.js';
+import { resolveExactFeature } from './geo.js';
 
 let resultsCache = [];
 
@@ -28,7 +29,7 @@ export function initSearch() {
     $('search-btn').addEventListener('click', () => runSearch(input.value));
     clearBtn.addEventListener('click', () => {
         clearSearchUI();
-        exitTarget();
+        clearSelection();
         S.map.flyToBounds(FRANCE_BOUNDS, { duration: 1.0 });
     });
 
@@ -70,21 +71,22 @@ function renderResults(items) {
 }
 
 async function pickResult(item) {
-    logEvent('search', item.display_name.split(',').slice(0, 2).join(','));
-    $('city-search').value = item.display_name.split(',').slice(0, 2).join(',').trim();
+    const label = item.display_name.split(',').slice(0, 2).join(',').trim();
+    logEvent('search', label);
+    $('city-search').value = label;
     $('clear-btn').style.display = 'flex';
     hideResults();
 
-    // Lock straight onto the matched administrative zone (target mode).
-    const t = (item.addresstype || item.type || '').toLowerCase();
-    const levelHint = /state|region/.test(t) ? 'region'
-                    : /county|department/.test(t) ? 'dept' : 'commune';
-    const locked = await targetAt(parseFloat(item.lat), parseFloat(item.lon), levelHint);
-
-    if (!locked) {   // outside our perimeter: plain camera move
-        const [minLat, maxLat, minLon, maxLon] = item.boundingbox.map(Number);
-        S.map.flyToBounds([[minLat, minLon], [maxLat, maxLon]], { padding: [30, 30], maxZoom: 13, duration: 1.2 });
+    // Try to resolve the exact région/département/commune contour from our
+    // own boundary files first — Nominatim's bbox is only a fallback for
+    // whatever it doesn't match (arrondissements, hamlets, overseas communes).
+    const result = await resolveExactFeature(item);
+    if (result) {
+        setSelectionFromFeature(result, label);
+        return;
     }
+    const [minLat, maxLat, minLon, maxLon] = item.boundingbox.map(Number);
+    setSelectionFromBounds(L.latLngBounds([minLat, minLon], [maxLat, maxLon]), label);
 }
 
 function clearSearchUI() {

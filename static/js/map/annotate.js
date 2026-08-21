@@ -17,11 +17,11 @@
 
 import { ANNOT_MAX_SESSION, ANNOT_MIN_INTERVAL_MS } from './config.js';
 import { S, $, show, hide, fmtInt, featureKey, getSupabase } from './store.js';
-import { rerenderDetections } from './layers.js';
-import { suspendNav, resumeNav } from './nav.js';
+import { rerenderDetections } from './render.js';
+import { suspendSelection as suspendNav, resumeSelection as resumeNav } from './selection.js';
 
 let sb = null;
-let totalCount = null;          // lifetime counter from annotation_stats()
+let totalCount = 0;             // lifetime counter from annotation_stats() — shown from 0 right away
 let lastContribAt = null;       // ISO timestamp of the last submission, from the same call
 let sessionCount = 0;
 let lastSubmitAt = 0;
@@ -47,11 +47,11 @@ export function initAnnotate() {
     window.annotDelete = startDelete;
     window.annotModify = startModify;
 
-    renderCounter();
+    renderCounter();   // shows "0 contributions" immediately, updated once the RPC below resolves
     if (sb) {
         sb.rpc('annotation_stats')
           .then(({ data, error }) => {
-              if (!error && data) { totalCount = data.count; lastContribAt = data.last_at; renderCounter(); }
+              if (!error && data) { totalCount = data.count ?? 0; lastContribAt = data.last_at; renderCounter(); }
           });
     }
 }
@@ -215,13 +215,16 @@ function applyLocally(record, feature, geometry) {
 
 // ─── Counter + toast + session limit ──────────────────────────────────────────
 
+/** Lives in the quickstart text above the map, not on the map itself — shows
+ *  from 0 right away (not hidden until the RPC resolves), so it reads as a
+ *  live counter rather than something that flickers in. */
 function renderCounter() {
     const el = $('annot-counter');
-    if (totalCount == null) { el.style.display = 'none'; return; }
-    const parts = [`${fmtInt(totalCount)} contributions`];
-    if (lastContribAt) parts.push(`last: ${relativeDays(lastContribAt)}`);
-    el.textContent = parts.join(' · ');
-    el.style.display = 'block';
+    if (!el) return;
+    const count = totalCount ?? 0;
+    let text = `Already ${fmtInt(count)} contribution${count === 1 ? '' : 's'}`;
+    text += lastContribAt ? `, the last one ${relativeDays(lastContribAt)}.` : '.';
+    el.textContent = text;
 }
 
 function relativeDays(iso) {

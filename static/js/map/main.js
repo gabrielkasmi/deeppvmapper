@@ -2,81 +2,39 @@
 
 import { FRANCE_BOUNDS, MAX_ZOOM } from './config.js';
 import { S, logEvent } from './store.js';
-import { initLayers } from './layers.js';
-import { initNav, exitTarget, enterTarget } from './nav.js';
+import { initMap } from './render.js';
+import { initSelection } from './selection.js';
 import { initSearch } from './search.js';
+import { initFilterPanel } from './filters.js';
+import { initExport } from './export.js';
 import { initAnnotate } from './annotate.js';
-import { downloadAreaData } from './stats.js';
-
-// Inline onclick handlers in map.html
-window.closeStatsCard   = exitTarget;   // closing the card unlocks target mode
-window.downloadAreaData = downloadAreaData;
-
-// ─── View persistence (survives a reload — sessionStorage clears when the tab
-// closes, not on refresh; the browser gives JS no way to tell a hard refresh
-// apart from a normal one, so both restore the same way) ─────────────────────
-
-const VIEW_KEY = 'dpvm_view';
-
-function restoreView(map) {
-    try {
-        const saved = JSON.parse(sessionStorage.getItem(VIEW_KEY));
-        if (saved && Number.isFinite(saved.lat) && Number.isFinite(saved.lng) && Number.isFinite(saved.zoom)) {
-            map.setView([saved.lat, saved.lng], saved.zoom);
-            return true;
-        }
-    } catch { /* corrupted/blocked storage — fall back to the default view */ }
-    return false;
-}
-
-function persistView(map) {
-    const c = map.getCenter();
-    try {
-        sessionStorage.setItem(VIEW_KEY, JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }));
-    } catch { /* storage full/blocked — non-critical, just skip persistence */ }
-}
-
-// ─── Deep link: ?dept=CODE (used by the static per-département Data pages)
-// Locks target mode straight onto that département on load, reusing the
-// same enterTarget() path the search box and explore-mode clicks use — no
-// separate zone-resolution logic. ─────────────────────────────────────────────
-
-function openDeptDeepLink() {
-    const code = new URLSearchParams(location.search).get('dept');
-    if (!code) return;
-    const feature = S.deptsGeo.features.find(f => f.properties.code === code);
-    if (feature) enterTarget(feature);
-}
+import { initVersionInfo } from './version.js';
 
 // ─── Intro popup ──────────────────────────────────────────────────────────────
 
 function initIntro() {
     const overlay = document.getElementById('intro-overlay');
+    if (!overlay) return;
     const open  = () => { overlay.style.display = 'flex'; };
     const close = () => { overlay.style.display = 'none'; };
 
-    document.getElementById('intro-start').addEventListener('click', close);
+    document.getElementById('intro-start')?.addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-    document.getElementById('help-btn').addEventListener('click', open);
-
-    open();   // shown on every page load (the "?" button reopens it anytime)
+    document.getElementById('help-btn')?.addEventListener('click', open);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     S.map = L.map('map', { zoomControl: true, maxZoom: MAX_ZOOM });
-    if (!restoreView(S.map)) S.map.fitBounds(FRANCE_BOUNDS);
-    S.map.on('moveend zoomend', () => persistView(S.map));
+    S.map.fitBounds(FRANCE_BOUNDS);   // always start from the national view — no reload persistence
 
     logEvent('visit_map');
     initIntro();
-    initLayers();
-    initSearch();
-    initAnnotate();
+    initVersionInfo();   // independent of the map itself — fine to kick off in parallel
 
-    try {
-        await initNav();
-        openDeptDeepLink();
-    } catch (e) {
-        console.error('Nav init failed:', e);
-    }
+    initMap();
+    initSearch();
+    initFilterPanel();
+    initExport();
+    initAnnotate();
+    initSelection();          // last: may immediately fire a ?dept= deep-link selection
 });

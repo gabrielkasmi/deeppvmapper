@@ -5,18 +5,328 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data &middot; DeepPVMapper</title>
 
-    <meta name="description" content="Explore the DeepPVMapper interactive registry of rooftop PV systems across France, browse results département by département, and download the data — full batch or custom subsets.">
+    <meta name="description" content="Explore the DeepPVMapper interactive registry of rooftop PV systems across France — search, draw a zone, filter, and download custom subsets of the data.">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/data.html">
     <meta property="og:title" content="Data &middot; DeepPVMapper">
-    <meta property="og:description" content="Explore the interactive registry, browse by département, and download the data — full batch or custom subsets.">
+    <meta property="og:description" content="Explore the interactive registry — search, draw a zone, filter, and download custom subsets of the data.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/assets/mapping.webp">
     <link rel="canonical" href="https://deeppvmapper.fr/content/data.html">
 
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
     <link rel="stylesheet" href="../static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <style>
+        /* ─ Embedded map: sober/native, matching the rest of the site rather
+           than a separate dark "glass" language. Floating chrome ON the map
+           (draw/clear buttons, filter panel, spinner, export toast) reads as
+           plain white cards — standard for a map overlay; buttons reuse the
+           site's own solid navy .btn look so they stay legible over any
+           basemap without needing their own translucent styling. ─ */
+        #map-embed-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 860px;
+            height: 560px;
+            max-height: 72vh;
+            margin: 22px auto 0;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        #map-embed-wrap #map { position: absolute; inset: 0; z-index: 1; }
+
+        .me-glass {
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            color: #2c3e50;
+        }
+
+        /* Search: a plain page element above the map, not floating chrome. */
+        #me-search-standalone { position: relative; max-width: 420px; margin: 18px auto 0; }
+        #me-search-box {
+            display: flex; align-items: center; gap: 6px; border-radius: 8px; padding: 10px 14px;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        #city-search { flex: 1; background: none; border: none; color: #2c3e50; font-size: 14px; font-family: inherit; outline: none; }
+        #city-search::placeholder { color: #adb5bd; }
+        .me-icon-btn { background: none; border: none; color: #adb5bd; cursor: pointer; padding: 2px; display: flex; align-items: center; flex-shrink: 0; }
+        .me-icon-btn:hover { color: #6c757d; }
+        #search-results {
+            margin-top: 5px; border-radius: 8px; overflow: hidden; display: none; max-height: 220px;
+            overflow-y: auto; position: absolute; left: 0; right: 0; z-index: 850;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        .sr-item { padding: 8px 12px; cursor: pointer; font-size: 12px; color: #2c3e50; border-bottom: 1px solid #f1f3f5; display: flex; justify-content: space-between; }
+        .sr-item:hover { background: #f8f9fa; }
+        .sr-type { font-size: 9px; font-weight: 600; text-transform: uppercase; color: #adb5bd; }
+
+        /* Zone-drawing controls: icon-only, stacked directly under Leaflet's
+           own zoom control (top-left) so they read as part of the same
+           control cluster instead of a separate floating bar. Draw (pencil)
+           sits above clear (eraser) — same column, drawing tool on top. */
+        #me-topbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .me-icon-action {
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; background: white; border: 1px solid #dee2e6; color: #34495e;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 0;
+            transition: background 0.15s ease;
+        }
+        .me-icon-action:hover { background: #f8f9fa; }
+
+        /* Same solid pill as the site's .btn — opaque, so it reads over any
+           basemap, and consistent with the rest of the site instead of a
+           separate visual language. */
+        .me-action-btn, .me-primary-btn {
+            display: inline-block; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer; border: 1px solid #34495e;
+            background: #34495e; color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+        }
+        .me-action-btn:hover, .me-primary-btn:hover { background: #2c3e50; border-color: #2c3e50; transform: translateY(-1px); }
+
+        #zone-editbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900; border-radius: 10px;
+            padding: 8px 10px; display: flex; gap: 8px; align-items: center; font-size: 12px;
+        }
+        #zone-editbar span { color: #495057; }
+        #zone-editbar button {
+            border-radius: 6px; padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer;
+            border: 1px solid #ced4da; background: white; color: #495057;
+        }
+        #zone-editbar button:hover { background: #f8f9fa; }
+
+        /* Layer switcher: a plain segmented toggle we style ourselves, rather
+           than Leaflet's own layer control — avoids fighting that control's
+           CSS (a recurring oversized/misaligned render in some browsers).
+           The filter gear sits right beside it, same row. */
+        .map-corner-stack {
+            position: absolute; top: 12px; right: 12px; z-index: 900;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .layer-toggle {
+            display: flex; background: white; border: 1px solid #dee2e6; border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12); overflow: hidden;
+        }
+        .layer-toggle button {
+            border: none; background: none; padding: 7px 12px; cursor: pointer; color: #6c757d;
+            font-family: inherit; font-size: 12px; transition: background 0.15s ease, color 0.15s ease;
+        }
+        .layer-toggle button + button { border-left: 1px solid #e9ecef; }
+        .layer-toggle button.is-active { background: #34495e; color: white; }
+        .layer-toggle button:hover:not(.is-active) { background: #f8f9fa; color: #2c3e50; }
+
+        #wfs-spinner { position: absolute; bottom: 12px; right: 12px; z-index: 900; border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+
+        #filter-panel {
+            position: absolute; top: 56px; right: 12px; z-index: 900; border-radius: 10px;
+            padding: 14px 16px; width: 230px; font-size: 12px;
+        }
+        .fp-title {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+            color: #6c757d; margin-bottom: 10px;
+        }
+        .fp-close-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border: none; background: none; color: #adb5bd;
+            cursor: pointer; border-radius: 4px; flex-shrink: 0; padding: 0;
+        }
+        .fp-close-btn:hover { background: #f1f3f5; color: #6c757d; }
+        .fp-row { margin-bottom: 10px; }
+        .fp-row > label:first-child { display: block; font-size: 10px; color: #6c757d; margin-bottom: 4px; }
+        .fp-vals { font-weight: 400; color: #495057; text-transform: none; letter-spacing: normal; float: right; }
+        .fp-sources { display: flex; flex-direction: column; gap: 4px; }
+        .fp-check { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: #2c3e50; }
+
+        /* Dual-handle range slider: two overlapping <input type=range>, each
+           only clickable at its own thumb (the track ignores clicks). The
+           visible line is a separate, non-interactive element behind both
+           inputs — each input's own native track is left fully transparent,
+           so neither one's (opaque) track can render on top of and hide the
+           other input's thumb. The input's own box is sized to match the
+           thumb (not the thin track), so the thumb centers on it the same
+           way in every browser. */
+        .fp-slider { position: relative; height: 22px; margin: 4px 0 2px; }
+        .fp-track-line {
+            position: absolute; top: 50%; left: 0; right: 0; height: 4px; margin-top: -2px;
+            background: #e9ecef; border-radius: 2px; pointer-events: none;
+        }
+        .fp-slider input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            position: absolute; top: 4.5px; left: 0; width: 100%; height: 13px;
+            background: transparent; margin: 0; pointer-events: none;
+        }
+        .fp-slider input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+        .fp-slider input[type="range"]::-moz-range-track { height: 4px; background: transparent; }
+        .fp-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; pointer-events: all; width: 13px; height: 13px; border-radius: 50%;
+            background: #34495e; border: 2px solid white; box-shadow: 0 0 0 1px #34495e; cursor: pointer; margin-top: 0;
+        }
+        .fp-slider input[type="range"]::-moz-range-thumb {
+            pointer-events: all; width: 13px; height: 13px; border-radius: 50%;
+            background: #34495e; border: 2px solid white; box-shadow: 0 0 0 1px #34495e; cursor: pointer;
+        }
+
+        .fp-export-row { margin-top: 4px; }
+        .fp-dropdown { position: relative; }
+        .fp-export-btn { width: 100%; text-align: left; }
+        .fp-dropdown-menu {
+            position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            border-radius: 8px; overflow: hidden; z-index: 950;
+        }
+        .fp-dropdown-item {
+            display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 12px;
+            font-family: inherit; color: #2c3e50; background: none; border: none; cursor: pointer;
+        }
+        .fp-dropdown-item:hover { background: #f8f9fa; }
+
+        /* Export notification: separate from #wfs-spinner (which is also used
+           by selection/single-feature loads) so a large export doesn't block
+           or get confused with other map activity — it just runs, and this
+           pops up to say so when it's ready. */
+        #export-toast {
+            position: absolute; bottom: 12px; left: 12px; z-index: 950; border-radius: 10px;
+            padding: 10px 14px; font-size: 12px; display: none; align-items: center; gap: 8px;
+            max-width: 260px;
+        }
+        #export-toast .et-spinner {
+            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+            border: 2px solid #e9ecef; border-top-color: #34495e;
+            animation: et-spin 0.8s linear infinite;
+        }
+        #export-toast.et-done .et-spinner { display: none; }
+        #export-toast.et-error { border-color: #e0a0a0; }
+        @keyframes et-spin { to { transform: rotate(360deg); } }
+
+        /* Detection detail: a real Leaflet popup anchored to the clicked
+           installation — a "baseline" popup, right next to the system it
+           describes, rather than a fixed widget elsewhere on the map. Just
+           our own sober card styling applied to Leaflet's popup chrome. */
+        .di-popup-wrap .leaflet-popup-content-wrapper {
+            border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        .di-popup-wrap .leaflet-popup-content { margin: 12px 14px; }
+        .di-popup-wrap .leaflet-popup-tip { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .di-popup h4 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 500; color: #2c3e50; }
+        .di-popup table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .di-popup td { padding: 4px 8px 4px 0; color: #495057; }
+        .di-popup td:first-child { color: #6c757d; }
+        .di-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .di-action-btn {
+            flex: 1; border-radius: 6px; padding: 6px 8px; font-size: 0.78rem; font-family: inherit;
+            cursor: pointer; border: 1px solid #dee2e6; background: white; color: #495057;
+        }
+        .di-action-btn:hover { background: #f8f9fa; }
+
+        /* Bottom toolbar: "Add missing installation" is always present;
+           "Download detections" (#export-controls) joins it only once a
+           selection exists. Both float over the bottom of the map as
+           compact, regular-sized buttons — not a full-width bar. */
+        #map-bottom-toolbar {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 900;
+            display: flex; align-items: center; gap: 10px;
+        }
+        #map-bottom-toolbar .fp-dropdown { position: relative; }
+        .annot-add-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+        .instr-icon { vertical-align: -3px; margin: 0 2px; color: #6c757d; }
+
+        /* Progressive disclosure: the quickstart line above is enough for
+           anyone who's used a map tool before. The fuller walkthrough lives
+           in its own section below the map — reachable by scrolling past
+           it, or with the "More info" jump link right under the quickstart
+           line, for anyone who wants it spelled out. */
+        .map-help-link-row { display: block; text-align: center; margin-top: 6px; }
+        .map-help-link-row a { font-size: 12px; color: #6c757d; text-decoration: underline; text-underline-offset: 2px; }
+        .map-help-link-row a:hover { color: #2c3e50; }
+
+        .map-help { max-width: 640px; margin: 40px auto 30px; scroll-margin-top: 20px; }
+        .map-help ul { margin: 0; padding-left: 18px; font-size: 13px; color: #495057; line-height: 1.6; }
+        .map-help li { margin-bottom: 8px; }
+        .map-help li:last-child { margin-bottom: 0; }
+        .map-version-info {
+            margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #e9ecef;
+            font-size: 12px; color: #6c757d;
+        }
+        .map-version-info a { color: #6c757d; text-decoration: underline; text-underline-offset: 2px; }
+        .map-version-info a:hover { color: #2c3e50; }
+
+        /* CTA + live contribution counter — deliberately in the page text
+           above the map, not on the map itself. */
+        .annot-cta {
+            max-width: 640px; margin: 12px auto 0; text-align: center;
+            font-size: 13px; color: #495057;
+        }
+        .annot-counter { display: block; margin-top: 4px; font-size: 12px; color: #6c757d; }
+
+        /* Annotation drawing prompt — same slot/look as #zone-editbar
+           (mutually exclusive with it in time: only one draw mode at once). */
+        #annot-editbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900; border-radius: 10px;
+            padding: 8px 10px; display: flex; gap: 8px; align-items: center; font-size: 12px;
+        }
+        #annot-editbar span { color: #495057; }
+        #annot-editbar button {
+            border-radius: 6px; padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer;
+            border: 1px solid #ced4da; background: white; color: #495057;
+        }
+        #annot-editbar button:hover { background: #f8f9fa; }
+
+        /* Annotation submission form: a centered card over the map. */
+        .annot-form {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 960;
+            width: 280px; max-width: calc(100% - 32px); border-radius: 12px; padding: 18px 20px;
+        }
+        .annot-form h4 { margin: 0 0 6px; font-size: 0.95rem; font-weight: 500; color: #2c3e50; }
+        .annot-form-note { margin: 0 0 12px; font-size: 12px; color: #6c757d; line-height: 1.4; }
+        .annot-field { display: block; font-size: 11px; color: #6c757d; margin-bottom: 10px; }
+        .annot-field textarea, .annot-field input {
+            display: block; width: 100%; margin-top: 4px; padding: 6px 8px; font-size: 13px;
+            font-family: inherit; color: #2c3e50; border: 1px solid #dee2e6; border-radius: 6px; resize: vertical;
+        }
+        .annot-field-row { display: flex; gap: 10px; }
+        .annot-field-row .annot-field { flex: 1; }
+        .annot-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+        .annot-form-actions button {
+            border-radius: 6px; padding: 7px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+        }
+        #annot-cancel { border: 1px solid #ced4da; background: white; color: #495057; }
+        #annot-cancel:hover { background: #f8f9fa; }
+
+        #annot-toast {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950;
+            border-radius: 10px; padding: 8px 14px; font-size: 12px;
+        }
+
+        /* Session-limit overlay: covers the map, not the whole page — the
+           rest of the site stays usable while this is up. */
+        .annot-overlay {
+            position: absolute; inset: 0; z-index: 970;
+            background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center;
+        }
+        .annot-overlay-card { max-width: 260px; padding: 20px 24px; border-radius: 12px; text-align: center; }
+        .annot-overlay-card h4 { margin: 0 0 8px; font-size: 1rem; font-weight: 500; color: #2c3e50; }
+        .annot-overlay-card p { margin: 0 0 14px; font-size: 13px; color: #6c757d; line-height: 1.4; }
+
+        @media (max-width: 720px) {
+            #filter-panel { width: 180px; }
+            #me-search-standalone { max-width: 90%; }
+        }
+    </style>
 </head>
 <body>
 
@@ -46,237 +356,159 @@
         </nav>
         <div class="container">
             <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
-            <h1 class="title">Data</h1>
+            <h1 class="title">Rooftop photovoltaic map</h1>
 
             <div class="quick-links">
-                <a href="#map" class="quick-link">Map</a>
-                <a href="#departements" class="quick-link">D&eacute;partements</a>
-                <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="quick-link">Raw Data</a>
+                <a href="#map-section" class="quick-link">Interactive viewer</a>
+                <a href="local-statistics.html" class="quick-link">Local statistics</a>
+                <div class="dropdown">
+                    <span class="quick-link dropdown-btn">Raw data &#9662;</span>
+                    <div class="dropdown-content">
+                        <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="dropdown-item">
+                            <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg" alt="Zenodo DOI" style="height:20px; display:block;">
+                            <span class="dropdown-item-sub">Latest release &mdash; permanent DOI</span>
+                        </a>
+                        <a href="https://huggingface.co/datasets/gabrielkasmi/openpvmapper" target="_blank" class="dropdown-item">
+                            <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset" style="height:20px; display:block;">
+                        </a>
+                    </div>
+                </div>
+                <a href="data-documentation.html" class="quick-link">Documentation</a>
             </div>
         </div>
     </header>
 
     <!-- Interactive map: the primary way in -->
-    <section id="map">
+    <section id="map-section">
         <div class="container">
-            <h2>Explore the Interactive Map</h2>
-            <div class="validation-stats">
-                <div class="stat-item">
-                    <span class="stat-number">520k+</span>
-                    <span class="stat-label">PV systems mapped</span>
+
+            <div id="me-search-standalone">
+                <div id="me-search-box" class="me-glass">
+                    <input id="city-search" type="text" placeholder="City, d&eacute;partement, r&eacute;gion&hellip;" autocomplete="off" spellcheck="false">
+                    <button class="me-icon-btn" id="search-btn" aria-label="Search">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    </button>
+                    <button class="me-icon-btn" id="clear-btn" aria-label="Clear" style="display:none">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number">2.7 GWp</span>
-                    <span class="stat-label">Estimated installed capacity</span>
-                </div>
-                <div class="stat-item" id="community-stat" style="display:none;">
-                    <span class="stat-number" id="community-count">&mdash;</span>
-                    <span class="stat-label">Community contributions</span>
-                </div>
+                <div id="search-results" class="me-glass"></div>
             </div>
-            <figure style="margin-top: 40px; text-align: center;">
-                <img src="../static/images/assets/mapping.webp" alt="DeepPVMapper mapping results" class="teaser-image" style="max-width: 700px;">
-                <figcaption class="caption">Overview of the mapping of rooftop PV systems by DeepPVMapper. The darker, the higher the installed capacity.</figcaption>
-            </figure>
-            <p style="text-align: center; margin-top: 30px;">
-                <a href="map.html" class="btn">Explore the interactive map &rarr;</a>
+
+            <p class="hub-intro" style="margin-top:14px;">
+                <span style="display:block; text-align:center;">
+                    Use the search bar above, or
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    draw a zone on the map, to browse detections. Use
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                    to clear a selection, and
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 00.12-.66l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.74 8.82a.5.5 0 00.12.66l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 00-.12.66l1.92 3.32c.14.24.4.32.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5.02.61-.22l1.92-3.32a.5.5 0 00-.12-.66l-2.01-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+                    to filter your selection, then download it with the button at the bottom of the map. Click a marker to see its outline and details; click anywhere else to go back.
+                </span>
+                <span class="map-help-link-row">
+                    <a href="#map-help">More info &darr;</a>
+                </span>
+            </p>
+
+            <p class="annot-cta">
+                Spot an error? You can correct it directly &mdash; report a false positive, redraw a shape, or add a missing installation.
+                <span id="annot-counter" class="annot-counter"></span>
             </p>
         </div>
-    </section>
 
-    <!-- Downloads -->
-    <section>
-        <div class="container">
-            <h2>Download the Data</h2>
-            <p class="hub-intro">
-                <span style="display:block; text-align:center;">Grab the full registry in one file, or pull a custom subset for the area you care about.</span>
-            </p>
-            <div class="card-grid">
-                <div class="hub-card">
-                    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset" class="hub-card-badge">
-                    <h3>OpenPVMapper</h3>
-                    <p>The full multi-source registry — AI detections, OpenStreetMap contributions, and manual corrections combined — 1.14M+ installations and roughly 15 GWp of capacity across metropolitan France, as a single GeoJSON file archived on Zenodo with a permanent DOI, and also mirrored on Hugging Face.</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="btn">Download on Zenodo &rarr;</a>
-                        <a href="https://huggingface.co/datasets/gabrielkasmi/openpvmapper" target="_blank" class="btn">View on HuggingFace &rarr;</a>
-                    </div>
+        <div id="map-embed-wrap">
+            <div id="map"></div>
+
+            <div id="me-topbar">
+                <button id="draw-zone-btn" class="me-icon-action" title="Draw a zone" aria-label="Draw a zone">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button id="clear-zone-btn" class="me-icon-action" title="Clear zone" aria-label="Clear zone" style="display:none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                </button>
+            </div>
+
+            <div id="zone-editbar" class="me-glass" style="display:none">
+                <span>Drag to draw a rectangle&hellip;</span>
+                <button id="cancel-zone-btn">Cancel</button>
+            </div>
+
+            <div id="wfs-spinner" class="me-glass" style="display:none">Loading&hellip;</div>
+
+            <div class="map-corner-stack">
+                <div id="layer-toggle-mount"></div>
+                <button id="filter-toggle-btn" class="me-icon-action" title="Filters" aria-label="Toggle filters" style="display:none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 00.12-.66l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.74 8.82a.5.5 0 00.12.66l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 00-.12.66l1.92 3.32c.14.24.4.32.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5.02.61-.22l1.92-3.32a.5.5 0 00-.12-.66l-2.01-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+                </button>
+            </div>
+
+            <div id="filter-panel" class="me-glass" style="display:none"></div>
+
+            <div id="export-toast" class="me-glass"></div>
+
+            <!-- Add a missing installation: always available, whether or not a
+                 zone is currently selected. Download stays scoped to a selection
+                 and lives right beside it, in its own sub-container. -->
+            <div id="map-bottom-toolbar">
+                <button id="annot-add-btn" class="me-action-btn annot-add-btn" type="button">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Add missing installation
+                </button>
+                <div id="export-controls" style="display:none"></div>
+            </div>
+
+            <!-- Annotation drawing prompt (add / redraw) — same slot as
+                 #zone-editbar, mutually exclusive with it in time. -->
+            <div id="annot-editbar" class="me-glass" style="display:none">
+                <span id="annot-editbar-msg"></span>
+                <button id="annot-cancel-edit" type="button">Cancel</button>
+            </div>
+
+            <!-- Annotation submission form: comment + optional estimates. -->
+            <div id="annot-form" class="me-glass annot-form" style="display:none">
+                <h4 id="annot-form-title"></h4>
+                <p id="annot-form-note" class="annot-form-note"></p>
+                <label class="annot-field">
+                    Comment (optional)
+                    <textarea id="annot-comment" rows="2" maxlength="500" placeholder="Anything that helps review this&hellip;"></textarea>
+                </label>
+                <div class="annot-field-row">
+                    <label class="annot-field">Surface (m&sup2;)<input id="annot-surface" type="number" min="0" step="0.1"></label>
+                    <label class="annot-field">Capacity (kWp)<input id="annot-kwp" type="number" min="0" step="0.01"></label>
                 </div>
-                <div class="hub-card">
-                    <h3>Custom subset</h3>
-                    <p>Need just one département or commune? Lock onto it on the map — its stats card includes an exhaustive CSV export for that zone, every detection, not a sample.</p>
-                    <a href="map.html" class="btn">Open the map &rarr;</a>
+                <div class="annot-form-actions">
+                    <button id="annot-cancel" type="button">Cancel</button>
+                    <button id="annot-submit" type="button" class="me-primary-btn">Submit</button>
                 </div>
             </div>
-            <p style="text-align: center; margin-top: 30px; color: #6c757d;">
-                Looking for the annotated training dataset the models were built on? That's on the <a href="software.html#model-weights">Software</a> page, alongside the model weights.
-            </p>
-        </div>
-    </section>
 
-    <!-- Browse by département: static, crawlable links (SEO) -->
-    <section id="departements">
+            <div id="annot-toast" class="me-glass" style="display:none"></div>
+
+            <div id="limit-overlay" class="annot-overlay" style="display:none">
+                <div class="me-glass annot-overlay-card">
+                    <h4>Session limit reached</h4>
+                    <p>You've submitted a lot of edits in this session &mdash; thank you! Reload the page to keep contributing.</p>
+                    <button id="limit-reload" type="button" class="me-primary-btn">Reload</button>
+                </div>
+            </div>
+        </div>
+
         <div class="container">
-            <h2>Browse by D&eacute;partement</h2>
-            <p class="hub-intro">
-                <span style="display:block; text-align:center;">Each département has its own page with headline stats and a direct link into the map, pre-zoomed to that area.</span>
-            </p>
-            <div class="dept-grid">
-                <!-- DEPARTMENTS_GRID_START -->
-                <div class="dept-region">
-                    <h3>Auvergne-Rhône-Alpes</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/01.html">Ain <span class="dept-link-code">01</span></a>
-                    <a class="dept-link" href="data/03.html">Allier <span class="dept-link-code">03</span></a>
-                    <a class="dept-link" href="data/07.html">Ardèche <span class="dept-link-code">07</span></a>
-                    <a class="dept-link" href="data/15.html">Cantal <span class="dept-link-code">15</span></a>
-                    <a class="dept-link" href="data/26.html">Drôme <span class="dept-link-code">26</span></a>
-                    <a class="dept-link" href="data/43.html">Haute-Loire <span class="dept-link-code">43</span></a>
-                    <a class="dept-link" href="data/74.html">Haute-Savoie <span class="dept-link-code">74</span></a>
-                    <a class="dept-link" href="data/38.html">Isère <span class="dept-link-code">38</span></a>
-                    <a class="dept-link" href="data/42.html">Loire <span class="dept-link-code">42</span></a>
-                    <a class="dept-link" href="data/63.html">Puy-de-Dôme <span class="dept-link-code">63</span></a>
-                    <a class="dept-link" href="data/69.html">Rhône <span class="dept-link-code">69</span></a>
-                    <a class="dept-link" href="data/73.html">Savoie <span class="dept-link-code">73</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Bourgogne-Franche-Comté</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/21.html">Côte-d'Or <span class="dept-link-code">21</span></a>
-                    <a class="dept-link" href="data/25.html">Doubs <span class="dept-link-code">25</span></a>
-                    <a class="dept-link" href="data/70.html">Haute-Saône <span class="dept-link-code">70</span></a>
-                    <a class="dept-link" href="data/39.html">Jura <span class="dept-link-code">39</span></a>
-                    <a class="dept-link" href="data/58.html">Nièvre <span class="dept-link-code">58</span></a>
-                    <a class="dept-link" href="data/71.html">Saône-et-Loire <span class="dept-link-code">71</span></a>
-                    <a class="dept-link" href="data/90.html">Territoire de Belfort <span class="dept-link-code">90</span></a>
-                    <a class="dept-link" href="data/89.html">Yonne <span class="dept-link-code">89</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Bretagne</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/22.html">Côtes-d'Armor <span class="dept-link-code">22</span></a>
-                    <a class="dept-link" href="data/29.html">Finistère <span class="dept-link-code">29</span></a>
-                    <a class="dept-link" href="data/35.html">Ille-et-Vilaine <span class="dept-link-code">35</span></a>
-                    <a class="dept-link" href="data/56.html">Morbihan <span class="dept-link-code">56</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Centre-Val de Loire</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/18.html">Cher <span class="dept-link-code">18</span></a>
-                    <a class="dept-link" href="data/28.html">Eure-et-Loir <span class="dept-link-code">28</span></a>
-                    <a class="dept-link" href="data/36.html">Indre <span class="dept-link-code">36</span></a>
-                    <a class="dept-link" href="data/37.html">Indre-et-Loire <span class="dept-link-code">37</span></a>
-                    <a class="dept-link" href="data/41.html">Loir-et-Cher <span class="dept-link-code">41</span></a>
-                    <a class="dept-link" href="data/45.html">Loiret <span class="dept-link-code">45</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Grand Est</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/08.html">Ardennes <span class="dept-link-code">08</span></a>
-                    <a class="dept-link" href="data/10.html">Aube <span class="dept-link-code">10</span></a>
-                    <a class="dept-link" href="data/67.html">Bas-Rhin <span class="dept-link-code">67</span></a>
-                    <a class="dept-link" href="data/68.html">Haut-Rhin <span class="dept-link-code">68</span></a>
-                    <a class="dept-link" href="data/52.html">Haute-Marne <span class="dept-link-code">52</span></a>
-                    <a class="dept-link" href="data/51.html">Marne <span class="dept-link-code">51</span></a>
-                    <a class="dept-link" href="data/54.html">Meurthe-et-Moselle <span class="dept-link-code">54</span></a>
-                    <a class="dept-link" href="data/55.html">Meuse <span class="dept-link-code">55</span></a>
-                    <a class="dept-link" href="data/57.html">Moselle <span class="dept-link-code">57</span></a>
-                    <a class="dept-link" href="data/88.html">Vosges <span class="dept-link-code">88</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Hauts-de-France</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/02.html">Aisne <span class="dept-link-code">02</span></a>
-                    <a class="dept-link" href="data/59.html">Nord <span class="dept-link-code">59</span></a>
-                    <a class="dept-link" href="data/60.html">Oise <span class="dept-link-code">60</span></a>
-                    <a class="dept-link" href="data/62.html">Pas-de-Calais <span class="dept-link-code">62</span></a>
-                    <a class="dept-link" href="data/80.html">Somme <span class="dept-link-code">80</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Normandie</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/14.html">Calvados <span class="dept-link-code">14</span></a>
-                    <a class="dept-link" href="data/27.html">Eure <span class="dept-link-code">27</span></a>
-                    <a class="dept-link" href="data/50.html">Manche <span class="dept-link-code">50</span></a>
-                    <a class="dept-link" href="data/61.html">Orne <span class="dept-link-code">61</span></a>
-                    <a class="dept-link" href="data/76.html">Seine-Maritime <span class="dept-link-code">76</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Nouvelle-Aquitaine</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/16.html">Charente <span class="dept-link-code">16</span></a>
-                    <a class="dept-link" href="data/17.html">Charente-Maritime <span class="dept-link-code">17</span></a>
-                    <a class="dept-link" href="data/19.html">Corrèze <span class="dept-link-code">19</span></a>
-                    <a class="dept-link" href="data/23.html">Creuse <span class="dept-link-code">23</span></a>
-                    <a class="dept-link" href="data/79.html">Deux-Sèvres <span class="dept-link-code">79</span></a>
-                    <a class="dept-link" href="data/24.html">Dordogne <span class="dept-link-code">24</span></a>
-                    <a class="dept-link" href="data/33.html">Gironde <span class="dept-link-code">33</span></a>
-                    <a class="dept-link" href="data/87.html">Haute-Vienne <span class="dept-link-code">87</span></a>
-                    <a class="dept-link" href="data/40.html">Landes <span class="dept-link-code">40</span></a>
-                    <a class="dept-link" href="data/47.html">Lot-et-Garonne <span class="dept-link-code">47</span></a>
-                    <a class="dept-link" href="data/64.html">Pyrénées-Atlantiques <span class="dept-link-code">64</span></a>
-                    <a class="dept-link" href="data/86.html">Vienne <span class="dept-link-code">86</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Occitanie</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/09.html">Ariège <span class="dept-link-code">09</span></a>
-                    <a class="dept-link" href="data/11.html">Aude <span class="dept-link-code">11</span></a>
-                    <a class="dept-link" href="data/12.html">Aveyron <span class="dept-link-code">12</span></a>
-                    <a class="dept-link" href="data/30.html">Gard <span class="dept-link-code">30</span></a>
-                    <a class="dept-link" href="data/32.html">Gers <span class="dept-link-code">32</span></a>
-                    <a class="dept-link" href="data/31.html">Haute-Garonne <span class="dept-link-code">31</span></a>
-                    <a class="dept-link" href="data/65.html">Hautes-Pyrénées <span class="dept-link-code">65</span></a>
-                    <a class="dept-link" href="data/34.html">Hérault <span class="dept-link-code">34</span></a>
-                    <a class="dept-link" href="data/46.html">Lot <span class="dept-link-code">46</span></a>
-                    <a class="dept-link" href="data/48.html">Lozère <span class="dept-link-code">48</span></a>
-                    <a class="dept-link" href="data/66.html">Pyrénées-Orientales <span class="dept-link-code">66</span></a>
-                    <a class="dept-link" href="data/81.html">Tarn <span class="dept-link-code">81</span></a>
-                    <a class="dept-link" href="data/82.html">Tarn-et-Garonne <span class="dept-link-code">82</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Pays de la Loire</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/44.html">Loire-Atlantique <span class="dept-link-code">44</span></a>
-                    <a class="dept-link" href="data/49.html">Maine-et-Loire <span class="dept-link-code">49</span></a>
-                    <a class="dept-link" href="data/53.html">Mayenne <span class="dept-link-code">53</span></a>
-                    <a class="dept-link" href="data/72.html">Sarthe <span class="dept-link-code">72</span></a>
-                    <a class="dept-link" href="data/85.html">Vendée <span class="dept-link-code">85</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Provence-Alpes-Côte d'Azur</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/06.html">Alpes-Maritimes <span class="dept-link-code">06</span></a>
-                    <a class="dept-link" href="data/04.html">Alpes-de-Haute-Provence <span class="dept-link-code">04</span></a>
-                    <a class="dept-link" href="data/13.html">Bouches-du-Rhône <span class="dept-link-code">13</span></a>
-                    <a class="dept-link" href="data/05.html">Hautes-Alpes <span class="dept-link-code">05</span></a>
-                    <a class="dept-link" href="data/83.html">Var <span class="dept-link-code">83</span></a>
-                    <a class="dept-link" href="data/84.html">Vaucluse <span class="dept-link-code">84</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Île-de-France</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/91.html">Essonne <span class="dept-link-code">91</span></a>
-                    <a class="dept-link" href="data/92.html">Hauts-de-Seine <span class="dept-link-code">92</span></a>
-                    <a class="dept-link" href="data/75.html">Paris <span class="dept-link-code">75</span></a>
-                    <a class="dept-link" href="data/93.html">Seine-Saint-Denis <span class="dept-link-code">93</span></a>
-                    <a class="dept-link" href="data/77.html">Seine-et-Marne <span class="dept-link-code">77</span></a>
-                    <a class="dept-link" href="data/95.html">Val-d'Oise <span class="dept-link-code">95</span></a>
-                    <a class="dept-link" href="data/94.html">Val-de-Marne <span class="dept-link-code">94</span></a>
-                    <a class="dept-link" href="data/78.html">Yvelines <span class="dept-link-code">78</span></a>
-                    </div>
-                </div>
-                <!-- DEPARTMENTS_GRID_END -->
+            <div id="map-help" class="map-help">
+                <h3 class="subsection">How to use this map</h3>
+                <ul>
+                    <li>Search a city, d&eacute;partement, or r&eacute;gion by name &mdash; it resolves to the exact administrative boundary, not just a rough bounding box.</li>
+                    <li>Or click the pencil icon and drag a rectangle on the map to browse a custom area.</li>
+                    <li>Detections show as clusters. Zoom in, or click a marker, to reveal that installation's exact rooftop outline and a popup with its details (surface, capacity, first seen). Click anywhere else on the map to go back to the cluster view.</li>
+                    <li>Click the eraser icon to clear the current selection.</li>
+                    <li>Click the gear icon to filter the selection by power, year, or source, or to hide detections flagged as false positives &mdash; the sliders only let you pick values actually present in the data.</li>
+                    <li>Download the current (filtered) selection as GeoJSON or CSV with the button at the bottom of the map.</li>
+                    <li>Switch between the street map and satellite imagery with the toggle at the top right.</li>
+                    <li>Spotted a mistake? Click an installation to open its popup, then use <strong>False positive</strong> if it isn't really a PV system, or <strong>Redraw</strong> to trace a corrected outline over the dimmed original. Both apply to your view immediately and are submitted for review.</li>
+                    <li>Missing an installation entirely? Click <strong>Add missing installation</strong> at the bottom of the map, then trace its outline directly on the map (click to place each corner, click the first point again to close the shape).</li>
+                    <li>For any edit, you can add an optional comment and estimated surface/capacity before submitting &mdash; nothing is deleted from the official dataset on your say-so alone; edits are reviewed before they're merged in.</li>
+                </ul>
+                <p id="map-version-info" class="map-version-info"></p>
             </div>
         </div>
     </section>
@@ -288,26 +520,12 @@
     </footer>
 
     <script src="../static/js/script.js"></script>
-    <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../static/js/map/config.js';
-        const THRESHOLD = 25;
-        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_count`, {
-                method: 'POST',
-                headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                           'Content-Type': 'application/json' },
-                body: '{}'
-            })
-            .then(r => r.json())
-            .then(count => {
-                const force = new URLSearchParams(location.search).has('contrib');
-                if (typeof count === 'number' && (count >= THRESHOLD || force)) {
-                    document.getElementById('community-count').textContent = count.toLocaleString('en-US');
-                    document.getElementById('community-stat').style.display = '';
-                }
-            })
-            .catch(() => {});
-        }
-    </script>
+
+    <!-- Embedded map: Leaflet + clustering + drawing + Supabase client -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script type="module" src="../static/js/map/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Documentation &middot; DeepPVMapper</title>
+
+    <meta name="description" content="Technical reference for the DeepPVMapper rooftop PV registry: schema, attributes, file formats, coordinate conventions, and interoperability with GeoJSON, STAC, and OpenStreetMap.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/data-documentation.html">
+    <meta property="og:title" content="Data Documentation &middot; DeepPVMapper">
+    <meta property="og:description" content="Schema, attributes, file formats, and interoperability conventions for the DeepPVMapper rooftop PV registry.">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/data-documentation.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .doc-table-wrap { max-width: 900px; margin: 24px auto; overflow-x: auto; }
+        table.doc-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+        table.doc-table th, table.doc-table td { border: 1px solid #dee2e6; padding: 10px 14px; text-align: left; vertical-align: top; }
+        table.doc-table thead th { background-color: #f8f9fa; color: #2c3e50; }
+        table.doc-table td.mono, table.doc-table th.mono { font-family: 'Courier New', monospace; font-size: 0.85rem; white-space: nowrap; }
+        table.doc-table caption { text-align: left; font-size: 0.85rem; color: #6c757d; margin-top: 10px; caption-side: bottom; line-height: 1.6; }
+
+        .doc-content { max-width: 900px; margin: 0 auto; }
+        .doc-content p, .doc-content li { font-size: 1.05rem; line-height: 1.7; }
+        .doc-content ul, .doc-content ol { margin: 16px 0; padding-left: 30px; }
+        .doc-content li { margin-bottom: 8px; }
+        .doc-content code { font-family: 'Courier New', monospace; background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 0.92em; }
+
+        .doc-note {
+            background-color: #f8f9fa; border-left: 3px solid #adb5bd; border-radius: 6px;
+            padding: 14px 18px; margin: 20px 0; font-size: 0.95rem; color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                                                                <div class="topnav-links">
+                                    <a href="about.html" class="topnav-link">About</a>
+                                    <a href="data.html" class="topnav-link">Data</a>
+                                    <a href="software.html" class="topnav-link">Software</a>
+                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                                        </div>
+                                    </div>
+                                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                                    <a href="publications.html" class="topnav-link">Publications</a>
+                                    <a href="in-press.html" class="topnav-link">In Press</a>
+                                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">Data Documentation</h1>
+            <div class="quick-links">
+                <a href="data.html" class="quick-link">&larr; Back to Data</a>
+                <a href="#schema" class="quick-link">Schema</a>
+                <a href="#sources" class="quick-link">Source encoding</a>
+                <a href="#interop" class="quick-link">Interoperability</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="abstract">
+        <div class="container doc-content">
+            <h2><span class="section-number">1.</span>Overview</h2>
+            <p>
+                This page is the technical reference for the DeepPVMapper registry: one record per detected
+                rooftop photovoltaic installation across metropolitan France, each carrying a footprint polygon
+                and a set of derived characteristics. It's meant for anyone integrating the data programmatically
+                &mdash; the interactive map on the <a href="data.html">Data page</a> exposes the same schema
+                described here through its CSV and GeoJSON exports, and the full registry is published on Zenodo
+                and mirrored on Hugging Face (see <a href="data.html#map-section">Access the data</a>).
+            </p>
+            <p>
+                For how the detections themselves are produced &mdash; the deep learning pipeline, imagery
+                sources, and characterization models &mdash; see the <a href="pipeline.html">Pipeline</a> page.
+                For how the different source datasets (AI detections, OpenStreetMap, registries) are combined
+                into one registry, see <a href="openpvmapper.html">OpenPVMapper</a>.
+            </p>
+        </div>
+    </section>
+
+    <section id="schema">
+        <div class="container doc-content">
+            <h2><span class="section-number">2.</span>File Formats &amp; Conventions</h2>
+            <p>
+                The canonical geometry format is <a href="https://datatracker.ietf.org/doc/html/rfc7946" target="_blank">GeoJSON (RFC&nbsp;7946)</a>,
+                the same format used for a custom-area export from the map. Coordinates are longitude, latitude
+                (in that order, per the GeoJSON spec) in <strong>WGS&nbsp;84 / EPSG:4326</strong> &mdash; no
+                projection or reprojection is needed to use them directly in a GIS tool, <code>geopandas</code>,
+                or a web map. Each installation's footprint is a <code>Polygon</code> or <code>MultiPolygon</code>.
+            </p>
+            <p>
+                Two export shapes are available from the map for a custom selection:
+            </p>
+            <ul>
+                <li><strong>GeoJSON</strong> &mdash; one <code>Feature</code> per installation, with the real
+                    footprint geometry and the full attribute table below in <code>properties</code>.</li>
+                <li><strong>CSV</strong> &mdash; one row per installation, with the footprint collapsed to its
+                    centroid (<code>lat</code>, <code>lng</code> columns) plus the same attributes, for tools that
+                    don't need the polygon shape.</li>
+            </ul>
+            <p>The full registry release (Zenodo / Hugging Face) ships as a single GeoJSON file with the same schema.</p>
+
+            <h3 class="subsection"><span class="section-number">2.1</span>Attribute reference</h3>
+            <div class="doc-table-wrap">
+                <table class="doc-table">
+                    <thead>
+                        <tr><th class="mono">Field</th><th>Type</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="mono">array_id</td><td>string</td><td>Stable identifier for the installation (e.g. <code>"1024.0"</code>). Distinct from the row's internal database id &mdash; this is the id to key off of across releases.</td></tr>
+                        <tr><td class="mono">surface</td><td>float (m&sup2;)</td><td>Footprint area of the detected array.</td></tr>
+                        <tr><td class="mono">kwp</td><td>float (kWp)</td><td>Estimated installed capacity (DC), derived from the footprint and panel characteristics.</td></tr>
+                        <tr><td class="mono">tilt</td><td>integer (&deg;)</td><td>Estimated panel tilt from horizontal (0&deg; = flat roof-mounted, increasing towards vertical).</td></tr>
+                        <tr><td class="mono">azimuth</td><td>integer (&deg;)</td><td>Estimated panel orientation, clockwise from true north (0&ndash;360&deg;) &mdash; the standard solar-industry convention. See the <a href="pipeline.html">Pipeline</a> page for how this is estimated.</td></tr>
+                        <tr><td class="mono">first_seen</td><td>integer (year)</td><td>Earliest imagery vintage in which this installation was detected.</td></tr>
+                        <tr><td class="mono">last_seen</td><td>integer (year)</td><td>Most recent imagery vintage in which it was detected. Used as the "year" filter on the map.</td></tr>
+                        <tr><td class="mono">n_vintages</td><td>number</td><td>Number of distinct imagery vintages this installation was independently detected in, between <code>first_seen</code> and <code>last_seen</code> &mdash; a rough stability/confidence signal (an installation seen in every available vintage is on firmer ground than one seen once).</td></tr>
+                        <tr><td class="mono">sources</td><td>string</td><td>Comma-separated list of source indices contributing to this record (e.g. <code>"0,1"</code>). See <a href="#sources">Source encoding</a> below.</td></tr>
+                        <tr><td class="mono">frpv_proba</td><td>float [0&ndash;1], nullable</td><td>Match probability against the FRPV reference source (see <a href="#sources">Source encoding</a>) used in the <a href="main-results.html">Registry Audit</a>, where a comparison was attempted. Null when no comparison was made (e.g. no candidate nearby).</td></tr>
+                        <tr><td class="mono">false_positive</td><td>boolean, nullable</td><td>Set when this record has been flagged (by review or community annotation) as not a real installation. The map hides these by default. Null/absent means "not flagged" &mdash; not the same as a confirmed true positive.</td></tr>
+                        <tr><td class="mono">false_positive_source</td><td>string, nullable</td><td>Who/what flagged it (e.g. a reviewer pass vs. a community submission), when <code>false_positive</code> is set.</td></tr>
+                        <tr><td class="mono">insee</td><td>string</td><td>INSEE commune code the installation falls in.</td></tr>
+                        <tr><td class="mono">dpt</td><td>string</td><td>Two-character département code (<code>"2A"</code>/<code>"2B"</code> for Corse).</td></tr>
+                        <tr><td class="mono">rnb_id</td><td>string, nullable</td><td>Building identifier in the French <a href="https://rnb.beta.gouv.fr/" target="_blank">R&eacute;f&eacute;rentiel National des B&acirc;timents (RNB)</a>, when a confident building-level match was found &mdash; useful for joining against other RNB-referenced datasets.</td></tr>
+                    </tbody>
+                    <caption>Every export (map, CSV, GeoJSON, full release) exposes this same set of properties &mdash; nothing is dropped or renamed between them.</caption>
+                </table>
+            </div>
+
+            <div class="doc-note">
+                <strong>A note on estimated fields.</strong> <code>surface</code>, <code>kwp</code>, <code>tilt</code>,
+                <code>azimuth</code>, and <code>frpv_proba</code> are model outputs, not ground truth &mdash; treat
+                them as estimates with the error characteristics described on the <a href="main-results.html">Registry Audit</a>
+                page, not as surveyed or self-reported values.
+            </div>
+        </div>
+    </section>
+
+    <section id="sources">
+        <div class="container doc-content">
+            <h2><span class="section-number">3.</span>Source Encoding</h2>
+            <p>
+                <code>sources</code> is a comma-separated list of indices, since a single installation can be
+                corroborated by more than one source (e.g. an AI detection later confirmed by an OpenStreetMap
+                contribution). The indices map as follows:
+            </p>
+            <div class="doc-table-wrap">
+                <table class="doc-table">
+                    <thead><tr><th class="mono">Index</th><th>Source</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td class="mono">0</td><td>DPVM</td><td>DeepPVMapper's own aerial-imagery detection pipeline.</td></tr>
+                        <tr><td class="mono">1</td><td>FRPV</td><td>Matched against the FRPV reference dataset &mdash; see the <a href="main-results.html">Registry Audit</a> page for the comparison methodology and how it relates to the public RNI registry.</td></tr>
+                        <tr><td class="mono">2</td><td>OSM</td><td>Contributed via OpenStreetMap (see <a href="#interop">Interoperability</a> below for the relevant OSM tagging conventions).</td></tr>
+                        <tr><td class="mono">3</td><td>Manual correction</td><td>A manual correction submitted through the map's annotation tools.</td></tr>
+                        <tr><td class="mono">4</td><td>Recall sample</td><td>Added from a recall-annotation sample &mdash; installations the automated pipeline initially missed, recovered through targeted review.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="interop">
+        <div class="container doc-content">
+            <h2><span class="section-number">4.</span>Interoperability &amp; Standards</h2>
+
+            <h3 class="subsection"><span class="section-number">4.1</span>STAC</h3>
+            <p>
+                <a href="https://stacspec.org/en" target="_blank">STAC (SpatioTemporal Asset Catalog)</a> is a
+                widely-used specification for cataloging Earth observation data &mdash; its core unit, a STAC
+                <em>Item</em>, is a GeoJSON Feature with a datetime and a set of linked <em>Assets</em> (imagery
+                tiles, point clouds, and similar), organized under <em>Catalogs</em>/<em>Collections</em>. It's
+                built to be broad, and isn't limited to raster imagery in principle.
+            </p>
+            <p>
+                <strong>DeepPVMapper does not currently conform to STAC</strong>, and that's a deliberate choice
+                rather than an oversight: this registry is a flat collection of 1.1M+ vector building-footprint
+                annotations, not a modest set of scene/asset items each pointing at external files with a
+                well-defined temporal extent. Forcing every installation (or even every département-level extract)
+                into a STAC Item/Asset/Catalog hierarchy would add real modeling overhead without buying much for
+                the people actually using this data &mdash; who overwhelmingly want it as plain vector features
+                with attributes, which is exactly what GeoJSON already gives them, natively readable by QGIS,
+                <code>geopandas</code>, PostGIS, and any modern GIS stack without any STAC awareness at all.
+            </p>
+            <p>
+                If cross-catalog discoverability (showing up in STAC-aware EO catalogs/browsers) becomes valuable
+                later, a lightweight middle ground exists: wrapping the whole released file as a single STAC
+                Collection + Item (one Asset = the GeoJSON download), without restructuring the underlying data at
+                all. That's a cheap, optional addition on top of the current format &mdash; not a prerequisite for
+                using the data today.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">4.2</span>OpenStreetMap tagging conventions</h3>
+            <p>
+                The OSM-sourced subset (<code>sources</code> index <code>2</code>) is built from OpenStreetMap
+                contributions tagged along conventional lines. For readers comparing our schema against the OSM
+                tagging scheme directly:
+            </p>
+            <ul>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:building" target="_blank">Key:building</a> &mdash; building footprint tagging, the basis for our own footprint polygons.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:generator:source" target="_blank">Key:generator:source</a> and <a href="https://wiki.openstreetmap.org/wiki/Tag:generator:source=solar" target="_blank">Tag:generator:source=solar</a> &mdash; how a solar installation is tagged as a power generator in OSM.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:roof:direction" target="_blank">Key:roof:direction</a> &mdash; the closest OSM analogue to our own <code>azimuth</code> field, though roof direction and panel azimuth aren't always the same thing (panels aren't always roof-aligned).</li>
+            </ul>
+
+            <h3 class="subsection"><span class="section-number">4.3</span>Licensing &amp; citation</h3>
+            <p>
+                See the Zenodo record (linked from <a href="data.html#map-section">Access the data</a> on the
+                Data page) for the dataset's license and the citation to use when referencing it in academic work.
+                The DeepPVMapper codebase itself is MIT-licensed (see the footer below).
+            </p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

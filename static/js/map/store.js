@@ -1,6 +1,7 @@
 // ─── Shared state + small utilities ──────────────────────────────────────────
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, DETECTIONS_RPC, ZONE_RPC, ZONE_FETCH_MAX } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, POINTS_RPC, DETECTIONS_RPC, ZONE_RPC, ZONE_FETCH_MAX,
+         ADMIN_POINTS_RPC, ADMIN_ZONE_RPC } from './config.js';
 
 /** Fire-and-forget usage event (plain REST: no client lib, no failure surface). */
 export function logEvent(event, detail) {
@@ -25,10 +26,34 @@ export function getSupabase() {
 }
 
 /**
- * Detection polygons in a bbox — replaces the old WFS BBOX GetFeature call.
- * Returns a plain array of GeoJSON Features (id, geometry, properties), same
- * shape callers used to get from `data.features`. Pass an AbortSignal and
- * check `signal.aborted` on return (same pattern as the old fetch abort).
+ * Light detections in a bbox: centroid + slim properties, NO geometry — this
+ * is what makes a région-sized selection viable (a full polygon fetch of that
+ * many rows is what used to hang). Returns pseudo-GeoJSON Point Features so
+ * the rest of the app (centroid(), applyFilters(), export) doesn't need to
+ * know the difference. Pass an AbortSignal and check `signal.aborted` on return.
+ */
+export async function fetchDetectionsPoints(west, south, east, north, limit, signal) {
+    const sb = getSupabase();
+    if (!sb) return [];
+    let q = sb.rpc(POINTS_RPC, {
+        min_lon: west, min_lat: south, max_lon: east, max_lat: north, max_count: limit
+    });
+    if (signal) q = q.abortSignal(signal);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data || []).map(row => ({
+        id: row.id,
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [row.lng, row.lat] },
+        properties: row,
+    }));
+}
+
+/**
+ * Real detection polygons in a bbox — used only for the tiny box fetched
+ * around a clicked marker, to pull that one installation's exact shape.
+ * Returns a plain array of GeoJSON Features (id, geometry, properties).
+ * Pass an AbortSignal and check `signal.aborted` on return.
  */
 export async function fetchDetectionsBBox(west, south, east, north, limit, signal) {
     const sb = getSupabase();
@@ -44,7 +69,10 @@ export async function fetchDetectionsBBox(west, south, east, north, limit, signa
 
 /**
  * All detections in a zone (exact polygon containment, no bbox proxy, no low
- * cap) — CSV export only. Charts/KPIs stay on the cheap bbox sample.
+ * cap), WITH full geometry — GeoJSON export only. `feature` is a GeoJSON
+ * Feature whose geometry is the zone to query (a rectangle built from the
+ * current selection's bounds works fine — ST_Contains against a rectangle is
+ * just a bbox test with extra rigor).
  */
 export async function fetchDetectionsInZone(feature, limit = ZONE_FETCH_MAX) {
     const sb = getSupabase();
@@ -56,35 +84,67 @@ export async function fetchDetectionsInZone(feature, limit = ZONE_FETCH_MAX) {
     return data || [];
 }
 
+/**
+ * Light points by admin code (région/département/commune) — the fast path for
+ * a named-place selection (see geo.js): an indexed insee/dpt equality match,
+ * no spatial test at all. Pass insee_codes for a commune, or dept_codes for a
+ * département (one code) or région (its member département codes).
+ */
+export async function fetchDetectionsByAdminPoints(inseeCodes, deptCodes, limit, signal) {
+    const sb = getSupabase();
+    if (!sb) return [];
+    let q = sb.rpc(ADMIN_POINTS_RPC, {
+        insee_codes: inseeCodes || null, dept_codes: deptCodes || null, max_count: limit
+    });
+    if (signal) q = q.abortSignal(signal);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data || []).map(row => ({
+        id: row.id,
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [row.lng, row.lat] },
+        properties: row,
+    }));
+}
+
+/** Same admin-code fast path, WITH full geometry, uncapped — GeoJSON export
+ *  for a named-place selection. */
+export async function fetchDetectionsByAdmin(inseeCodes, deptCodes, limit = ZONE_FETCH_MAX) {
+    const sb = getSupabase();
+    if (!sb) return [];
+    const { data, error } = await sb.rpc(ADMIN_ZONE_RPC, {
+        insee_codes: inseeCodes || null, dept_codes: deptCodes || null, max_count: limit
+    });
+    if (error) throw error;
+    return data || [];
+}
+
 export const S = {
     map: null,
 
-    // Navigation
-    mode: 'explore',            // 'explore' (hover/wander) | 'target' (locked on a zone)
-    target: null,               // {level, code, nom, feature} when mode === 'target'
-    level: 'france',            // 'france' | 'region' | 'dept' | 'commune'
-    path: [],                   // [{level, code, nom, feature}, ...]
-
-    // Baked statistics (built by scripts/build_geo_stats.py)
-    statsRegions: {},           // {code: [n, kwp]}
-    statsDepts: {},             // {code: [n, kwp]}
-    statsCommunes: {},          // {insee: [n, kwp, lat, lng]}
-    regionDepts: {},            // {regionCode: [deptCodes]}
-
-    // Geometry
-    regionsGeo: null,
+    // Départements outline, lazy-loaded only to resolve a ?dept=CODE deep link
+    // into a bbox (see selection.js) — no other admin-boundary geometry is
+    // loaded anymore.
     deptsGeo: null,
-    communeCache: new Map(),    // deptCode -> FeatureCollection
 
-    // Heatmap source (derived from statsCommunes)
-    heatPoints: [],             // [{lat, lng, n, dept, insee}]
+    // Current selection (selection.js / search.js)
+    selectionBounds: null,      // Leaflet LatLngBounds, or null before any selection
+    selectionGeometry: null,    // exact admin-boundary GeoJSON geometry for a named
+                                 // place (search.js, via geo.js) — null for a hand-drawn
+                                 // rectangle, where the bbox IS the exact selection
+    selectionAdmin: null,       // { inseeCodes } | { deptCodes } | null — when set, fetches
+                                 // use the fast indexed insee/dpt match (store.js) instead of
+                                 // the spatial bbox/intersection path
+    selectionLabel: '',         // human label for export filenames / events
+    rawFeatures: [],            // last fetch for the current selection, unfiltered
+    filters: {
+        kwpMin: null, kwpMax: null,
+        yearMin: null, yearMax: null,
+        sources: null,           // null = all; else a Set of source indices (see SOURCE_LABELS)
+        hideFalsePositive: true,
+    },
 
-    // Current selection (drives mask + PIP filtering of WFS samples)
-    boundaryGeoJSON: null,
-    areaLabel: '',
-    sampleFeatures: [],         // last WFS sample (charts + CSV export)
-
-    // Annotation session state
+    // Annotation session state (annotate.js — edit UX itself is a separate pass)
     edits: {
         deleted: new Set(),     // featureKeys reported as false positives
         modified: new Map(),    // featureKey -> new GeoJSON geometry
@@ -111,6 +171,7 @@ export const fmtInt = v => (v ?? 0).toLocaleString('fr-FR');
 
 export function centroid(geometry) {
     if (!geometry) return null;
+    if (geometry.type === 'Point') return [geometry.coordinates[1], geometry.coordinates[0]];
     const coords = geometry.type === 'MultiPolygon'
         ? geometry.coordinates[0][0]
         : geometry.coordinates[0];
@@ -118,6 +179,13 @@ export function centroid(geometry) {
     const lat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
     const lng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
     return [lat, lng];
+}
+
+/** A Leaflet LatLngBounds as a GeoJSON rectangle Feature — for get_detections_in_zone. */
+export function boundsToRectFeature(bounds) {
+    const w = bounds.getWest(), s = bounds.getSouth(), e = bounds.getEast(), n = bounds.getNorth();
+    return { type: 'Feature', properties: {}, geometry: { type: 'Polygon',
+        coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] } };
 }
 
 function pointInRing(lng, lat, ring) {
@@ -141,11 +209,3 @@ export function pointInGeoJSON(lng, lat, geoJSON) {
     });
 }
 
-/** WFS sample features filtered to the currently selected boundary. */
-export function filteredSample() {
-    if (!S.boundaryGeoJSON) return S.sampleFeatures;
-    return S.sampleFeatures.filter(f => {
-        const c = centroid(f.geometry);
-        return c && pointInGeoJSON(c[1], c[0], S.boundaryGeoJSON);
-    });
-}
