@@ -372,18 +372,28 @@
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
                 <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
-                <div class="topnav-links">
-                    <a href="data.html" class="topnav-link">Data</a>
-                    <a href="software.html" class="topnav-link">Software</a>
-                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                    <a href="resources.html" class="topnav-link is-active">Resources</a>
-                </div>
+                                                                <div class="topnav-links">
+                                    <a href="about.html" class="topnav-link">About</a>
+                                    <a href="data.html" class="topnav-link">Data</a>
+                                    <a href="software.html" class="topnav-link">Software</a>
+                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                                        </div>
+                                    </div>
+                                    <a href="outlook.html" class="topnav-link is-active">Related Works</a>
+                                    <a href="publications.html" class="topnav-link">Publications</a>
+                                    <a href="in-press.html" class="topnav-link">In Press</a>
+                                </div>
             </div>
         </nav>
         <div class="container">
-            <p class="page-eyebrow">Resources &middot; Related Work</p>
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
             <h1 class="title">Related Work</h1>
-            <p class="subtitle">Related works and what builds on it</p>
         </div>
     </header>
 
@@ -434,34 +444,6 @@
     <script src="../static/js/script.js"></script>
     <script>
         const works = [
-            {
-                title: "Nationally Consistent, Locally Incomplete: A Bayesian Remote-Sensing Audit of Rooftop Photovoltaic Registries",
-                authors: "Gabriel Kasmi, Laurent Dubus, Philippe Blanc, Yves-Marie Saint-Drenan",
-                date: "Upcoming 2026",
-                image: "../static/images/assets/rni_before_after_correction.webp",
-                featured: true,
-                link_label: "Read the full audit →",
-                keywords: ["registry", "audit", "raccordement", "grid-connection", "rni", "rte", "reliability", "flagship"],
-                text: "<h4>Turning DeepPVMapper into an independent auditor</h4>" +
-                      "<p>Monitoring the deployment of rooftop PV at national scale requires a reliable census of " +
-                      "grid-connected installations. In France that role is filled by two RTE-produced sources: the " +
-                      "public <strong>RNI</strong> registry and RTE's own <strong>internal grid-connection data</strong>, " +
-                      "which RTE treats as ground truth. This study flips the usual validation logic on its head: " +
-                      "instead of using grid-connection data to evaluate a remote-sensing method, it uses " +
-                      "DeepPVMapper's detections &mdash; an independent, remote-sensing-based source &mdash; " +
-                      "<strong>as the ground truth to audit the registries themselves</strong>.</p>" +
-                      "<h4>What the audit finds</h4>" +
-                      "<p>Once corrected for detection bias and a communal-level truncation artefact, the RNI shows a " +
-                      "clear downward bias relative to the remote-sensing estimates. RTE's internal data are, if " +
-                      "anything, more concerning: <strong>36 d&eacute;partements</strong> see RTE underestimate " +
-                      "installed capacity against just 6 that see an overestimate, netting out to a national " +
-                      "<strong>10.1% underestimation</strong> (&minus;271.2 MWp) of installed capacity &mdash; a gap " +
-                      "that matters for a source used in grid planning.</p>" +
-                      "<p>This is the flagship result of the DeepPVMapper project: the full method (bootstrapped " +
-                      "confidence intervals, département-level bias correction) and figures are presented in detail " +
-                      "on the <a href=\"main-results.html\">Registry Audit</a> page.</p>",
-                link: "main-results.html"
-            },
             {
                 title: "Remote-Sensing-Based Estimation of Rooftop Photovoltaic Power Production Using Physical Conversion Models and Weather Data",
                 authors: "Gabriel Kasmi, Augustin Touron, Philippe Blanc, Yves-Marie Saint-Drenan, Maxime Fortin, Laurent Dubus",

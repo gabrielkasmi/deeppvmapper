@@ -1,0 +1,38 @@
+# DeepPVMapper
+
+> An open, community-driven registry of rooftop photovoltaic (PV) installations across France, built from national aerial imagery with deep learning and cross-checked against OpenStreetMap and third-party detections (OpenPVMapper). Includes an interactive map, downloadable data, an open-source detection pipeline and packages, and a Bayesian audit of France's official PV grid-connection registries.
+
+DeepPVMapper grew out of a CIFRE PhD thesis conducted between Mines Paris (PSL University) and RTE France (2020-2024), on the reliability of deep learning models for rooftop PV detection at national scale. The resulting registry (OpenPVMapper) now covers 96 French départements with 1.14M+ detected installations and roughly 15 GWp of estimated capacity, combining automated detection, OpenStreetMap contributions, and manual corrections. The project, its data, and its code are all open.
+
+## Core pages
+
+- [Data](https://deeppvmapper.fr/content/data.html): Interactive map, browse detections by département, download the full registry (Zenodo, Hugging Face) or a custom subset for any area.
+- [Software](https://deeppvmapper.fr/content/software.html): Quickstart to run the pipeline or the pypvroof package, source code, model weights, and the BDAPPV training dataset.
+- [Contribute](https://deeppvmapper.fr/content/contribute.html): How to annotate detections on the map, report issues, or contribute code.
+- [About](https://deeppvmapper.fr/content/about.html): Project origins, the CIFRE PhD thesis, and academic/industrial partners (Mines Paris, RTE France).
+
+## Methodology and results
+
+- [Pipeline](https://deeppvmapper.fr/content/pipeline.html): Detection architecture (Inception v3 classification, DeepLab v3 segmentation) and its validation.
+- [OpenPVMapper](https://deeppvmapper.fr/content/openpvmapper.html): Multi-source database methodology — fusing DeepPVMapper, OpenStreetMap, and FRPV detections, with validation results and access details.
+- [Registry Audit](https://deeppvmapper.fr/content/main-results.html): Bayesian audit of France's official rooftop PV grid-connection registries against the detected registry.
+- [Related Works](https://deeppvmapper.fr/content/outlook.html): Related research on remote-sensing-based rooftop PV mapping.
+
+## Publications and press
+
+- [Publications](https://deeppvmapper.fr/content/publications.html): Peer-reviewed papers, preprints, and the PhD thesis behind DeepPVMapper.
+- [In Press](https://deeppvmapper.fr/content/in-press.html): Popular-science articles and press coverage.
+
+## Data and code
+
+- Full registry, GeoJSON (Zenodo, permanent DOI): https://doi.org/10.5281/zenodo.21534856
+- Full registry (Hugging Face): https://huggingface.co/datasets/gabrielkasmi/openpvmapper
+- Training dataset BDAPPV (Hugging Face): https://huggingface.co/datasets/gabrielkasmi/bdappv
+- Model weights (Hugging Face): https://huggingface.co/gabrielkasmi/bdappv-models
+- Pipeline source code (GitHub, MIT license): https://github.com/gabrielkasmi/deeppvmapper
+- pypvroof, PV characteristic extraction (PyPI): https://pypi.org/project/pypvroof/
+- bayesian-pv-census, registry auditing (PyPI): https://pypi.org/project/bayesian-pv-census/
+
+## Optional
+
+- [Interactive map](https://deeppvmapper.fr/content/map.html): Full-screen map application — explore, filter, and export detections; contribute corrections.

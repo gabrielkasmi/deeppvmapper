@@ -37,9 +37,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 </head>
-<body>
+<body class="landing-page">
 
-    <!-- Hero: the whole landing fits here — nav, name, byline, description, core CTA — no scrolling required -->
+    <!-- Hero: the whole landing fits here — nav, name, description, core CTA — no scrolling required -->
     <header class="header">
         <div class="header-background"></div>
 
@@ -48,11 +48,22 @@
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
                 <span class="topnav-logo">DeepPVMapper</span>
-                <div class="topnav-links">
+                                <div class="topnav-links">
+                    <a href="content/about.html" class="topnav-link">About</a>
                     <a href="content/data.html" class="topnav-link">Data</a>
                     <a href="content/software.html" class="topnav-link">Software</a>
                     <a href="content/contribute.html" class="topnav-link">Contribute</a>
-                    <a href="content/resources.html" class="topnav-link">Resources</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="content/pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="content/openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="content/main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="content/outlook.html" class="topnav-link">Related Works</a>
+                    <a href="content/publications.html" class="topnav-link">Publications</a>
+                    <a href="content/in-press.html" class="topnav-link">In Press</a>
                 </div>
                 <div class="topnav-right">
                     <button type="button" id="citation-trigger" class="cite-badge" aria-label="Cite this project" title="Cite this project">
@@ -77,16 +88,7 @@
 
         <div class="container">
             <h1 class="title">DeepPVMapper</h1>
-            <p class="hero-byline">
-                By <a href="https://gabrielkasmi.github.io" target="_blank">Gabriel Kasmi</a>
-                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="Gabriel Kasmi on LinkedIn" class="icon-link" style="margin: 0 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
-                    </svg>
-                </a>
-                — Mines Paris (PSL University) &amp; RTE France
-            </p>
-            <p class="subtitle">An open, community-driven registry of rooftop solar systems across France — mapped with deep learning on national aerial imagery.</p>
+            <p class="subtitle"><a href="content/about.html">An open-source, community-driven dataset of rooftop photovoltaic systems across France using deep learning, remote sensing, and aerial imagery.</a></p>
             <div class="hero-cta">
                 <a class="hero-card" href="content/data.html">
                     <div class="hero-card-icon">
@@ -134,6 +136,21 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            <a href="content/about.html" class="footer-about-link">About</a>
+            <div class="footer-contact">
+                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 4h16v16H4z" stroke="none"/>
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 6-10 7L2 6"></path>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+                    </svg>
+                </a>
+            </div>
             <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>

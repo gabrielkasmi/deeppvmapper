@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenPVMapper &middot; DeepPVMapper</title>
+
+    <meta name="description" content="OpenPVMapper: a nationwide, multi-source database of rooftop PV installations in France, built by reconciling DeepPVMapper, FRPV, and OpenStreetMap.">
+    <meta name="author" content="Gabriel Kasmi">
+
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/openpvmapper.html">
+    <meta property="og:title" content="OpenPVMapper &middot; DeepPVMapper">
+    <meta property="og:description" content="A nationwide, multi-source database of rooftop PV installations in France, built by reconciling DeepPVMapper, FRPV, and OpenStreetMap.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://deeppvmapper.fr/content/openpvmapper.html">
+    <meta property="twitter:title" content="OpenPVMapper &middot; DeepPVMapper">
+    <meta property="twitter:description" content="A nationwide, multi-source database of rooftop PV installations in France, built by reconciling DeepPVMapper, FRPV, and OpenStreetMap.">
+    <meta property="twitter:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+
+    <link rel="canonical" href="https://deeppvmapper.fr/content/openpvmapper.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .source-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            max-width: 900px;
+            margin: 30px auto 0 auto;
+        }
+        .source-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 22px 24px;
+        }
+        .source-card .source-tag {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #868e96;
+            margin-bottom: 8px;
+        }
+        .source-card h4 {
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .source-card p {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #6c757d;
+            margin: 0;
+        }
+        .hierarchy-box {
+            max-width: 700px;
+            margin: 24px auto 0 auto;
+            background-color: #eef1f4;
+            border-radius: 8px;
+            padding: 18px 26px;
+            text-align: center;
+            font-size: 1.02rem;
+            color: #2c3e50;
+        }
+        @media (max-width: 700px) {
+            .source-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="about.html" class="topnav-link">About</a>
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn is-active">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="openpvmapper.html" class="dropdown-item is-active">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                    <a href="publications.html" class="topnav-link">Publications</a>
+                    <a href="in-press.html" class="topnav-link">In Press</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">OpenPVMapper</h1>
+        </div>
+    </header>
+
+    <!-- ============ 1. Motivation ============ -->
+    <section class="abstract" style="padding-bottom: 0;">
+        <div class="container">
+            <h2><span class="section-number">1.</span>Motivation</h2>
+            <p>
+                The latest release of DeepPVMapper was a good starting point, but it did not reflect all the information
+                available regarding rooftop PV in France. First, the unique snapshot did not include any temporal
+                information, which was latently available as multiple coverages had been done. Second,
+                <strong>DeepPVMapper is bound to rooftop PV below 36 kWp</strong>, which does not encompass all of
+                rooftop PV and in particular installations such as carports or large industrial systems, which are
+                increasingly being deployed.
+            </p>
+            <p>
+                On the other hand, other sources provided information regarding rooftop PV. The first additional source
+                was the coverage provided by the <strong>French Rooftop Photovoltaic dataset (FRPV, Th&eacute;bault et al., 2025)</strong>. This
+                map computed a probability of presence of a rooftop PV system over all French buildings. Finally, an
+                additional source are the annotations that are features in <strong>OpenStreetMap (OSM)</strong>. The crowdsourced data
+                of OSM offers high per-record quality &mdash; installations are verified by human mappers &mdash; but
+                its coverage is inherently uneven.
+            </p>
+            <p>
+                The question underlying the construction of OpenPVMapper is how to aggregate these sources, into a
+                single dataset, incorporating as much information as possible regarding rooftop PV systems in France?
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 2. Sources ============ -->
+    <section class="method">
+        <div class="container">
+            <h2><span class="section-number">2.</span>Three independent sources</h2>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        OpenPVMapper cross-checks two independent, large-scale mapping efforts and integrates a
+                        third, smaller but highly reliable source:
+                    </p>
+                </div>
+            </div>
+            <div class="source-cards">
+                <div class="source-card">
+                    <span class="source-tag">Detection pipeline</span>
+                    <h4>DeepPVMapper</h4>
+                    <p>The base layer: a two-stage deep learning pipeline deployed
+                    on all 96 mainland d&eacute;partements from national aerial imagery. OpenPVMapper
+                    integrates <i>all</i> 209 d&eacute;partemental mappings, resulting in a total of 803,953.
+                    Each detection features a <code>first_seen</code> attribute, corresponding to the 
+                    imagery date. Each installation features its technical characteristics.
+                    Bounded to installations &le;&nbsp;36&nbsp;kWp, and, taken alone, its precision 
+                    is the weakest of the three sources (&sim;45%) &mdash; corroboration is what makes 
+                    it trustworthy at scale. 
+                </p>
+                </div>
+                <div class="source-card">
+                    <span class="source-tag">Building-wise probability</span>
+                    <h4>FRPV</h4>
+                    <p>An independent detection dataset (Th&eacute;bault et al., 2025) covering 95 of 96
+                    d&eacute;partements (705,120 candidate buildings), reporting a per-building PV probability
+                    rather than a ready-to-use detection. A promotion threshold of 0.5 &mdash; calibrated on
+                    &sim;1,200 manually-labelled parcels with a precision/recall trade-off analysis &mdash;
+                    decides which parcels are promoted as new installation candidates.</p>
+                </div>
+                <div class="source-card">
+                    <span class="source-tag">Community-mapped</span>
+                    <h4>OpenStreetMap</h4>
+                    <p>66,293 installations manually mapped and tagged by human contributors, concentrated mainly
+                    in the south-west. Modest in scale &mdash; it is never the leading source in any region &mdash;
+                    but because this geometry is human-verified (&sim;98% precision on its own), it is treated as
+                    the most reliable available source whenever it overlaps an existing detection.</p>
+                </div>
+            </div>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="../static/images/assets/source-composition.webp" alt="Share of installations attributable to each source or combination of sources, overall and by power class" style="max-width: 750px; width: 100%; border-radius: 8px;">
+                <figcaption class="caption">DeepPVMapper and FRPV jointly account for &sim;95% of the database, with substantial overlap; OpenStreetMap contributes a small but disproportionately reliable share, concentrated among larger installations.</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <!-- ============ 3. Data fusion ============ -->
+    <section class="abstract">
+        <div class="container">
+            <h2><span class="section-number">3.</span>Data fusion &amp; enrichment</h2>
+            <p>
+                Combining heterogeneous sources into one coherent database happens in three steps. First,
+                <strong>deduplication</strong>: installations are matched across sources by geometric overlap and
+                centroid proximity; 8,659 duplicate pairs were identified and merged this way. Second,
+                <strong>geometry supersession</strong>: when two sources describe the same real-world installation,
+                one polygon is kept as the reference, following a fixed hierarchy.
+            </p>
+            <div class="hierarchy-box">
+                Manual correction &nbsp;&gt;&nbsp; OpenStreetMap &nbsp;&gt;&nbsp; DeepPVMapper &nbsp;&gt;&nbsp;
+                third-party detections
+                <br><span style="font-size: 0.85rem; color: #6c757d;">(FRPV contributes a probability signal only &mdash; it is never used as a geometry source)</span>
+            </div>
+            <p style="margin-top: 24px;">
+                Third, <strong>enrichment</strong>: combining sources adds information no single one carries alone.
+                Successive DeepPVMapper imagery vintages are matched to give each installation a <code>first_seen</code>
+                / <code>last_seen</code> span, and every installation records which sources corroborate it &mdash; a
+                direct, per-record proxy for confidence. The result is a single, uniform schema regardless of which
+                source(s) identified a given installation, documented in full alongside the Zenodo release.
+            </p>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="../static/images/assets/construction-pipeline.webp" alt="Overview of the OpenPVMapper construction pipeline: data sources, uniformization, validation and output archives" class="teaser-image" style="max-width: 750px;">
+                <figcaption class="caption">The three-stage construction pipeline: deduplication and matching across sources, geometry supersession, and enrichment with ground-truth validation attributes.</figcaption>
+            </figure>
+
+            <p>
+                The pipeline is designed to be evolutive. Additional sources could fit within that framework to improve the 
+                data quality and coverage.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 4. Validation ============ -->
+    <section class="results">
+        <div class="container">
+            <h2><span class="section-number">4.</span>Validation</h2>
+            <p>
+                An independent, manually-annotated campaign quantifies the database's precision.
+                <strong>1,862 installations</strong> &mdash; stratified both by source combination and by power
+                class, and annotated blind against high-resolution imagery &mdash; were used to estimate precision
+                directly, reweighted by each stratum's true population share.
+            </p>
+            <p>
+                The database's <strong>overall precision is approximately 74&ndash;75%</strong>. Corroboration is
+                the main driver of this figure: precision is as low as 71.5% for installations confirmed by a
+                single source, rising to 96.9% with two independent sources and 98.2% with all three &mdash;
+                nearly all the gain happens between one source and two. This matters because standalone precision
+                varies widely by source (DeepPVMapper &sim;45%, FRPV &sim;78%, OpenStreetMap &sim;98%): combining
+                independent, differently-biased sources is what lifts the weakest of the three to a reliable
+                result, more than any single source's own accuracy.
+            </p>
+            <p>
+                Recall is validated indirectly, by comparing the database's connected capacity against Enedis's
+                public grid-connection registry. Overall, <strong>about 67% of all capacity below 250 kWp is
+                covered</strong> in the dataset, and in detail, 40% of the capacity between 100 and 250 kWp, and 97%
+                of the capacity below 36 kWp.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 5. Database at a glance ============ -->
+    <section class="abstract">
+        <div class="container">
+            <h2><span class="section-number">5.</span>Results</h2>
+            <figure style="margin-top: 10px; text-align: center;">
+                <img src="../static/images/assets/density-map.webp" alt="Density of PV installations recorded in OpenPVMapper, by hexagonal grid cell, across mainland France" class="teaser-image" style="max-width: 620px;">
+                <figcaption class="caption">Rooftop PV density recorded in OpenPVMapper: number of installations per hexagonal grid cell (mean area &asymp; 8&nbsp;km&sup2;), on a logarithmic color scale.</figcaption>
+            </figure>
+
+            <p>
+                OpenPVMapper provides the highest coverage in the capacity segment that is the least documented in public data:
+                <strong>installations below 36 kWp</strong>, thereby addressing a real gap in official PV statistics.
+            </p>
+            <p>
+                Merging three different sources increased data coverage and provided a harmonized description of the systems.
+                DeepPVMapper features about 800k systems (alongside tilt, azimuth and installed capacity estimation),
+                FRPV 700k pointwise detections and OSM about 66k polygons. <strong>OpenPVMapper features 1.1M detections</strong>, alongside
+                their technical characteristics, first detection year, and source redundancy.
+            </p>
+            <p>
+                Coverage redundancy also had a second effect: sharply increasing data quality, where a detection
+                corroborated by 2 or more sources had <strong>a precision of 97%</strong>, approaching the quality of OpenStreetMap labels (98%)
+                and sharply improving the precision of the individual detections (about 75%).
+            </p>
+            <p>
+                Future improvements include improving the coverage in the 100-250 kWp segment and integrating crowdsourced
+                validation into the dataset to improve the overall quality. Want to contribute? See the <a href="contribute.html">Contribute</a>
+                page!
+            </p>
+
+            <div class="validation-stats" style="margin-top: 30px;">
+                <div class="stat-item">
+                    <span class="stat-number">1,135,850</span>
+                    <span class="stat-label">Installations</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">15.0 GWp</span>
+                    <span class="stat-label">Estimated installed capacity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">97%</span>
+                    <span class="stat-label">Capacity coverage below 36 kWp</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 6. Access ============ -->
+    <section class="results">
+        <div class="container">
+            <h2><span class="section-number">6.</span>Access &amp; citation</h2>
+            <p>
+                OpenPVMapper is released under an open licence (CC-BY 4.0) and can be accessed on Zenodo and HuggingFace.
+            </p>
+            <div class="badge-row" style="margin-top: 30px;">
+                <a class="btn" href="map.html">Explore the map &rarr;</a>
+                <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg" alt="DOI"></a>
+                <a href="https://huggingface.co/datasets/gabrielkasmi/openpvmapper" target="_blank"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-FFD21E" alt="Hugging Face dataset"></a>
+            </div>
+            <div class="citation-box" style="margin-top: 40px;">
+                    <pre><code>@article{kasmi2026openpvmapper,
+  title={OpenPVMapper: A Multi-source, Nationwide Database of Rooftop Photovoltaic Systems in France},
+  author={Kasmi, Gabriel},
+  journal={arXiv preprint arXiv:2607.25153},
+  year={2026}
+}
+</code></pre>
+                </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

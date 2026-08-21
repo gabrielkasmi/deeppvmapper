@@ -28,51 +28,7 @@
     <link rel="stylesheet" href="../static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <script>
-        window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
-
     <style>
-        .section-number {
-            display: inline-block;
-            color: #6c757d;
-            font-weight: 400;
-            margin-right: 10px;
-        }
-        h3.subsection {
-            font-size: 1.4rem;
-            font-weight: 300;
-            color: #2c3e50;
-            margin: 40px 0 16px 0;
-            text-align: left;
-        }
-        h3.subsection .section-number {
-            font-size: 1.2rem;
-        }
-        .placeholder-box {
-            border: 1px dashed #ced4da;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            color: #adb5bd;
-            font-style: italic;
-            margin: 20px 0;
-        }
-        .side-by-side {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 30px 0;
-        }
-        .side-by-side figure {
-            flex: 1;
-            min-width: 280px;
-            max-width: 480px;
-            text-align: center;
-            margin: 0;
-        }
         .results-table-wrap {
             max-width: 700px;
             margin: 24px auto;
@@ -117,18 +73,28 @@
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
                 <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
-                <div class="topnav-links">
-                    <a href="data.html" class="topnav-link">Data</a>
-                    <a href="software.html" class="topnav-link">Software</a>
-                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                    <a href="resources.html" class="topnav-link is-active">Resources</a>
-                </div>
+                                                                <div class="topnav-links">
+                                    <a href="about.html" class="topnav-link">About</a>
+                                    <a href="data.html" class="topnav-link">Data</a>
+                                    <a href="software.html" class="topnav-link">Software</a>
+                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn is-active">Resources &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="pipeline.html" class="dropdown-item is-active">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                                        </div>
+                                    </div>
+                                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                                    <a href="publications.html" class="topnav-link">Publications</a>
+                                    <a href="in-press.html" class="topnav-link">In Press</a>
+                                </div>
             </div>
         </nav>
         <div class="container">
-            <p class="page-eyebrow">Resources &middot; Pipeline</p>
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
             <h1 class="title">The Pipeline</h1>
-            <p class="subtitle">From aerial imagery to a characterized, national-scale rooftop PV registry</p>
         </div>
     </header>
 
@@ -137,7 +103,7 @@
         <div class="container">
             <h2><span class="section-number">1.</span>Pipeline Overview</h2>
             <p>
-                DeepPVMapper is a deep learning pipeline, inspired by 3D-PV-Locator (Meyer et al., 2022), that
+                DeepPVMapper is a deep learning pipeline, inspired by 3D-PV-Locator (Mayer et al., 2022), that
                 detects rooftop photovoltaic systems from aerial imagery and characterizes them. It proceeds in
                 two stages: polygon extraction, and characteristics extraction.
             </p>
@@ -297,134 +263,59 @@
     <section class="results">
         <div class="container">
             <h2><span class="section-number">3.</span>Deployment</h2>
+                <p>
+                    The pipeline is then deployed across France, department by department.
+                    <strong>Mapping a single department takes roughly 6 to 10 hours</strong>, depending on its size
+                    and the available hardware. The main bottleneck is the preprocessing of image tiles into
+                    thumbnails. Raw departmental detections are subsequently postprocessed and merged into a single
+                    file.
+                </p>
+                <p>
+                    10 departments had been mapped by 2022, and 38 by April 2024.
+                    <strong>The first complete mapping of France was completed in 2024</strong>, using imagery
+                    acquired between 2018 and 2023. Several departments have since been mapped three to four times,
+                    creating a dynamic dataset that can be used to study deployment dynamics and peer effects.
+                </p>
+                <p>
+                    The first release of the dataset, in July 2026, was run on the latest IGN imagery available at the time,
+                    spanning 2022 to 2025. As IGN updates its imagery on a rolling basis, the dataset is designed to be
+                    regularly updated. Overall, <strong>all but 4 departments had been covered at least twice</strong> by DeepPVMapper,
+                    enabling the computation of a <code>first_seen</code> attribute in OpenPVMapper by merging detections
+                    across multiple imagery vintages.
+                </p>
+                <p>
+                    The data release on Zenodo includes the latest coverage file, obtained by merging the most recent
+                    mapping of each department. It also includes all raw departmental detections, covering both the latest
+                    and previous imagery vintages.
+                </p>
+                <p> <!-- ============ update this paragraph upon new releases ============ -->
+                    The current release of the dataset (July 2026), comprising detections from the latest IGN imagery only,
+                    contains <strong>589,623 installations, totalling 2.9 GWp of installed capacity</strong>. The imagery spans from 2022
+                    to 2025.
+                </p>
 
-            <h3 class="subsection"><span class="section-number">3.1</span>Key Facts</h3>
-            <p>
-                The pipeline has been deployed across <strong>all of metropolitan France</strong>. On our hardware,
-                processing one département takes roughly <strong>10 hours</strong>, i.e. an estimated
-                <strong>~1,000 hours (about 42 days)</strong> of compute for the full national deployment. This is a
-                rough estimate: it does not account for the overhead caused by crashes, duplicated runs to obtain
-                longitudinal data, duplicated runs to clean or update the data, or the time spent
-                uploading/offloading the aerial imagery.
-            </p>
-
-            <h3 class="subsection"><span class="section-number">3.2</span>Validation</h3>
-            <p>
-                The pipeline was validated against <strong>34,081 manually checked samples</strong>, allowing the
-                computation of precision, recall and F1-score for each département.
-            </p>
-
-            <p>
-                To evaluate the recall of the algorithm, we retrieved and cleaned PV plants labels from OpenStreetMap 
-                (accounting 8,000 detections) and manually labled the remaining 3,000 systems, depending on our needs. 
-                DeepPVMapper was then deployed on these images to estimate the recall. The precision was evaluated by 
-                manually labelling the model's own predictions. We labeled a total of 23,014 detections.
-            </p>
-
-            <p>
-                The number of validation samples for the precision and recall was decided so that 
-                sample size per département is chosen so that the resulting precision and recall estimates carry
-                a &plusmn;10% confidence interval around their true value,
-            </p>
-
-            <p>
-                The resulting F1 score ranges from 0.28 to 0.81, with a mean score of 0.65 at the national scale.
-                Highest accuracy is achieved in the south of France (average F1 score of 0.75 in the region
-                Provence-Alpes-Côte-d'Azur, followed by 0.70 in Occitanie). The lowest scores are achieved in
-                Normandie (0.49) and in Paris. Most of the variability actually comes from the precision: the number
-                of false positives skyrockets in densely urbanized areas (e.g., Paris), while the low precision in
-                Normandie is caused by farm buildings with metal roofs that the model confuses with
-                PV arrays.
-            </p>
-
-            <p>
-                For comparison, Malof et al. (2019) reported a precision of 0.88, a recall of 0.83 and an
-                F1-score of 0.85 over an area of about 12,000&nbsp;km&sup2;; a comparable area in our case &mdash; e.g.
-                the Gironde, one of the largest French départements &mdash; reaches a precision of 0.87 and a recall
-                of 0.65. More importantly, this validation effort is, to our knowledge, unprecedented in scale for
-                rooftop PV remote sensing: the Connecticut/California validation in Malof et al. (2019) was until now
-                the largest published benchmark for this task.
-            </p>
-
-            <figure style="text-align: center; margin-top: 20px;">
-                <img src="../static/images/assets/f1-score.webp" alt="F1 score by département" class="teaser-image" style="max-width: 600px;">
-                <figcaption class="caption">F1-score of the detection pipeline by département, computed on 23k validation samples.</figcaption>
-            </figure>
-
-            <h3 class="subsection"><span class="section-number">3.3</span>Results</h3>
-            <p>
-                After curation, the raw output of the pipeline counts <strong>451,883 individual PV systems</strong>,
-                totalling <strong>2,305,669.3&nbsp;kWp</strong> of installed capacity. Because the pipeline's precision
-                and recall are imperfect &mdash; and vary by département &mdash; this raw count is a biased estimate of
-                the true number of installations and the true installed capacity. We therefore use the validation results
-                above to produce <strong>corrected (bias-corrected) estimates</strong>.
-            </p>
-            <p>
-                The correction relies on a bootstrap procedure. For each département \(k\), the true positives,
-                false positives and false negatives observed in the manual annotations &mdash;
-                \(\text{TP}_k\), \(\text{FP}_k\) and \(\text{FN}_k\) &mdash; define a posterior belief about that
-                département's precision and recall, modelled as
-            </p>
-            <p style="text-align: center;">
-                \[
-                p_k \sim \text{Beta}(\text{TP}_k,\ \text{FP}_k), \qquad
-                r_k \sim \text{Beta}(\text{TP}_k,\ \text{FN}_k).
-                \]
-            </p>
-            <p>
-                The national precision (resp. recall) is then defined as the weighted average of the departmental
-                precisions (resp. recalls), each département being weighted by its estimated installed capacity, and
-                the national F1-score as the harmonic mean of the two. We run 10,000 iterations in which a precision
-                and a recall value are drawn for every département from these Beta distributions, the national
-                weighted averages and F1-score are recomputed, and the installed capacity is corrected as
-            </p>
-            <p style="text-align: center;">
-                \[
-                \text{Capacity}_{real} = \text{Capacity}_{est} \times \frac{p}{r}  
-                \]
-            </p>
-            <p>
-                where \(\text{est\_capacity}\) is the raw, uncorrected installed capacity estimated by the pipeline,
-                and \(p\) and \(r\) denote the (national or departmental) precision and recall. This procedure yields
-                a full distribution &mdash; and therefore confidence intervals &mdash; for the corrected number of
-                installations and installed capacity. The same bootstrap (10,000 draws) is run independently for each
-                département, producing departmental-level corrected distributions and confidence intervals.
-            </p>
-            <p>
-                Note that this correction is only valid under an <strong>homogeneity assumption</strong>: the model
-                must not make systematically different errors across installation size classes. If, say, it
-                under-detects large installations more often than small ones, a uniform precision/recall correction
-                would not fully remove the bias in the corrected capacity.
-            </p>
-            <p>
-                Applying this procedure at the national level raises the raw count of <strong>451,883</strong>
-                installations to a corrected estimate of <strong>528,199</strong> systems (99% CI:
-                [516,666; 540,434]), and the raw capacity of <strong>2,305,669.3&nbsp;kWp</strong> to a corrected
-                estimate of <strong>2,691,920.5&nbsp;kWp</strong> (99% CI: [2,636,215.5; 2,757,490.0]).
-            </p>
-            <div class="side-by-side">
-                <figure>
-                    <img src="../static/images/assets/installed-capacity.webp" alt="Installed capacity by département" class="teaser-image">
-                    <figcaption class="caption">Estimated installed capacity by département</figcaption>
-                </figure>
-                <figure>
-                    <img src="../static/images/assets/n-installations.webp" alt="Number of systems by département" class="teaser-image">
-                    <figcaption class="caption">Number of detected PV systems by département</figcaption>
-                </figure>
-            </div>
             <div class="validation-stats" style="margin-top: 30px;">
                 <div class="stat-item">
-                    <span class="stat-number">520k+</span>
-                    <span class="stat-label">PV systems mapped</span>
+                    <span class="stat-number">590k</span>
+                    <span class="stat-label">Detected PV systems</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">2.7 GWp</span>
-                    <span class="stat-label">Estimated installed capacity</span>
+                    <span class="stat-number">2.9 GWp</span>
+                    <span class="stat-label">Detected installed capacity</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">34k</span>
-                    <span class="stat-label">Manually checked validation samples</span>
+                    <span class="stat-number">209</span>
+                    <span class="stat-label">D&eacute;partements-year mappings</span>
                 </div>
+            </div>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="../static/images/assets/mapping.webp" alt="DeepPVMapper mapping results" class="teaser-image" style="max-width: 700px;">
+                <figcaption class="caption">Overview of the mapping of rooftop PV systems by DeepPVMapper. The darker, the higher the installed capacity.</figcaption>
+            </figure>
+            <div class="badge-row" style="margin-top: 30px;">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank"><img src="https://img.shields.io/badge/GitHub-Source%20Code-181717?logo=github&amp;logoColor=white" alt="GitHub source code"></a>
+                <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg" alt="DOI"></a>
+                <a href="openpvmapper.html" class="btn">OpenPVMapper &rarr;</a>
             </div>
         </div>
     </section>

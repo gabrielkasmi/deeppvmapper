@@ -43,14 +43,15 @@ body {
 }
 
 .topnav-inner {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     padding: 18px 20px;
     gap: 20px;
 }
 
 .topnav-logo {
+    justify-self: start;
     font-weight: 600;
     font-size: 1.05rem;
     color: #2c3e50;
@@ -63,6 +64,7 @@ body {
 }
 
 .topnav-links {
+    justify-self: center;
     display: flex;
     align-items: center;
     gap: 26px;
@@ -117,6 +119,7 @@ body {
 }
 
 .topnav-right {
+    justify-self: end;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -207,6 +210,25 @@ body {
     height: 13px;
 }
 
+/* Landing page only: header + footer together fill exactly one viewport
+   (no scroll needed on a normal browser window) — the header no longer
+   forces its own 100vh, it just grows to fill whatever space the footer
+   doesn't need, and its content stays vertically centered within that. */
+body.landing-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.landing-page .header {
+    min-height: 0;
+    flex: 1 0 auto;
+}
+
+body.landing-page .footer {
+    flex-shrink: 0;
+}
+
 /* Header / hero: the entire landing is meant to fit without scrolling —
    name, byline, description and the core CTA all live in this one block,
    overlaid on the banner image. The top nav is absolutely positioned inside
@@ -237,15 +259,6 @@ body {
 .header--compact .subtitle {
     font-size: 1.1rem;
     margin-bottom: 0;
-}
-
-.page-eyebrow {
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.7;
-    margin-bottom: 10px;
 }
 
 .header-background {
@@ -289,6 +302,61 @@ body {
     font-weight: 400;
     margin-bottom: 30px;
     opacity: 0.9;
+}
+
+/* Landing hero tagline, linked to the About page: looks like plain text,
+   with just enough affordance (a soft underline) to read as clickable. */
+body.landing-page .subtitle a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+    transition: border-color 0.2s ease;
+}
+
+body.landing-page .subtitle a:hover,
+body.landing-page .subtitle a:focus-visible {
+    border-bottom-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Small region label under a département's name, replacing the old
+   full-size subtitle — same slot, much lighter weight. */
+.title-region {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 2px;
+    margin-bottom: 0;
+}
+
+/* Compact "back to home" link shown above the page title on every
+   inner page. Icon-first so it stays unobtrusive next to the title. */
+.back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.68);
+    text-decoration: none;
+    margin-bottom: 14px;
+    transition: color 0.2s ease;
+}
+
+.back-home:hover,
+.back-home:focus-visible {
+    color: #ffffff;
+}
+
+.back-home svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Small secondary "About" pointer in the landing footer, alongside the
+   contact icons and copyright line. */
+.footer-about-link {
+    font-size: 0.85rem;
 }
 
 .authors {
@@ -437,11 +505,20 @@ body {
     font-size: 0.88rem;
 }
 
-.quick-links .dropdown-item .dropdown-item-sub {
+.dropdown-item .dropdown-item-sub {
     display: block;
     font-size: 0.74rem;
     color: #868e96;
     margin-top: 2px;
+}
+
+/* Top nav "Resources" dropdown: same trigger styling as a flat .topnav-link
+   (including the active-page color rules), just with a caret and a
+   hover-revealed menu of the 3 self-contained research pages. */
+.topnav-link.dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }
 
 .pub-title {
@@ -486,7 +563,7 @@ h2 {
 
 /* Abstract */
 .abstract p {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     line-height: 1.8;
     max-width: 800px;
     margin: 0 auto;
@@ -544,6 +621,103 @@ h2 {
     max-width: 800px;
     margin: 0 auto;
     text-align: justify;
+}
+
+/* Long-form section numbering (Pipeline, OpenPVMapper, Registry Audit, ...) */
+.section-number {
+    display: inline-block;
+    color: #6c757d;
+    font-weight: 400;
+    margin-right: 10px;
+}
+
+h3.subsection {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: #2c3e50;
+    margin: 40px 0 16px 0;
+    text-align: left;
+}
+
+h3.subsection .section-number {
+    font-size: 1.2rem;
+}
+
+/* Side-by-side figures / placeholders (Pipeline, Registry Audit, ...) */
+.side-by-side {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.side-by-side figure,
+.side-by-side .placeholder-box {
+    flex: 1;
+    min-width: 280px;
+    max-width: 480px;
+    text-align: center;
+    margin: 0;
+}
+
+/* Platform badges (Zenodo / Hugging Face / GitHub, ...) */
+.badge-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 14px 0 0 0;
+}
+
+.badge-row img {
+    height: 20px;
+    display: block;
+}
+
+/* Publication / resource list rows (Publications, Resources) */
+.pub-list {
+    max-width: 800px;
+    margin: 0 auto;
+    display: grid;
+    gap: 4px;
+}
+
+.pub-item {
+    display: block;
+    padding: 16px 20px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.pub-item:hover {
+    background-color: #f8f9fa;
+}
+
+.pub-item .pub-title {
+    display: block;
+    font-size: 0.98rem;
+    color: #2c3e50;
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+.pub-item.no-link .pub-title {
+    color: #495057;
+}
+
+.pub-item .pub-authors {
+    display: block;
+    font-size: 0.84rem;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.pub-item .pub-year {
+    display: block;
+    font-size: 0.78rem;
+    color: #adb5bd;
 }
 
 /* Citation */
@@ -1026,7 +1200,19 @@ a.hub-card:hover {
     background-color: #2c3e50;
     color: white;
     text-align: center;
-    padding: 40px 0;
+    padding: 20px 0;
+}
+
+.footer .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer p {
+    margin: 0;
 }
 
 .footer a {
@@ -1037,6 +1223,40 @@ a.hub-card:hover {
 .footer a:hover {
     color: #ecf0f1;
     text-decoration: underline;
+}
+
+/* Footer contact row: mail + LinkedIn icon links, sitting on the same
+   line as the copyright/license text. */
+.footer-contact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #bdc3c7;
+    transition: all 0.2s ease;
+}
+
+.footer-contact a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.32);
+}
+
+.footer-contact svg {
+    width: 14px;
+    height: 14px;
 }
 
 /* Responsive design */
@@ -1112,12 +1332,14 @@ a.hub-card:hover {
     }
 
     .topnav-inner {
+        display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
 
     .topnav-links {
+        justify-self: auto;
         gap: 18px;
         flex-wrap: wrap;
     }

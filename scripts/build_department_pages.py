@@ -41,11 +41,11 @@ TEMPLATE = """<!DOCTYPE html>
     <meta name="description" content="Rooftop PV systems detected by DeepPVMapper in {nom} ({code}): {n_fmt} systems, {mwp_fmt} MWp estimated installed capacity. Explore on the map or download the data.">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gabrielkasmi.github.io/deeppvmapper/content/data/{code}.html">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/data/{code}.html">
     <meta property="og:title" content="{nom} ({code}) &middot; DeepPVMapper Data">
     <meta property="og:description" content="{n_fmt} rooftop PV systems detected in {nom}, {mwp_fmt} MWp estimated installed capacity.">
-    <meta property="og:image" content="https://gabrielkasmi.github.io/deeppvmapper/static/images/teaser.webp">
-    <link rel="canonical" href="https://gabrielkasmi.github.io/deeppvmapper/content/data/{code}.html">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/data/{code}.html">
 
     <link rel="icon" type="image/x-icon" href="../../static/images/favicon.ico">
     <link rel="stylesheet" href="../../static/css/style.css">
@@ -59,17 +59,28 @@ TEMPLATE = """<!DOCTYPE html>
             <div class="container topnav-inner">
                 <a href="../../index.html" class="topnav-logo">DeepPVMapper</a>
                 <div class="topnav-links">
+                    <a href="../about.html" class="topnav-link">About</a>
                     <a href="../data.html" class="topnav-link is-active">Data</a>
                     <a href="../software.html" class="topnav-link">Software</a>
                     <a href="../contribute.html" class="topnav-link">Contribute</a>
-                    <a href="../resources.html" class="topnav-link">Resources</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="../outlook.html" class="topnav-link">Related Works</a>
+                    <a href="../publications.html" class="topnav-link">Publications</a>
+                    <a href="../in-press.html" class="topnav-link">In Press</a>
                 </div>
             </div>
         </nav>
         <div class="container">
-            <p class="page-eyebrow">Data &middot; D&eacute;partement {code}</p>
+            <a href="../../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
             <h1 class="title">{nom}</h1>
-            <p class="subtitle">{region_nom}</p>
+            <p class="title-region">{region_nom}</p>
         </div>
     </header>
 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About &middot; DeepPVMapper</title>
+
+    <meta name="description" content="DeepPVMapper: an open, community-driven registry of rooftop solar systems across France, born out of a CIFRE PhD thesis with Mines Paris (PSL University) and RTE France.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/about.html">
+    <meta property="og:title" content="About &middot; DeepPVMapper">
+    <meta property="og:description" content="DeepPVMapper: an open, community-driven registry of rooftop solar systems across France, born out of a CIFRE PhD thesis with Mines Paris (PSL University) and RTE France.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/about.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .project-prose {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .project-prose p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+        .project-prose p:last-child {
+            margin-bottom: 0;
+        }
+        .project-prose h2 {
+            font-size: 2rem;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+        .project-prose-intro p {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                                <div class="topnav-links">
+                    <a href="about.html" class="topnav-link is-active">About</a>
+                    <a href="data.html" class="topnav-link">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                    <a href="publications.html" class="topnav-link">Publications</a>
+                    <a href="in-press.html" class="topnav-link">In Press</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">About DeepPVMapper</h1>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="project-prose project-prose-intro">
+                <p>
+                    Rooftop solar is growing fast, and it plays a real role in decarbonizing the power system
+                    &mdash; it also makes communities more resilient and brings people closer to their own
+                    electricity use. But rooftop PV is a genuinely different class of asset, and a hard one to
+                    keep track of: in France, rooftop installations account for more than 99% of all
+                    grid-connected PV systems. DeepPVMapper sets out to close that gap, combining geospatial
+                    data, remote sensing, and crowdsourcing into a registry that aims to be as complete and
+                    accurate as possible. Everything it produces is released openly, kept interoperable with
+                    OpenStreetMap, and reproducible end to end by anyone who wants to check the work or adapt
+                    it. The <a href="data.html">Data</a> and <a href="software.html">Software</a> pages cover
+                    what the project produces and how to use it; this page is about where it came from.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>Inception: a PhD thesis carried out at RTE</h2>
+                <p>
+                    DeepPVMapper grew out of a CIFRE PhD thesis &mdash; a French industrial research contract
+                    pairing an academic institution with a company &mdash; conducted between
+                    <strong>Mines Paris (PSL University)</strong> and <strong>RTE France</strong>, the French
+                    electricity transmission system operator. The thesis, <em>&ldquo;Enhancing the Reliability of
+                    Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic
+                    Installations,&rdquo;</em> was defended in 2024 at Universit&eacute; Paris sciences et
+                    lettres (<a href="https://theses.fr/2024UPSLM027" target="_blank">theses.fr record</a>,
+                    <a href="https://gabrielkasmi.github.io/content/phd_thesis.html" target="_blank">summary</a>).
+                </p>
+                <p>
+                    The starting point was operational. In 2020, early findings &mdash; later published in RTE
+                    and the IEA&rsquo;s 2021 joint report on the technical feasibility of a power system with a
+                    high share of renewables in France towards 2050
+                    (<a href="https://www.iea.org/reports/conditions-and-requirements-for-the-technical-feasibility-of-a-power-system-with-a-high-share-of-renewables-in-france-towards-2050" target="_blank">RTE &amp; IEA, 2021</a>)
+                    &mdash; showed that the risk of contingencies induced by rooftop PV could increase sharply
+                    by 2050, driven by the lack of <em>observability</em> of these small, distributed
+                    installations. The initial goal was to characterize rooftop PV systems in a systematic way
+                    and feed that improved characterization into regional power-forecasting models.
+                </p>
+                <p>
+                    The first step was to assemble training data and adapt an existing detection approach
+                    &mdash; building on <a href="https://www.cell.com/joule/fulltext/S2542-4351(18)30570-1" target="_blank">DeepSolar</a>
+                    (Yu et al., 2018) and <a href="https://doi.org/10.1016/j.apenergy.2021.118469" target="_blank">3D-PV-Locator</a>
+                    (Mayer et al., 2022) &mdash; to the French context. That work led to the detection algorithm
+                    DeepPVMapper and the training dataset BDAPPV.
+                </p>
+                <p>
+                    The thesis also gave an extensive treatment to the mapping algorithm&rsquo;s sensitivity to
+                    distribution shift &mdash; how much its performance degrades once applied outside its
+                    training conditions. That line of work led to a new feature-attribution method,
+                    <a href="https://gabrielkasmi.github.io/wam/" target="_blank">WAM</a>, presented at ICML
+                    2025, and to several follow-up studies on this same sensitivity in the specific case of
+                    remote-sensing-based PV detection
+                    (<a href="https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5" target="_blank">Environmental Data Science, 2025</a>).
+                    The short version: PV classifiers are, more often than not, fancy grid detectors.
+                </p>
+                <p>
+                    Coming back to the motivating question: better forecasts and reduced contingency risk for
+                    rooftop PV don&rsquo;t come from a better forecasting model &mdash; they come from
+                    resolving the uncertainty around installed capacity itself. It turns out that, in France,
+                    aggregate installed capacity is tracked fairly well at the national level, but significant
+                    imbalances remain at the local scale. Reaching that conclusion required a new methodology,
+                    grounded in Bayesian statistics, to turn remote-sensing detections into a genuine estimate
+                    of installed rooftop PV capacity &mdash; see the <a href="main-results.html">Registry
+                    Audit</a>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>From thesis to a reference registry</h2>
+                <p>
+                    By the time the thesis was completed, 38 French d&eacute;partements had been mapped
+                    &mdash; roughly 175,000&nbsp;km&sup2; &mdash; making DeepPVMapper, at the time, the world&rsquo;s
+                    second-largest database of its kind after the U.S.-focused DeepSolar, and the most
+                    geographically detailed.
+                </p>
+                <p>
+                    As the rest of France was mapped, other research groups introduced their own rooftop PV
+                    detections &mdash; notably <a href="https://www.sciencedirect.com/science/article/pii/S0306261925003605" target="_blank">FRPV</a>
+                    (Thebault et al., 2025). Those detections were consolidated with DeepPVMapper&rsquo;s into
+                    <a href="https://arxiv.org/abs/2607.25153" target="_blank">OpenPVMapper</a>, which aims to
+                    be a reference registry of rooftop PV installations in France &mdash; combining detectors
+                    this way measurably improves precision. The registry is updated as new imagery becomes
+                    available, and its quality keeps improving through crowdsourcing &mdash; see
+                    <a href="contribute.html">Contribute</a> for how to help.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>Current vision</h2>
+                <p>
+                    As mentioned above, rooftop PV assets grow quickly and present specific challenges when it
+                    comes to mapping them. DeepPVMapper and the OpenPVMapper database aim to remain the
+                    reference remote-sensing-based dataset of rooftop PV installations in France. All of it
+                    &mdash; from the training data to the final registry &mdash; stays openly accessible. Got a
+                    suggestion, or want to contribute? <a href="contribute.html">Get in touch</a>.
+                </p>
+                <div class="citation-box" style="margin-top: 40px;">
+                    <pre><code>@phdthesis{kasmi2024enhancing,
+  title={Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations},
+  author={Kasmi, Gabriel},
+  year={2024},
+  school={Universit{\'e} Paris sciences et lettres}
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

@@ -25,24 +25,33 @@
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
                 <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
-                <div class="topnav-links">
-                    <a href="data.html" class="topnav-link is-active">Data</a>
-                    <a href="software.html" class="topnav-link">Software</a>
-                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                    <a href="resources.html" class="topnav-link">Resources</a>
-                </div>
+                                                                <div class="topnav-links">
+                                    <a href="about.html" class="topnav-link">About</a>
+                                    <a href="data.html" class="topnav-link is-active">Data</a>
+                                    <a href="software.html" class="topnav-link">Software</a>
+                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                                        </div>
+                                    </div>
+                                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                                    <a href="publications.html" class="topnav-link">Publications</a>
+                                    <a href="in-press.html" class="topnav-link">In Press</a>
+                                </div>
             </div>
         </nav>
         <div class="container">
-            <p class="page-eyebrow">Data</p>
-            <h1 class="title">The Registry</h1>
-            <p class="subtitle">Explore, browse by département, and download — the full DeepPVMapper detection registry.</p>
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">Data</h1>
 
             <div class="quick-links">
                 <a href="#map" class="quick-link">Map</a>
                 <a href="#departements" class="quick-link">D&eacute;partements</a>
                 <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="quick-link">Raw Data</a>
-                <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="quick-link">Training Dataset</a>
             </div>
         </div>
     </header>
@@ -80,25 +89,27 @@
         <div class="container">
             <h2>Download the Data</h2>
             <p class="hub-intro">
-                <span style="display:block; text-align:center;">Grab the full registry in one file, pull a custom subset for the area you care about, or get the annotated training dataset the models were built on.</span>
+                <span style="display:block; text-align:center;">Grab the full registry in one file, or pull a custom subset for the area you care about.</span>
             </p>
             <div class="card-grid">
                 <div class="hub-card">
+                    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset" class="hub-card-badge">
                     <h3>OpenPVMapper</h3>
-                    <p>The full multi-source registry — AI detections, OpenStreetMap contributions, and manual corrections combined — 1.14M+ installations and roughly 15 GWp of capacity across metropolitan France, as a single GeoJSON file archived on Zenodo with a permanent DOI.</p>
-                    <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="btn">Download on Zenodo &rarr;</a>
+                    <p>The full multi-source registry — AI detections, OpenStreetMap contributions, and manual corrections combined — 1.14M+ installations and roughly 15 GWp of capacity across metropolitan France, as a single GeoJSON file archived on Zenodo with a permanent DOI, and also mirrored on Hugging Face.</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="btn">Download on Zenodo &rarr;</a>
+                        <a href="https://huggingface.co/datasets/gabrielkasmi/openpvmapper" target="_blank" class="btn">View on HuggingFace &rarr;</a>
+                    </div>
                 </div>
                 <div class="hub-card">
                     <h3>Custom subset</h3>
                     <p>Need just one département or commune? Lock onto it on the map — its stats card includes an exhaustive CSV export for that zone, every detection, not a sample.</p>
                     <a href="map.html" class="btn">Open the map &rarr;</a>
                 </div>
-                <div class="hub-card">
-                    <h3>Training dataset (BD-PV)</h3>
-                    <p>The annotated aerial-imagery dataset used to train DeepPVMapper's models — PV array outlines and installation metadata.</p>
-                    <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="btn">View on HuggingFace &rarr;</a>
-                </div>
             </div>
+            <p style="text-align: center; margin-top: 30px; color: #6c757d;">
+                Looking for the annotated training dataset the models were built on? That's on the <a href="software.html#model-weights">Software</a> page, alongside the model weights.
+            </p>
         </div>
     </section>
 
