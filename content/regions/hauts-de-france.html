@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hauts-de-France &middot; DeepPVMapper Data</title>
+
+    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper across Hauts-de-France: 75 043 systems, 529.5 MWp estimated installed capacity over 5 d&eacute;partements. Explore on the map or download the data.">
+    <meta name="keywords" content="panneaux photovoltaïques Hauts-de-France, panneaux solaires Hauts-de-France, installations solaires Hauts-de-France, énergie solaire Hauts-de-France, rooftop solar Hauts-de-France, solar panels Hauts-de-France France, PV installations Hauts-de-France, photovoltaic map Hauts-de-France, solar energy Hauts-de-France, DeepPVMapper, Aisne, Nord, Oise, Pas-de-Calais, Somme, Lille, Amiens, Tourcoing, Roubaix, Dunkerque, Calais, Villeneuve-d'Ascq, Beauvais, Saint-Quentin, Valenciennes">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/regions/hauts-de-france.html">
+    <meta property="og:title" content="Hauts-de-France &middot; DeepPVMapper Data">
+    <meta property="og:description" content="75 043 rooftop PV systems detected across Hauts-de-France, 529.5 MWp estimated installed capacity.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/regions/hauts-de-france.html">
+
+    <link rel="icon" type="image/x-icon" href="../../static/images/favicon.ico">
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .dept-chart-card { text-align: left; }
+        .dept-chart-card h3 { text-align: left; font-size: 0.98rem; }
+        .dept-chart-card svg { display: block; margin-top: 10px; }
+        .dept-chart-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px; max-width: 900px; margin: 34px auto 0;
+        }
+        .dept-cities { max-width: 720px; margin: 40px auto 0; }
+        .dept-cities h3 { text-align: center; margin-bottom: 16px; }
+        .dept-back-links { text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+        .rankings-tabs {
+            display: flex; justify-content: center; gap: 8px; margin: 8px 0 20px; flex-wrap: wrap;
+        }
+        .rankings-tab {
+            font: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+            padding: 8px 20px; border-radius: 6px; border: 1px solid #dee2e6;
+            background: #fff; color: #34495e;
+        }
+        .rankings-tab.is-active { background: #34495e; border-color: #34495e; color: #fff; }
+        .ranking-panel, .ranking-list {
+            max-width: 720px; margin: 0 auto; max-height: 480px;
+            overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px;
+        }
+        .ranking-panel { display: none; }
+        .ranking-panel.is-active { display: block; }
+        .ranking-item {
+            display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+            text-decoration: none; color: inherit; border-bottom: 1px solid #f1f3f5;
+        }
+        .ranking-item:last-child { border-bottom: none; }
+        .ranking-item:hover { background: #f8f9fa; }
+        .ranking-rank {
+            flex: none; width: 28px; height: 28px; border-radius: 50%;
+            background: #e9ecef; color: #34495e; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ranking-item.rank-1 .ranking-rank { background: #f4c95d; color: #5c4400; }
+        .ranking-item.rank-2 .ranking-rank { background: #d8dce3; color: #3a3f47; }
+        .ranking-item.rank-3 .ranking-rank { background: #e3b088; color: #5a3313; }
+        .ranking-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+        .ranking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-sub { font-size: 0.8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-value {
+            flex: none; font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums;
+            font-size: 0.92rem; text-align: right;
+        }
+        .region-intro { max-width: 720px; margin: 0 auto 8px; text-align: left; }
+        .region-intro p { margin: 0 0 14px; line-height: 1.65; color: #495057; }
+        .region-intro p:last-child { margin-bottom: 0; }
+        .region-intro a { color: #34495e; font-weight: 600; }
+        .combo-legend {
+            display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px;
+            font-size: 0.78rem; color: #495057;
+        }
+        .combo-legend-item { display: flex; align-items: center; gap: 6px; }
+        .combo-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+        .power-class-note { font-size: 0.75rem; color: #6c757d; margin-top: 10px; line-height: 1.5; }
+        .chart-hover-target { cursor: pointer; }
+        .chart-tooltip {
+            position: fixed; pointer-events: none; background: #2c3e50; color: #fff;
+            font-size: 0.78rem; padding: 6px 10px; border-radius: 6px; opacity: 0;
+            transition: opacity 0.12s ease; z-index: 9999; white-space: nowrap;
+        }
+        .region-map-card {
+            max-width: 460px; margin: 22px auto 0; text-align: center;
+            border: 1px solid #e9ecef; border-radius: 8px; padding: 20px;
+        }
+        .region-map-card h3 { font-size: 0.98rem; margin: 0 0 4px; }
+        .region-map-card svg { display: block; margin: 10px auto 0; max-width: 100%; height: auto; }
+        .region-map-note { font-size: 0.78rem; color: #6c757d; margin-top: 8px; }
+        .reveal-section {
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .reveal-section.is-visible { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-section { transition: none; opacity: 1; transform: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="../about.html" class="topnav-link">About</a>
+                    <a href="../data.html" class="topnav-link is-active">Data</a>
+                    <a href="../software.html" class="topnav-link">Software</a>
+                    <a href="../contribute.html" class="topnav-link">Contribute</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="../outlook.html" class="topnav-link">Related Works</a>
+                    <a href="../publications.html" class="topnav-link">Publications</a>
+                    <a href="../in-press.html" class="topnav-link">In Press</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">Hauts-de-France</h1>
+            <p class="title-region">5 d&eacute;partements</p>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="region-intro">
+                <p>With 5,995,292 inhabitants as of 2021 (5th nationally) spread across 31,914 km&sup2; (8th by area), Hauts-de-France lies in the far north of France. Its economy was estimated at &euro;197,331 million in GDP in 2024 (7th nationally). Lille, Amiens and Tourcoing rank among its largest cities.</p>
+            <p>The latest OpenPVMapper release has identified 529.5 MWp of rooftop PV across 75 043 installations in Hauts-de-France, making it the 9th r&eacute;gion in France by installed capacity. The most equipped d&eacute;partements were Nord, Pas-de-Calais and Oise. Detections span 2015&ndash;2025. To explore every detection in Hauts-de-France, <a href="../map.html?region=32">click here to see it on the map</a>.</p>
+            </div>
+
+            <div class="validation-stats">
+                <div class="stat-item">
+                    <span class="stat-number">75 043</span>
+                    <span class="stat-label">PV systems detected</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">529.5 MWp</span>
+                    <span class="stat-label">Estimated installed capacity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">#9</span>
+                    <span class="stat-label">by installed capacity, out of 13 r&eacute;gions</span>
+                </div>
+            </div>
+
+            <div class="reveal-section">
+                <div class="dept-chart-grid">
+                    <div class="hub-card dept-chart-card">
+                    <h3>Source composition</h3>
+                    <svg viewBox="0 0 180 180" width="100%" height="180" role="img" aria-label="Source-combination shares"><path class="chart-hover-target" d="M 90.0 4.0 A 86.0 86.0 0 1 1 53.6 167.9 L 65.5 142.6 A 58.0 58.0 0 1 0 90.0 32.0 Z" fill="#34495e" data-tip="DPVM only: 57%"></path><path class="chart-hover-target" d="M 53.6 167.9 A 86.0 86.0 0 0 1 6.2 70.8 L 33.5 77.0 A 58.0 58.0 0 0 0 65.5 142.6 Z" fill="#7f8fa6" data-tip="DPVM + FRPV: 22%"></path><path class="chart-hover-target" d="M 6.2 70.8 A 86.0 86.0 0 0 1 82.2 4.4 L 84.8 32.2 A 58.0 58.0 0 0 0 33.5 77.0 Z" fill="#c0392b" data-tip="FRPV only: 20%"></path><path class="chart-hover-target" d="M 82.2 4.4 A 86.0 86.0 0 0 1 86.7 4.1 L 87.8 32.0 A 58.0 58.0 0 0 0 84.8 32.2 Z" fill="#e0a94e" data-tip="OSM only: 1%"></path><path class="chart-hover-target" d="M 86.7 4.1 A 86.0 86.0 0 0 1 88.3 4.0 L 88.9 32.0 A 58.0 58.0 0 0 0 87.8 32.0 Z" fill="#5c6b7a" data-tip="DPVM + FRPV + OSM: 0%"></path><path class="chart-hover-target" d="M 88.3 4.0 A 86.0 86.0 0 0 1 89.2 4.0 L 89.5 32.0 A 58.0 58.0 0 0 0 88.9 32.0 Z" fill="#8ba888" data-tip="DPVM + OSM: 0%"></path><path class="chart-hover-target" d="M 89.2 4.0 A 86.0 86.0 0 0 1 90.0 4.0 L 90.0 32.0 A 58.0 58.0 0 0 0 89.5 32.0 Z" fill="#b98fc9" data-tip="FRPV + OSM: 0%"></path></svg><div class="combo-legend"><span class="combo-legend-item"><span class="combo-swatch" style="background:#34495e"></span>DPVM only &middot; 57%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#7f8fa6"></span>DPVM + FRPV &middot; 22%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#c0392b"></span>FRPV only &middot; 20%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#e0a94e"></span>OSM only &middot; 1%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#5c6b7a"></span>DPVM + FRPV + OSM &middot; 0%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#8ba888"></span>DPVM + OSM &middot; 0%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#b98fc9"></span>FRPV + OSM &middot; 0%</span></div>
+                </div>
+                    <div class="hub-card dept-chart-card">
+                    <h3>Composition by power class</h3>
+                    <svg viewBox="0 0 280 170" width="100%" height="170" role="img" aria-label="Source-combination share by power class"><line x1="4" y1="150.0" x2="276" y2="150.0" stroke="#e9ecef"/><rect class="chart-hover-target" x="16.2" y="70.0" width="29.9" height="80.0" fill="#34495e" data-tip="&lt; 9 kWp &middot; DPVM only: 56%"></rect><rect class="chart-hover-target" x="16.2" y="40.1" width="29.9" height="29.9" fill="#c0392b" data-tip="&lt; 9 kWp &middot; FRPV only: 21%"></rect><rect class="chart-hover-target" x="16.2" y="39.5" width="29.9" height="0.6" fill="#e0a94e" data-tip="&lt; 9 kWp &middot; OSM only: 0%"></rect><rect class="chart-hover-target" x="16.2" y="6.8" width="29.9" height="32.7" fill="#7f8fa6" data-tip="&lt; 9 kWp &middot; DPVM + FRPV: 23%"></rect><rect class="chart-hover-target" x="16.2" y="6.6" width="29.9" height="0.2" fill="#8ba888" data-tip="&lt; 9 kWp &middot; DPVM + OSM: 0%"></rect><rect class="chart-hover-target" x="16.2" y="6.4" width="29.9" height="0.2" fill="#b98fc9" data-tip="&lt; 9 kWp &middot; FRPV + OSM: 0%"></rect><rect class="chart-hover-target" x="16.2" y="6.0" width="29.9" height="0.4" fill="#5c6b7a" data-tip="&lt; 9 kWp &middot; DPVM + FRPV + OSM: 0%"></rect><rect class="chart-hover-target" x="70.6" y="38.7" width="29.9" height="111.3" fill="#34495e" data-tip="9&ndash;36 kWp &middot; DPVM only: 77%"></rect><rect class="chart-hover-target" x="70.6" y="30.1" width="29.9" height="8.6" fill="#c0392b" data-tip="9&ndash;36 kWp &middot; FRPV only: 6%"></rect><rect class="chart-hover-target" x="70.6" y="27.8" width="29.9" height="2.3" fill="#e0a94e" data-tip="9&ndash;36 kWp &middot; OSM only: 2%"></rect><rect class="chart-hover-target" x="70.6" y="7.6" width="29.9" height="20.2" fill="#7f8fa6" data-tip="9&ndash;36 kWp &middot; DPVM + FRPV: 14%"></rect><rect class="chart-hover-target" x="70.6" y="6.8" width="29.9" height="0.8" fill="#8ba888" data-tip="9&ndash;36 kWp &middot; DPVM + OSM: 1%"></rect><rect class="chart-hover-target" x="70.6" y="6.0" width="29.9" height="0.8" fill="#5c6b7a" data-tip="9&ndash;36 kWp &middot; DPVM + FRPV + OSM: 1%"></rect><rect class="chart-hover-target" x="125.0" y="99.2" width="29.9" height="50.8" fill="#34495e" data-tip="36&ndash;100 kWp &middot; DPVM only: 35%"></rect><rect class="chart-hover-target" x="125.0" y="37.9" width="29.9" height="61.3" fill="#c0392b" data-tip="36&ndash;100 kWp &middot; FRPV only: 43%"></rect><rect class="chart-hover-target" x="125.0" y="20.3" width="29.9" height="17.6" fill="#e0a94e" data-tip="36&ndash;100 kWp &middot; OSM only: 12%"></rect><rect class="chart-hover-target" x="125.0" y="9.1" width="29.9" height="11.2" fill="#7f8fa6" data-tip="36&ndash;100 kWp &middot; DPVM + FRPV: 8%"></rect><rect class="chart-hover-target" x="125.0" y="8.3" width="29.9" height="0.8" fill="#8ba888" data-tip="36&ndash;100 kWp &middot; DPVM + OSM: 1%"></rect><rect class="chart-hover-target" x="125.0" y="8.2" width="29.9" height="0.2" fill="#b98fc9" data-tip="36&ndash;100 kWp &middot; FRPV + OSM: 0%"></rect><rect class="chart-hover-target" x="125.0" y="6.0" width="29.9" height="2.2" fill="#5c6b7a" data-tip="36&ndash;100 kWp &middot; DPVM + FRPV + OSM: 1%"></rect><rect class="chart-hover-target" x="179.4" y="138.8" width="29.9" height="11.2" fill="#34495e" data-tip="100&ndash;250 kWp &middot; DPVM only: 8%"></rect><rect class="chart-hover-target" x="179.4" y="37.3" width="29.9" height="101.5" fill="#c0392b" data-tip="100&ndash;250 kWp &middot; FRPV only: 70%"></rect><rect class="chart-hover-target" x="179.4" y="7.9" width="29.9" height="29.5" fill="#e0a94e" data-tip="100&ndash;250 kWp &middot; OSM only: 20%"></rect><rect class="chart-hover-target" x="179.4" y="7.5" width="29.9" height="0.4" fill="#7f8fa6" data-tip="100&ndash;250 kWp &middot; DPVM + FRPV: 0%"></rect><rect class="chart-hover-target" x="179.4" y="6.7" width="29.9" height="0.7" fill="#8ba888" data-tip="100&ndash;250 kWp &middot; DPVM + OSM: 1%"></rect><rect class="chart-hover-target" x="179.4" y="6.0" width="29.9" height="0.7" fill="#5c6b7a" data-tip="100&ndash;250 kWp &middot; DPVM + FRPV + OSM: 1%"></rect><rect class="chart-hover-target" x="233.8" y="139.3" width="29.9" height="10.7" fill="#34495e" data-tip="&gt; 250 kWp &middot; DPVM only: 7%"></rect><rect class="chart-hover-target" x="233.8" y="91.8" width="29.9" height="47.5" fill="#c0392b" data-tip="&gt; 250 kWp &middot; FRPV only: 33%"></rect><rect class="chart-hover-target" x="233.8" y="7.5" width="29.9" height="84.3" fill="#e0a94e" data-tip="&gt; 250 kWp &middot; OSM only: 59%"></rect><rect class="chart-hover-target" x="233.8" y="6.0" width="29.9" height="1.5" fill="#8ba888" data-tip="&gt; 250 kWp &middot; DPVM + OSM: 1%"></rect><text x="31.2" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P1</text><text x="85.6" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P2</text><text x="140.0" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P3</text><text x="194.4" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P4</text><text x="248.8" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P5</text></svg><p class="power-class-note">P1 &lt; 9 kWp &middot; P2 9&ndash;36 kWp &middot; P3 36&ndash;100 kWp &middot; P4 100&ndash;250 kWp &middot; P5 &gt; 250 kWp</p>
+                </div>
+                </div>
+
+                <div class="region-map-card"><h3>Installed capacity by d&eacute;partement</h3><svg viewBox="0 0 360 360" width="100%" height="360" role="img" aria-label="Installed capacity share by d&eacute;partement"><path d="M 202.1 149.7 L 204.3 147.5 L 207.4 149.3 L 204.8 151.6 L 205.3 154.1 L 201.7 154.3 L 200.8 156.1 L 198.0 156.0 L 198.4 151.2 L 202.1 149.7 Z M 105.3 18.7 L 109.5 18.9 L 112.3 16.5 L 117.5 16.9 L 117.6 14.3 L 120.3 14.7 L 124.3 12.9 L 132.6 10.8 L 137.9 11.9 L 140.8 11.1 L 152.9 6.0 L 154.5 9.7 L 155.8 17.6 L 155.6 19.1 L 159.0 21.7 L 161.5 28.0 L 157.2 32.2 L 159.0 33.2 L 159.3 41.0 L 161.7 48.7 L 170.0 48.6 L 171.9 53.3 L 176.3 58.2 L 176.8 60.9 L 179.5 63.5 L 183.0 62.6 L 185.1 65.6 L 187.9 67.0 L 190.3 65.7 L 191.8 59.6 L 195.0 58.4 L 200.2 54.9 L 204.2 53.6 L 206.9 54.7 L 209.1 51.5 L 213.2 53.4 L 217.9 60.7 L 219.1 64.0 L 222.4 64.1 L 223.8 66.0 L 224.2 69.4 L 222.1 72.6 L 223.5 78.1 L 225.0 79.9 L 226.1 85.1 L 225.5 88.0 L 226.6 92.8 L 234.2 96.6 L 235.5 98.4 L 241.1 95.9 L 245.2 91.9 L 249.8 93.5 L 247.5 97.3 L 250.0 97.8 L 254.6 96.9 L 256.3 98.5 L 258.5 97.5 L 262.1 102.7 L 264.2 104.3 L 265.1 114.1 L 263.6 117.0 L 265.1 122.6 L 268.8 127.5 L 270.9 126.1 L 271.3 121.3 L 272.4 120.1 L 282.9 120.0 L 286.6 123.4 L 288.5 123.6 L 294.4 120.2 L 297.0 120.5 L 300.3 119.1 L 301.3 121.4 L 309.7 128.3 L 310.0 132.1 L 318.3 132.2 L 319.7 134.7 L 316.5 137.8 L 313.5 143.1 L 312.5 147.4 L 312.9 149.5 L 310.2 153.5 L 317.2 153.5 L 317.3 157.5 L 320.2 162.1 L 319.3 165.0 L 314.9 167.4 L 313.7 166.8 L 311.2 171.3 L 313.3 176.2 L 311.6 177.7 L 306.3 179.2 L 303.2 176.7 L 298.9 176.6 L 295.5 174.0 L 297.1 170.5 L 296.6 168.0 L 288.0 171.6 L 285.8 169.3 L 281.2 166.9 L 279.3 168.4 L 277.4 166.9 L 272.3 166.1 L 269.2 163.7 L 264.3 165.9 L 264.0 168.4 L 259.1 170.5 L 257.8 168.2 L 254.5 166.2 L 252.1 166.1 L 250.7 168.5 L 248.5 168.9 L 246.9 171.5 L 240.7 171.0 L 237.8 169.0 L 233.2 168.9 L 231.6 171.8 L 225.9 172.1 L 221.0 169.5 L 218.2 171.7 L 215.3 172.7 L 209.8 170.1 L 207.0 166.1 L 207.5 161.5 L 209.4 160.2 L 208.5 156.6 L 207.2 155.8 L 210.9 148.8 L 213.6 146.0 L 211.1 143.6 L 212.3 140.5 L 215.9 140.5 L 216.8 139.0 L 213.6 136.8 L 211.4 133.2 L 203.2 131.6 L 199.9 133.5 L 199.6 130.5 L 206.4 126.3 L 198.5 117.7 L 197.1 113.3 L 200.6 111.3 L 205.7 106.2 L 203.5 104.0 L 201.8 106.1 L 199.7 105.0 L 199.6 99.1 L 194.5 95.1 L 188.0 96.8 L 186.1 94.6 L 186.2 91.6 L 180.7 93.1 L 178.3 91.7 L 179.5 89.4 L 179.0 84.8 L 177.1 84.2 L 178.8 80.5 L 182.4 77.1 L 185.1 76.8 L 182.2 72.8 L 179.1 70.8 L 175.1 71.7 L 173.9 78.8 L 170.7 79.4 L 169.6 76.7 L 166.6 76.5 L 161.3 78.8 L 156.9 75.7 L 154.7 77.8 L 152.0 76.9 L 151.6 74.9 L 147.9 76.7 L 143.3 73.2 L 141.2 72.8 L 139.1 70.3 L 136.6 70.5 L 134.7 68.5 L 136.6 66.7 L 132.5 61.7 L 132.4 59.8 L 139.5 55.8 L 135.9 53.1 L 132.6 53.6 L 123.6 52.5 L 119.7 48.1 L 118.6 42.8 L 113.9 31.1 L 112.0 25.2 L 108.2 19.9 L 105.3 18.7 Z" fill="#1b2733" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Nord: 246.3 MWp &middot; #1 by installed capacity in the r&eacute;gion</title></path><path d="M 105.3 18.7 L 108.2 19.9 L 112.0 25.2 L 113.9 31.1 L 118.6 42.8 L 119.7 48.1 L 123.6 52.5 L 132.6 53.6 L 135.9 53.1 L 139.5 55.8 L 132.4 59.8 L 132.5 61.7 L 136.6 66.7 L 134.7 68.5 L 136.6 70.5 L 139.1 70.3 L 141.2 72.8 L 143.3 73.2 L 147.9 76.7 L 151.6 74.9 L 152.0 76.9 L 154.7 77.8 L 156.9 75.7 L 161.3 78.8 L 166.6 76.5 L 169.6 76.7 L 170.7 79.4 L 173.9 78.8 L 175.1 71.7 L 179.1 70.8 L 182.2 72.8 L 185.1 76.8 L 182.4 77.1 L 178.8 80.5 L 177.1 84.2 L 179.0 84.8 L 179.5 89.4 L 178.3 91.7 L 180.7 93.1 L 186.2 91.6 L 186.1 94.6 L 188.0 96.8 L 194.5 95.1 L 199.6 99.1 L 199.7 105.0 L 201.8 106.1 L 203.5 104.0 L 205.7 106.2 L 200.6 111.3 L 197.1 113.3 L 198.5 117.7 L 206.4 126.3 L 199.6 130.5 L 199.9 133.5 L 203.2 131.6 L 211.4 133.2 L 213.6 136.8 L 216.8 139.0 L 215.9 140.5 L 212.3 140.5 L 211.1 143.6 L 213.6 146.0 L 210.9 148.8 L 207.2 155.8 L 208.5 156.6 L 209.4 160.2 L 207.5 161.5 L 207.0 166.1 L 205.5 167.4 L 199.5 165.3 L 195.9 167.2 L 192.5 166.1 L 189.8 168.9 L 185.8 167.9 L 183.9 162.4 L 178.9 164.8 L 177.0 167.4 L 174.5 168.4 L 172.4 167.0 L 176.3 160.3 L 174.5 157.4 L 171.1 154.9 L 167.4 160.2 L 161.6 158.8 L 160.2 157.2 L 155.9 156.9 L 156.2 154.5 L 154.0 152.4 L 151.5 156.6 L 149.8 152.6 L 146.4 153.0 L 143.3 155.2 L 141.3 160.8 L 139.8 158.8 L 135.9 157.5 L 137.6 151.9 L 137.3 150.4 L 139.8 147.6 L 143.4 146.8 L 147.9 144.3 L 146.8 142.3 L 143.5 139.4 L 138.9 138.2 L 136.5 139.5 L 135.4 142.0 L 132.4 138.9 L 128.5 141.5 L 125.4 139.0 L 123.0 141.7 L 120.1 140.8 L 115.8 142.1 L 114.5 144.2 L 110.7 141.8 L 107.0 143.3 L 104.1 134.9 L 101.1 132.7 L 98.8 132.6 L 92.2 127.8 L 94.4 126.1 L 92.4 123.3 L 90.4 126.2 L 86.2 124.6 L 85.8 123.0 L 81.7 121.0 L 79.1 118.8 L 76.5 118.4 L 72.6 119.6 L 65.7 123.2 L 62.8 119.9 L 61.2 116.9 L 56.7 115.7 L 54.3 112.9 L 55.7 105.6 L 56.5 94.5 L 57.2 91.3 L 60.6 91.6 L 56.8 87.3 L 56.4 85.9 L 56.3 74.8 L 54.8 66.2 L 58.1 60.7 L 59.1 56.4 L 59.2 51.7 L 56.5 42.4 L 57.1 39.5 L 62.9 38.4 L 65.4 36.3 L 67.9 32.8 L 71.5 29.3 L 76.7 26.7 L 81.8 25.4 L 85.7 23.6 L 87.5 24.0 L 90.1 22.1 L 103.0 19.9 L 105.3 18.7 Z M 202.1 149.7 L 198.4 151.2 L 198.0 156.0 L 200.8 156.1 L 201.7 154.3 L 205.3 154.1 L 204.8 151.6 L 207.4 149.3 L 204.3 147.5 L 202.1 149.7 Z" fill="#838d97" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Pas-de-Calais: 113.2 MWp &middot; #2 by installed capacity in the r&eacute;gion</title></path><path d="M 77.0 211.8 L 79.5 212.4 L 82.3 214.6 L 82.4 219.5 L 88.0 221.0 L 91.9 217.8 L 97.4 219.4 L 101.2 219.1 L 104.5 221.6 L 108.8 221.7 L 110.6 222.7 L 114.1 220.5 L 120.2 220.5 L 126.9 222.5 L 129.9 222.4 L 132.1 225.6 L 135.4 227.6 L 139.3 226.9 L 142.9 228.1 L 146.1 233.1 L 148.9 230.9 L 150.9 231.8 L 155.4 236.8 L 157.9 234.5 L 160.6 234.7 L 161.2 239.4 L 163.2 240.7 L 165.3 239.2 L 165.3 236.5 L 167.0 232.5 L 172.1 232.1 L 175.3 234.1 L 178.0 233.5 L 177.1 230.4 L 178.2 226.8 L 182.5 227.3 L 183.8 223.4 L 189.7 220.4 L 193.0 222.3 L 197.0 219.6 L 200.7 223.9 L 204.3 218.9 L 209.8 219.9 L 209.6 226.3 L 207.8 227.5 L 209.3 231.5 L 207.4 232.8 L 210.2 235.7 L 212.0 240.0 L 210.7 240.5 L 211.1 245.1 L 210.1 248.5 L 207.6 249.0 L 210.1 252.8 L 208.7 256.7 L 214.0 259.3 L 214.2 261.0 L 211.2 262.3 L 208.1 261.2 L 207.3 271.1 L 205.7 271.7 L 205.5 275.2 L 202.3 277.5 L 198.2 276.5 L 194.5 279.3 L 196.2 283.1 L 201.6 284.7 L 200.6 288.9 L 202.0 293.8 L 200.4 295.6 L 198.3 292.7 L 193.9 294.2 L 195.1 296.0 L 194.8 299.5 L 198.3 300.1 L 198.1 296.1 L 203.0 296.9 L 203.8 298.6 L 208.3 298.6 L 209.7 299.9 L 210.1 304.2 L 212.0 305.5 L 207.4 307.2 L 207.3 309.2 L 205.2 311.0 L 202.9 315.8 L 198.9 315.0 L 195.5 317.6 L 188.2 315.9 L 187.6 317.2 L 183.7 318.3 L 182.6 316.1 L 177.3 315.2 L 176.9 317.5 L 173.5 319.8 L 168.9 319.0 L 165.5 315.1 L 161.6 312.4 L 157.3 316.8 L 154.1 313.9 L 147.3 312.7 L 148.6 311.0 L 145.5 308.2 L 139.6 305.6 L 137.5 306.0 L 133.0 304.1 L 129.5 300.3 L 127.0 304.4 L 123.6 305.5 L 120.3 301.2 L 116.6 302.3 L 111.7 299.5 L 108.2 299.8 L 106.0 296.9 L 98.6 302.0 L 95.9 300.7 L 94.6 302.3 L 91.7 302.2 L 87.1 304.0 L 86.3 302.6 L 83.1 302.9 L 78.2 300.5 L 74.1 302.1 L 72.8 301.3 L 72.0 294.9 L 69.1 293.2 L 69.7 288.2 L 72.1 287.5 L 75.1 288.4 L 77.6 290.8 L 78.9 287.1 L 76.2 282.8 L 75.4 279.7 L 76.0 277.4 L 74.6 272.2 L 70.7 268.1 L 70.0 265.8 L 70.9 262.0 L 73.4 258.1 L 76.2 256.2 L 76.0 253.9 L 77.6 251.2 L 75.8 249.8 L 73.7 252.5 L 70.6 250.5 L 73.4 245.9 L 71.4 245.3 L 71.6 242.3 L 70.1 240.0 L 69.2 235.4 L 70.8 232.9 L 69.5 229.1 L 71.2 225.1 L 73.8 223.8 L 72.0 221.0 L 69.1 223.8 L 67.6 221.6 L 70.2 219.5 L 70.6 216.1 L 73.2 214.9 L 72.8 212.8 L 77.0 211.8 Z" fill="#abb5be" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Oise: 61.7 MWp &middot; #3 by installed capacity in the r&eacute;gion</title></path><path d="M 37.0 164.2 L 44.2 157.3 L 47.0 147.7 L 50.0 143.2 L 53.6 141.1 L 58.3 145.7 L 61.4 145.0 L 66.0 147.4 L 67.0 146.1 L 64.9 141.4 L 60.9 141.1 L 58.1 136.6 L 57.9 134.7 L 53.7 134.1 L 52.5 130.7 L 53.8 120.2 L 55.8 119.0 L 60.0 118.7 L 62.8 119.9 L 65.7 123.2 L 72.6 119.6 L 76.5 118.4 L 79.1 118.8 L 81.7 121.0 L 85.8 123.0 L 86.2 124.6 L 90.4 126.2 L 92.4 123.3 L 94.4 126.1 L 92.2 127.8 L 98.8 132.6 L 101.1 132.7 L 104.1 134.9 L 107.0 143.3 L 110.7 141.8 L 114.5 144.2 L 115.8 142.1 L 120.1 140.8 L 123.0 141.7 L 125.4 139.0 L 128.5 141.5 L 132.4 138.9 L 135.4 142.0 L 136.5 139.5 L 138.9 138.2 L 143.5 139.4 L 146.8 142.3 L 147.9 144.3 L 143.4 146.8 L 139.8 147.6 L 137.3 150.4 L 137.6 151.9 L 135.9 157.5 L 139.8 158.8 L 141.3 160.8 L 143.3 155.2 L 146.4 153.0 L 149.8 152.6 L 151.5 156.6 L 154.0 152.4 L 156.2 154.5 L 155.9 156.9 L 160.2 157.2 L 161.6 158.8 L 167.4 160.2 L 171.1 154.9 L 174.5 157.4 L 176.3 160.3 L 172.4 167.0 L 174.5 168.4 L 177.0 167.4 L 178.9 164.8 L 183.9 162.4 L 185.8 167.9 L 189.8 168.9 L 192.5 166.1 L 195.9 167.2 L 199.5 165.3 L 205.5 167.4 L 207.0 166.1 L 209.8 170.1 L 215.3 172.7 L 214.1 175.0 L 215.7 176.7 L 213.1 183.3 L 209.8 187.7 L 210.0 192.3 L 206.4 195.1 L 206.6 198.6 L 203.6 200.5 L 205.9 201.9 L 206.6 206.6 L 204.3 208.1 L 207.4 212.0 L 209.8 219.9 L 204.3 218.9 L 200.7 223.9 L 197.0 219.6 L 193.0 222.3 L 189.7 220.4 L 183.8 223.4 L 182.5 227.3 L 178.2 226.8 L 177.1 230.4 L 178.0 233.5 L 175.3 234.1 L 172.1 232.1 L 167.0 232.5 L 165.3 236.5 L 165.3 239.2 L 163.2 240.7 L 161.2 239.4 L 160.6 234.7 L 157.9 234.5 L 155.4 236.8 L 150.9 231.8 L 148.9 230.9 L 146.1 233.1 L 142.9 228.1 L 139.3 226.9 L 135.4 227.6 L 132.1 225.6 L 129.9 222.4 L 126.9 222.5 L 120.2 220.5 L 114.1 220.5 L 110.6 222.7 L 108.8 221.7 L 104.5 221.6 L 101.2 219.1 L 97.4 219.4 L 91.9 217.8 L 88.0 221.0 L 82.4 219.5 L 82.3 214.6 L 79.5 212.4 L 77.0 211.8 L 74.4 208.3 L 72.4 204.1 L 69.7 191.5 L 68.0 190.6 L 66.5 187.1 L 58.1 182.3 L 56.1 178.5 L 51.4 174.9 L 50.4 172.6 L 48.1 171.7 L 44.0 168.2 L 44.7 164.7 L 41.1 163.5 L 39.7 165.6 L 37.0 164.2 Z" fill="#afb9c2" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Somme: 56.5 MWp &middot; #4 by installed capacity in the r&eacute;gion</title></path><path d="M 302.4 266.4 L 301.6 267.7 L 301.1 273.5 L 298.9 273.7 L 297.1 270.7 L 293.7 270.8 L 290.1 266.1 L 287.5 268.3 L 284.1 266.4 L 281.4 267.9 L 283.3 270.2 L 282.5 272.8 L 279.9 273.9 L 275.4 274.1 L 271.9 277.1 L 267.6 277.8 L 262.2 280.8 L 263.5 284.1 L 263.3 288.5 L 264.8 292.1 L 264.0 296.8 L 267.4 297.4 L 268.2 301.1 L 270.3 302.3 L 272.8 301.7 L 272.6 304.8 L 267.9 307.0 L 266.1 305.2 L 263.1 306.1 L 260.0 305.8 L 258.8 308.2 L 259.0 310.9 L 261.7 316.6 L 256.6 320.0 L 256.5 323.9 L 262.5 322.7 L 264.1 323.4 L 265.6 326.5 L 264.3 328.3 L 261.6 328.8 L 259.8 334.4 L 256.9 335.3 L 258.0 337.7 L 255.2 338.6 L 255.2 341.3 L 250.7 342.8 L 248.7 346.1 L 246.3 352.1 L 243.9 354.0 L 243.1 351.4 L 238.3 350.2 L 235.9 348.5 L 236.2 346.4 L 234.5 341.1 L 230.9 343.3 L 229.2 341.3 L 228.4 337.1 L 224.7 338.7 L 223.1 333.4 L 220.9 330.9 L 214.8 326.6 L 216.2 319.7 L 213.3 316.3 L 214.5 313.7 L 211.6 312.5 L 208.4 312.5 L 205.2 311.0 L 207.3 309.2 L 207.4 307.2 L 212.0 305.5 L 210.1 304.2 L 209.7 299.9 L 208.3 298.6 L 203.8 298.6 L 203.0 296.9 L 198.1 296.1 L 198.3 300.1 L 194.8 299.5 L 195.1 296.0 L 193.9 294.2 L 198.3 292.7 L 200.4 295.6 L 202.0 293.8 L 200.6 288.9 L 201.6 284.7 L 196.2 283.1 L 194.5 279.3 L 198.2 276.5 L 202.3 277.5 L 205.5 275.2 L 205.7 271.7 L 207.3 271.1 L 208.1 261.2 L 211.2 262.3 L 214.2 261.0 L 214.0 259.3 L 208.7 256.7 L 210.1 252.8 L 207.6 249.0 L 210.1 248.5 L 211.1 245.1 L 210.7 240.5 L 212.0 240.0 L 210.2 235.7 L 207.4 232.8 L 209.3 231.5 L 207.8 227.5 L 209.6 226.3 L 209.8 219.9 L 207.4 212.0 L 204.3 208.1 L 206.6 206.6 L 205.9 201.9 L 203.6 200.5 L 206.6 198.6 L 206.4 195.1 L 210.0 192.3 L 209.8 187.7 L 213.1 183.3 L 215.7 176.7 L 214.1 175.0 L 215.3 172.7 L 218.2 171.7 L 221.0 169.5 L 225.9 172.1 L 231.6 171.8 L 233.2 168.9 L 237.8 169.0 L 240.7 171.0 L 246.9 171.5 L 248.5 168.9 L 250.7 168.5 L 252.1 166.1 L 254.5 166.2 L 257.8 168.2 L 259.1 170.5 L 264.0 168.4 L 264.3 165.9 L 269.2 163.7 L 272.3 166.1 L 277.4 166.9 L 279.3 168.4 L 281.2 166.9 L 285.8 169.3 L 288.0 171.6 L 296.6 168.0 L 297.1 170.5 L 295.5 174.0 L 298.9 176.6 L 303.2 176.7 L 306.3 179.2 L 311.6 177.7 L 314.8 178.0 L 317.2 179.4 L 317.1 181.3 L 320.8 181.0 L 319.2 187.6 L 323.0 189.4 L 322.4 196.6 L 319.8 200.1 L 318.9 204.4 L 320.2 206.4 L 318.3 208.3 L 321.3 210.4 L 322.2 212.4 L 320.3 214.1 L 320.0 216.6 L 316.6 218.3 L 316.0 221.0 L 311.9 222.6 L 310.2 224.3 L 310.0 228.6 L 307.1 231.8 L 304.0 230.6 L 301.8 231.7 L 300.7 234.1 L 305.2 240.8 L 303.4 243.7 L 305.2 245.6 L 305.3 247.9 L 301.6 250.5 L 301.8 256.6 L 303.3 259.3 L 301.3 261.3 L 302.4 266.4 Z" fill="#b3bcc5" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Aisne: 51.8 MWp &middot; #5 by installed capacity in the r&eacute;gion</title></path></svg><p class="region-map-note">Darker = larger share of Hauts-de-France&rsquo;s installed capacity.</p></div>
+            </div>
+
+            <div class="reveal-section" id="region-rankings">
+                <div class="rankings-tabs">
+                    <button type="button" class="rankings-tab is-active" data-panel="region-departements">D&eacute;partements</button>
+                    <button type="button" class="rankings-tab" data-panel="region-cities">Cities</button>
+                </div>
+                <div class="ranking-panel is-active" id="ranking-region-departements">
+                                    <a class="ranking-item rank-1" href="../data/59.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nord</span>
+                        <span class="ranking-sub">34 689 systems</span>
+                    </span>
+                    <span class="ranking-value">246.3 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="../data/62.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pas-de-Calais</span>
+                        <span class="ranking-sub">19 119 systems</span>
+                    </span>
+                    <span class="ranking-value">113.2 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="../data/60.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Oise</span>
+                        <span class="ranking-sub">6 347 systems</span>
+                    </span>
+                    <span class="ranking-value">61.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="../data/80.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Somme</span>
+                        <span class="ranking-sub">7 899 systems</span>
+                    </span>
+                    <span class="ranking-value">56.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="../data/02.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aisne</span>
+                        <span class="ranking-sub">6 989 systems</span>
+                    </span>
+                    <span class="ranking-value">51.8 MWp</span>
+                </a>
+                </div>
+                <div class="ranking-panel" id="ranking-region-cities">
+                                    <a class="ranking-item rank-1" href="../cities/60057.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Beauvais</span>
+                        <span class="ranking-sub">Oise</span>
+                    </span>
+                    <span class="ranking-value">18.3 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="../cities/59350.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lille</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">8.2 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="../cities/80021.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Amiens</span>
+                        <span class="ranking-sub">Somme</span>
+                    </span>
+                    <span class="ranking-value">3.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59183.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Dunkerque</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">3.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59599.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Tourcoing</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">3.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59512.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Roubaix</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">3.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59009.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Villeneuve-d'Ascq</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">3.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59392.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Maubeuge</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">2.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/62193.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Calais</span>
+                        <span class="ranking-sub">Pas-de-Calais</span>
+                    </span>
+                    <span class="ranking-value">2.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/02691.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Quentin</span>
+                        <span class="ranking-sub">Aisne</span>
+                    </span>
+                    <span class="ranking-value">2.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59650.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Wattrelos</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59295.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hazebrouck</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59378.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marcq-en-Barœul</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59178.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Douai</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59606.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Valenciennes</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59122.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cambrai</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59507.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ronchin</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/62510.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Liévin</span>
+                        <span class="ranking-sub">Pas-de-Calais</span>
+                    </span>
+                    <span class="ranking-value">1.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/62427.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hénin-Beaumont</span>
+                        <span class="ranking-sub">Pas-de-Calais</span>
+                    </span>
+                    <span class="ranking-value">1.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59279.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Halluin</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59220.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Faches-Thumesnil</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/62041.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Arras</span>
+                        <span class="ranking-sub">Pas-de-Calais</span>
+                    </span>
+                    <span class="ranking-value">1.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/80001.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Abbeville</span>
+                        <span class="ranking-sub">Somme</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/80620.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Péronne</span>
+                        <span class="ranking-sub">Somme</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/59172.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Denain</span>
+                        <span class="ranking-sub">Nord</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                </div>
+            </div>
+
+            <div class="report-issue-card">
+                <h3>See something odd here?</h3>
+                <p>Report it &mdash; you'll help improve data quality for Hauts-de-France and across France.</p>
+                <textarea id="report-comment" rows="3" placeholder="What looks wrong? A count that seems off, a system that looks misclassified..."></textarea>
+                <button type="button" id="report-issue-btn" class="btn" data-target-label="Hauts-de-France">Report an issue</button>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px;">
+                <a href="../local-statistics.html" class="btn">&larr; Back to all r&eacute;gions</a>
+            </p>
+        </div>
+    </section>
+
+    <div class="chart-tooltip" id="chart-tooltip"></div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../../static/js/script.js"></script>
+    <script>
+        (function () {
+            var tip = document.getElementById('chart-tooltip');
+            if (!tip) return;
+            document.querySelectorAll('.chart-hover-target').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    tip.textContent = el.getAttribute('data-tip') || '';
+                    tip.style.left = (e.clientX + 14) + 'px';
+                    tip.style.top = (e.clientY + 14) + 'px';
+                    tip.style.opacity = '1';
+                });
+                el.addEventListener('mouseleave', function () { tip.style.opacity = '0'; });
+            });
+        })();
+
+        document.querySelectorAll('#region-rankings .rankings-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('#region-rankings .rankings-tab').forEach(function (b) { b.classList.remove('is-active'); });
+                document.querySelectorAll('#region-rankings .ranking-panel').forEach(function (p) { p.classList.remove('is-active'); });
+                btn.classList.add('is-active');
+                document.getElementById('ranking-' + btn.dataset.panel).classList.add('is-active');
+            });
+        });
+
+        (function () {
+            var sections = document.querySelectorAll('.reveal-section');
+            if (!('IntersectionObserver' in window) || !sections.length) {
+                sections.forEach(function (s) { s.classList.add('is-visible'); });
+                return;
+            }
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            sections.forEach(function (s) { observer.observe(s); });
+        })();
+    </script>
+</body>
+</html>

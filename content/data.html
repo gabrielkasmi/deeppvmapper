@@ -307,9 +307,25 @@
         #annot-cancel { border: 1px solid #ced4da; background: white; color: #495057; }
         #annot-cancel:hover { background: #f8f9fa; }
 
-        #annot-toast {
+        #annot-toast, #report-toast {
             position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950;
             border-radius: 10px; padding: 8px 14px; font-size: 12px;
+        }
+
+        /* "Report an issue" — same icon-only style as the pencil/eraser above
+           it in #me-topbar, always visible but greyed out (via [disabled])
+           until there's a selection or a clicked installation to report
+           against. */
+        #report-issue-btn[disabled] {
+            color: #ced4da; cursor: not-allowed; box-shadow: none;
+        }
+        #report-issue-btn[disabled]:hover { background: white; }
+
+        /* Report form: same centered-card look as the annotation form. */
+        .report-form-target { margin: 0 0 10px; font-size: 12px; color: #6c757d; }
+        #report-form select {
+            display: block; width: 100%; margin-bottom: 10px; padding: 6px 8px; font-size: 13px;
+            font-family: inherit; color: #2c3e50; border: 1px solid #dee2e6; border-radius: 6px; background: white;
         }
 
         /* Session-limit overlay: covers the map, not the whole page — the
@@ -356,11 +372,11 @@
         </nav>
         <div class="container">
             <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
-            <h1 class="title">Rooftop photovoltaic map</h1>
+            <h1 class="title">Data</h1>
 
             <div class="quick-links">
                 <a href="#map-section" class="quick-link">Interactive viewer</a>
-                <a href="local-statistics.html" class="quick-link">Local statistics</a>
+                <a href="local-statistics.html" class="quick-link">Leaderboard</a>
                 <div class="dropdown">
                     <span class="quick-link dropdown-btn">Raw data &#9662;</span>
                     <div class="dropdown-content">
@@ -374,6 +390,7 @@
                     </div>
                 </div>
                 <a href="data-documentation.html" class="quick-link">Documentation</a>
+                <a href="known-issues.html" class="quick-link">Known Issues</a>
             </div>
         </div>
     </header>
@@ -405,14 +422,19 @@
                     <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 00.12-.66l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.74 8.82a.5.5 0 00.12.66l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 00-.12.66l1.92 3.32c.14.24.4.32.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5.02.61-.22l1.92-3.32a.5.5 0 00-.12-.66l-2.01-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
                     to filter your selection, then download it with the button at the bottom of the map. Click a marker to see its outline and details; click anywhere else to go back.
                 </span>
-                <span class="map-help-link-row">
-                    <a href="#map-help">More info &darr;</a>
+                <p class="hub-intro" style="margin-top:2px;">
+                <span style="display:block; text-align:center;">
+                    No idea where to go? <a href="#" id="random-location-link">Click here to jump to a random location</a>.
                 </span>
             </p>
 
             <p class="annot-cta">
-                Spot an error? You can correct it directly &mdash; report a false positive, redraw a shape, or add a missing installation.
+                Spot an error? You can correct it directly &mdash; report a false positive, redraw a shape, or add a missing installation. Anything else (wrong details, a misclassified plant, general feedback) &mdash; use the warning-sign <strong>Report an issue</strong> icon below the pencil and eraser, top-left of the map.
                 <span id="annot-counter" class="annot-counter"></span>
+            </p>
+                <span class="map-help-link-row">
+                    <a href="#map-help">More info &darr;</a>
+                </span>
             </p>
         </div>
 
@@ -425,6 +447,15 @@
                 </button>
                 <button id="clear-zone-btn" class="me-icon-action" title="Clear zone" aria-label="Clear zone" style="display:none">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                </button>
+                <!-- Always present (discoverable), disabled until a zone or an
+                     installation is selected — an empty report has nothing to
+                     point at. For false positives, wrong shapes, or missing
+                     installations, use the pencil/eraser above instead
+                     (annotate.js); this one is for everything else (attributes,
+                     misclassified utility-scale plants, general feedback). -->
+                <button id="report-issue-btn" class="me-icon-action" type="button" disabled title="Select a zone or an installation on the map first" aria-label="Report an issue">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
                 </button>
             </div>
 
@@ -484,6 +515,25 @@
 
             <div id="annot-toast" class="me-glass" style="display:none"></div>
 
+            <!-- "Report an issue": free-form report on whatever is currently
+                 selected/shown — see report.js. Separate from the annotation
+                 form above (different backend table, different purpose). -->
+            <div id="report-form" class="me-glass annot-form" style="display:none">
+                <h4>Report an issue</h4>
+                <p id="report-form-target" class="report-form-target"></p>
+                <select id="report-category"></select>
+                <label class="annot-field">
+                    What's wrong?
+                    <textarea id="report-comment" rows="3" maxlength="1000" placeholder="Describe the problem&hellip;"></textarea>
+                </label>
+                <div class="annot-form-actions">
+                    <button id="report-cancel" type="button">Cancel</button>
+                    <button id="report-submit" type="button" class="me-primary-btn">Submit</button>
+                </div>
+            </div>
+
+            <div id="report-toast" class="me-glass" style="display:none"></div>
+
             <div id="limit-overlay" class="annot-overlay" style="display:none">
                 <div class="me-glass annot-overlay-card">
                     <h4>Session limit reached</h4>
@@ -507,6 +557,7 @@
                     <li>Spotted a mistake? Click an installation to open its popup, then use <strong>False positive</strong> if it isn't really a PV system, or <strong>Redraw</strong> to trace a corrected outline over the dimmed original. Both apply to your view immediately and are submitted for review.</li>
                     <li>Missing an installation entirely? Click <strong>Add missing installation</strong> at the bottom of the map, then trace its outline directly on the map (click to place each corner, click the first point again to close the shape).</li>
                     <li>For any edit, you can add an optional comment and estimated surface/capacity before submitting &mdash; nothing is deleted from the official dataset on your say-so alone; edits are reviewed before they're merged in.</li>
+                    <li>Something wrong that isn't a false positive, a bad shape, or a missing installation &mdash; e.g. incorrect attributes, or a solar farm mistagged as a rooftop system? Select a zone or click an installation, then use the warning-sign <strong>Report an issue</strong> icon (below the pencil and eraser, top-left of the map) to describe it.</li>
                 </ul>
                 <p id="map-version-info" class="map-version-info"></p>
             </div>
@@ -515,6 +566,25 @@
 
     <footer class="footer">
         <div class="container">
+            <div class="footer-contact">
+                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 4h16v16H4z" stroke="none"/>
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 6-10 7L2 6"></path>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                    </svg>
+                </a>
+            </div>
             <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>

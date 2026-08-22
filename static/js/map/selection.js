@@ -10,7 +10,8 @@
 
 import { S, $, show, hide, logEvent } from './store.js';
 import { loadSelection, clearSelectionRender } from './render.js';
-import { resolveDepartementByCode } from './geo.js';
+import { resolveDepartementByCode, resolveCommuneByCode, resolveRegionByCode, resolveRandomLocation } from './geo.js';
+import { refreshReportButtonState } from './report.js';
 
 let rectLayer = null;
 
@@ -18,8 +19,24 @@ export function initSelection() {
     $('draw-zone-btn')?.addEventListener('click', startDraw);
     $('clear-zone-btn')?.addEventListener('click', clearSelection);
     $('cancel-zone-btn')?.addEventListener('click', cancelDraw);
+    $('random-location-link')?.addEventListener('click', onRandomLocationClick);
 
     resolveDeepLink();
+}
+
+/** "No idea where to go?" — jumps straight to a random commune (falling
+ *  back to its whole département if that one has no commune file). */
+async function onRandomLocationClick(e) {
+    e.preventDefault();
+    try {
+        const result = await resolveRandomLocation();
+        if (!result) return;
+        const label = result.feature.properties.nom || 'random location';
+        logEvent('random_location', label);
+        setSelectionFromFeature(result, label);
+    } catch (err) {
+        console.error('Random location failed:', err);
+    }
 }
 
 // ─── Drawing a rectangle by hand ───────────────────────────────────────────────
@@ -75,6 +92,7 @@ export function setSelectionFromBounds(bounds, label) {
     S.selectionBounds = bounds;
     S.selectionGeometry = null;   // a rectangle IS the exact selection — nothing to clip against
     S.selectionAdmin = null;      // no admin code for an arbitrary rectangle — spatial path only
+    refreshReportButtonState();
     loadSelection(bounds, label);
 }
 
@@ -98,6 +116,7 @@ export function setSelectionFromFeature({ feature, admin }, label) {
     S.selectionGeometry = feature.geometry;
     const hasCodes = admin && ((admin.inseeCodes?.length) || (admin.deptCodes?.length));
     S.selectionAdmin = hasCodes ? admin : null;
+    refreshReportButtonState();
     loadSelection(bounds, label);
 }
 
@@ -108,6 +127,7 @@ export function clearSelection() {
     S.selectionGeometry = null;
     S.selectionAdmin = null;
     clearSelectionRender();
+    refreshReportButtonState();
 }
 
 /** Called by annotate.js while an annotation is being drawn — the zone-draw
@@ -121,16 +141,33 @@ export function resumeSelection() {
     if (rectLayer) show('clear-zone-btn');
 }
 
-// ─── Deep link: ?dept=CODE (used by the static per-département Data pages) ───
+// ─── Deep link: ?insee=CODE, ?dept=CODE or ?region=CODE (used by the static
+// per-commune/département/région Data pages) ───────────────────────────────
 
 async function resolveDeepLink() {
-    const code = new URLSearchParams(location.search).get('dept');
-    if (!code) return;
+    const params = new URLSearchParams(location.search);
+    const insee = params.get('insee');
+    const dept = params.get('dept');
+    const region = params.get('region');
     try {
-        const result = await resolveDepartementByCode(code);
-        if (!result) return;
-        setSelectionFromFeature(result, result.feature.properties.nom || `dept ${code}`);
+        if (insee) {
+            const result = await resolveCommuneByCode(insee, dept);
+            if (!result) return;
+            setSelectionFromFeature(result, result.feature.properties.nom || `commune ${insee}`);
+            return;
+        }
+        if (dept) {
+            const result = await resolveDepartementByCode(dept);
+            if (!result) return;
+            setSelectionFromFeature(result, result.feature.properties.nom || `dept ${dept}`);
+            return;
+        }
+        if (region) {
+            const result = await resolveRegionByCode(region);
+            if (!result) return;
+            setSelectionFromFeature(result, result.feature.properties.nom || `region ${region}`);
+        }
     } catch (e) {
-        console.error('Dept deep-link failed:', e);
+        console.error('Deep-link resolve failed:', e);
     }
 }

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corse &middot; DeepPVMapper Data</title>
+
+    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper across Corse: 4 267 systems, 37.7 MWp estimated installed capacity over 2 d&eacute;partements. Explore on the map or download the data.">
+    <meta name="keywords" content="panneaux photovoltaïques Corse, panneaux solaires Corse, installations solaires Corse, énergie solaire Corse, rooftop solar Corse, solar panels Corse France, PV installations Corse, photovoltaic map Corse, solar energy Corse, DeepPVMapper, Corse-du-Sud, Haute-Corse, Ajaccio, Bastia, Porto-Vecchio, Borgo, Corte, Biguglia, Lucciana, Furiani, Calvi, Bastelicaccia">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/regions/corse.html">
+    <meta property="og:title" content="Corse &middot; DeepPVMapper Data">
+    <meta property="og:description" content="4 267 rooftop PV systems detected across Corse, 37.7 MWp estimated installed capacity.">
+    <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/regions/corse.html">
+
+    <link rel="icon" type="image/x-icon" href="../../static/images/favicon.ico">
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .dept-chart-card { text-align: left; }
+        .dept-chart-card h3 { text-align: left; font-size: 0.98rem; }
+        .dept-chart-card svg { display: block; margin-top: 10px; }
+        .dept-chart-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px; max-width: 900px; margin: 34px auto 0;
+        }
+        .dept-cities { max-width: 720px; margin: 40px auto 0; }
+        .dept-cities h3 { text-align: center; margin-bottom: 16px; }
+        .dept-back-links { text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+        .rankings-tabs {
+            display: flex; justify-content: center; gap: 8px; margin: 8px 0 20px; flex-wrap: wrap;
+        }
+        .rankings-tab {
+            font: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+            padding: 8px 20px; border-radius: 6px; border: 1px solid #dee2e6;
+            background: #fff; color: #34495e;
+        }
+        .rankings-tab.is-active { background: #34495e; border-color: #34495e; color: #fff; }
+        .ranking-panel, .ranking-list {
+            max-width: 720px; margin: 0 auto; max-height: 480px;
+            overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px;
+        }
+        .ranking-panel { display: none; }
+        .ranking-panel.is-active { display: block; }
+        .ranking-item {
+            display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+            text-decoration: none; color: inherit; border-bottom: 1px solid #f1f3f5;
+        }
+        .ranking-item:last-child { border-bottom: none; }
+        .ranking-item:hover { background: #f8f9fa; }
+        .ranking-rank {
+            flex: none; width: 28px; height: 28px; border-radius: 50%;
+            background: #e9ecef; color: #34495e; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ranking-item.rank-1 .ranking-rank { background: #f4c95d; color: #5c4400; }
+        .ranking-item.rank-2 .ranking-rank { background: #d8dce3; color: #3a3f47; }
+        .ranking-item.rank-3 .ranking-rank { background: #e3b088; color: #5a3313; }
+        .ranking-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+        .ranking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-sub { font-size: 0.8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-value {
+            flex: none; font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums;
+            font-size: 0.92rem; text-align: right;
+        }
+        .region-intro { max-width: 720px; margin: 0 auto 8px; text-align: left; }
+        .region-intro p { margin: 0 0 14px; line-height: 1.65; color: #495057; }
+        .region-intro p:last-child { margin-bottom: 0; }
+        .region-intro a { color: #34495e; font-weight: 600; }
+        .combo-legend {
+            display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px;
+            font-size: 0.78rem; color: #495057;
+        }
+        .combo-legend-item { display: flex; align-items: center; gap: 6px; }
+        .combo-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+        .power-class-note { font-size: 0.75rem; color: #6c757d; margin-top: 10px; line-height: 1.5; }
+        .chart-hover-target { cursor: pointer; }
+        .chart-tooltip {
+            position: fixed; pointer-events: none; background: #2c3e50; color: #fff;
+            font-size: 0.78rem; padding: 6px 10px; border-radius: 6px; opacity: 0;
+            transition: opacity 0.12s ease; z-index: 9999; white-space: nowrap;
+        }
+        .region-map-card {
+            max-width: 460px; margin: 22px auto 0; text-align: center;
+            border: 1px solid #e9ecef; border-radius: 8px; padding: 20px;
+        }
+        .region-map-card h3 { font-size: 0.98rem; margin: 0 0 4px; }
+        .region-map-card svg { display: block; margin: 10px auto 0; max-width: 100%; height: auto; }
+        .region-map-note { font-size: 0.78rem; color: #6c757d; margin-top: 8px; }
+        .reveal-section {
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .reveal-section.is-visible { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-section { transition: none; opacity: 1; transform: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="../about.html" class="topnav-link">About</a>
+                    <a href="../data.html" class="topnav-link is-active">Data</a>
+                    <a href="../software.html" class="topnav-link">Software</a>
+                    <a href="../contribute.html" class="topnav-link">Contribute</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="../outlook.html" class="topnav-link">Related Works</a>
+                    <a href="../publications.html" class="topnav-link">Publications</a>
+                    <a href="../in-press.html" class="topnav-link">In Press</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">Corse</h1>
+            <p class="title-region">2 d&eacute;partements</p>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="region-intro">
+                <p>Situated the Mediterranean island region of France, Corse spans 8,725 km&sup2; &mdash; the 13th largest of France's 13 métropole r&eacute;gions. It was home to 347,597 people as of 2021 (13th most populous), and generated an estimated &euro;13,358 million in GDP in 2024 (ranked 13th). Ajaccio, Bastia and Porto-Vecchio are among its largest cities.</p>
+            <p>OpenPVMapper's latest release puts Corse at 37.7 MWp of estimated rooftop PV capacity over 4 267 installations &mdash; the 13th r&eacute;gion in France on that measure. Haute-Corse and Corse-du-Sud account for the largest shares within the r&eacute;gion. The detections span 2024&ndash;2024; <a href="../map.html?region=94">click here to see it on the map</a>.</p>
+            </div>
+
+            <div class="validation-stats">
+                <div class="stat-item">
+                    <span class="stat-number">4 267</span>
+                    <span class="stat-label">PV systems detected</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">37.7 MWp</span>
+                    <span class="stat-label">Estimated installed capacity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">#13</span>
+                    <span class="stat-label">by installed capacity, out of 13 r&eacute;gions</span>
+                </div>
+            </div>
+
+            <div class="reveal-section">
+                <div class="dept-chart-grid">
+                    <div class="hub-card dept-chart-card">
+                    <h3>Source composition</h3>
+                    <svg viewBox="0 0 180 180" width="100%" height="180" role="img" aria-label="Source-combination shares"><path class="chart-hover-target" d="M 90.0 4.0 A 86.0 86.0 0 0 1 113.8 172.7 L 106.0 145.7 A 58.0 58.0 0 0 0 90.0 32.0 Z" fill="#7f8fa6" data-tip="DPVM + FRPV: 46%"></path><path class="chart-hover-target" d="M 113.8 172.7 A 86.0 86.0 0 0 1 5.8 72.6 L 33.2 78.3 A 58.0 58.0 0 0 0 106.0 145.7 Z" fill="#c0392b" data-tip="FRPV only: 33%"></path><path class="chart-hover-target" d="M 5.8 72.6 A 86.0 86.0 0 0 1 71.2 6.1 L 77.3 33.4 A 58.0 58.0 0 0 0 33.2 78.3 Z" fill="#34495e" data-tip="DPVM only: 18%"></path><path class="chart-hover-target" d="M 71.2 6.1 A 86.0 86.0 0 0 1 83.4 4.3 L 85.6 32.2 A 58.0 58.0 0 0 0 77.3 33.4 Z" fill="#e0a94e" data-tip="OSM only: 2%"></path><path class="chart-hover-target" d="M 83.4 4.3 A 86.0 86.0 0 0 1 88.7 4.0 L 89.1 32.0 A 58.0 58.0 0 0 0 85.6 32.2 Z" fill="#b98fc9" data-tip="FRPV + OSM: 1%"></path><path class="chart-hover-target" d="M 88.7 4.0 A 86.0 86.0 0 0 1 89.7 4.0 L 89.8 32.0 A 58.0 58.0 0 0 0 89.1 32.0 Z" fill="#5c6b7a" data-tip="DPVM + FRPV + OSM: 0%"></path><path class="chart-hover-target" d="M 89.7 4.0 A 86.0 86.0 0 0 1 90.0 4.0 L 90.0 32.0 A 58.0 58.0 0 0 0 89.8 32.0 Z" fill="#8ba888" data-tip="DPVM + OSM: 0%"></path></svg><div class="combo-legend"><span class="combo-legend-item"><span class="combo-swatch" style="background:#7f8fa6"></span>DPVM + FRPV &middot; 46%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#c0392b"></span>FRPV only &middot; 33%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#34495e"></span>DPVM only &middot; 18%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#e0a94e"></span>OSM only &middot; 2%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#b98fc9"></span>FRPV + OSM &middot; 1%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#5c6b7a"></span>DPVM + FRPV + OSM &middot; 0%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#8ba888"></span>DPVM + OSM &middot; 0%</span></div>
+                </div>
+                    <div class="hub-card dept-chart-card">
+                    <h3>Composition by power class</h3>
+                    <svg viewBox="0 0 280 170" width="100%" height="170" role="img" aria-label="Source-combination share by power class"><line x1="4" y1="150.0" x2="276" y2="150.0" stroke="#e9ecef"/><rect class="chart-hover-target" x="16.2" y="125.7" width="29.9" height="24.3" fill="#34495e" data-tip="&lt; 9 kWp &middot; DPVM only: 17%"></rect><rect class="chart-hover-target" x="16.2" y="76.1" width="29.9" height="49.6" fill="#c0392b" data-tip="&lt; 9 kWp &middot; FRPV only: 34%"></rect><rect class="chart-hover-target" x="16.2" y="73.6" width="29.9" height="2.5" fill="#e0a94e" data-tip="&lt; 9 kWp &middot; OSM only: 2%"></rect><rect class="chart-hover-target" x="16.2" y="7.9" width="29.9" height="65.7" fill="#7f8fa6" data-tip="&lt; 9 kWp &middot; DPVM + FRPV: 46%"></rect><rect class="chart-hover-target" x="16.2" y="7.8" width="29.9" height="0.0" fill="#8ba888" data-tip="&lt; 9 kWp &middot; DPVM + OSM: 0%"></rect><rect class="chart-hover-target" x="16.2" y="6.2" width="29.9" height="1.6" fill="#b98fc9" data-tip="&lt; 9 kWp &middot; FRPV + OSM: 1%"></rect><rect class="chart-hover-target" x="16.2" y="6.0" width="29.9" height="0.2" fill="#5c6b7a" data-tip="&lt; 9 kWp &middot; DPVM + FRPV + OSM: 0%"></rect><rect class="chart-hover-target" x="70.6" y="90.9" width="29.9" height="59.1" fill="#34495e" data-tip="9&ndash;36 kWp &middot; DPVM only: 41%"></rect><rect class="chart-hover-target" x="70.6" y="87.3" width="29.9" height="3.6" fill="#c0392b" data-tip="9&ndash;36 kWp &middot; FRPV only: 2%"></rect><rect class="chart-hover-target" x="70.6" y="6.0" width="29.9" height="81.3" fill="#7f8fa6" data-tip="9&ndash;36 kWp &middot; DPVM + FRPV: 56%"></rect><rect class="chart-hover-target" x="125.0" y="145.4" width="29.9" height="4.6" fill="#34495e" data-tip="36&ndash;100 kWp &middot; DPVM only: 3%"></rect><rect class="chart-hover-target" x="125.0" y="52.0" width="29.9" height="93.4" fill="#c0392b" data-tip="36&ndash;100 kWp &middot; FRPV only: 65%"></rect><rect class="chart-hover-target" x="125.0" y="35.1" width="29.9" height="16.9" fill="#e0a94e" data-tip="36&ndash;100 kWp &middot; OSM only: 12%"></rect><rect class="chart-hover-target" x="125.0" y="7.5" width="29.9" height="27.6" fill="#7f8fa6" data-tip="36&ndash;100 kWp &middot; DPVM + FRPV: 19%"></rect><rect class="chart-hover-target" x="125.0" y="6.0" width="29.9" height="1.5" fill="#5c6b7a" data-tip="36&ndash;100 kWp &middot; DPVM + FRPV + OSM: 1%"></rect><rect class="chart-hover-target" x="179.4" y="104.2" width="29.9" height="45.8" fill="#c0392b" data-tip="100&ndash;250 kWp &middot; FRPV only: 32%"></rect><rect class="chart-hover-target" x="179.4" y="19.1" width="29.9" height="85.1" fill="#e0a94e" data-tip="100&ndash;250 kWp &middot; OSM only: 59%"></rect><rect class="chart-hover-target" x="179.4" y="12.5" width="29.9" height="6.5" fill="#8ba888" data-tip="100&ndash;250 kWp &middot; DPVM + OSM: 5%"></rect><rect class="chart-hover-target" x="179.4" y="6.0" width="29.9" height="6.5" fill="#5c6b7a" data-tip="100&ndash;250 kWp &middot; DPVM + FRPV + OSM: 5%"></rect><rect class="chart-hover-target" x="233.8" y="102.0" width="29.9" height="48.0" fill="#c0392b" data-tip="&gt; 250 kWp &middot; FRPV only: 33%"></rect><rect class="chart-hover-target" x="233.8" y="6.0" width="29.9" height="96.0" fill="#e0a94e" data-tip="&gt; 250 kWp &middot; OSM only: 67%"></rect><text x="31.2" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P1</text><text x="85.6" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P2</text><text x="140.0" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P3</text><text x="194.4" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P4</text><text x="248.8" y="166" font-size="8" fill="#6c757d" text-anchor="middle">P5</text></svg><p class="power-class-note">P1 &lt; 9 kWp &middot; P2 9&ndash;36 kWp &middot; P3 36&ndash;100 kWp &middot; P4 100&ndash;250 kWp &middot; P5 &gt; 250 kWp</p>
+                </div>
+                </div>
+
+                <div class="region-map-card"><h3>Installed capacity by d&eacute;partement</h3><svg viewBox="0 0 360 360" width="100%" height="360" role="img" aria-label="Installed capacity share by d&eacute;partement"><path d="M 234.5 249.7 L 229.7 248.3 L 223.0 254.3 L 219.8 255.3 L 218.6 252.6 L 213.8 253.5 L 208.5 252.2 L 207.0 250.3 L 208.2 245.3 L 210.9 241.1 L 210.4 239.0 L 206.0 236.2 L 207.5 234.0 L 206.3 230.2 L 206.0 213.8 L 200.9 213.1 L 196.6 214.4 L 191.8 208.1 L 192.4 201.2 L 190.6 197.3 L 184.1 192.9 L 181.3 184.2 L 179.2 183.6 L 178.4 175.7 L 175.1 176.4 L 169.9 173.7 L 167.0 170.3 L 162.9 170.0 L 160.7 166.5 L 156.3 165.8 L 152.7 162.0 L 151.6 157.2 L 149.1 156.0 L 149.5 150.0 L 142.9 152.3 L 135.2 150.7 L 133.3 147.9 L 126.4 146.0 L 121.4 145.7 L 121.2 143.6 L 116.3 142.8 L 114.7 140.4 L 107.5 141.0 L 104.1 138.7 L 109.7 137.7 L 109.7 131.2 L 112.0 130.3 L 117.0 131.4 L 120.1 118.6 L 118.5 115.0 L 118.6 110.7 L 123.6 108.1 L 125.7 108.5 L 127.3 101.7 L 132.9 98.5 L 133.6 101.1 L 137.7 101.2 L 140.4 98.7 L 141.2 92.5 L 151.6 89.5 L 152.6 86.1 L 155.9 86.6 L 158.4 84.5 L 162.1 85.1 L 172.9 83.8 L 181.0 78.5 L 179.7 75.4 L 184.7 68.0 L 190.8 64.4 L 197.7 63.4 L 202.4 65.8 L 205.9 63.5 L 217.4 76.5 L 222.0 71.5 L 221.9 67.5 L 225.5 63.3 L 224.3 57.3 L 224.7 49.7 L 220.2 43.6 L 223.4 35.0 L 221.9 28.7 L 225.9 25.9 L 227.7 19.1 L 224.8 8.6 L 227.7 6.0 L 236.3 6.0 L 244.1 10.3 L 242.3 15.0 L 244.5 20.0 L 245.0 27.6 L 247.1 36.2 L 248.5 50.9 L 245.5 56.1 L 241.4 76.7 L 245.9 87.1 L 252.2 95.6 L 254.2 99.5 L 255.3 108.7 L 254.5 115.8 L 256.4 122.9 L 256.7 128.7 L 255.0 138.2 L 255.8 146.7 L 259.3 159.9 L 258.1 169.7 L 259.1 178.0 L 258.8 189.5 L 257.7 197.6 L 254.6 201.4 L 244.7 217.0 L 240.7 221.8 L 236.3 229.1 L 236.6 235.0 L 233.7 246.3 L 234.5 249.7 Z" fill="#1b2733" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Haute-Corse: 27.7 MWp &middot; #1 by installed capacity in the r&eacute;gion</title></path><path d="M 104.1 138.7 L 107.5 141.0 L 114.7 140.4 L 116.3 142.8 L 121.2 143.6 L 121.4 145.7 L 126.4 146.0 L 133.3 147.9 L 135.2 150.7 L 142.9 152.3 L 149.5 150.0 L 149.1 156.0 L 151.6 157.2 L 152.7 162.0 L 156.3 165.8 L 160.7 166.5 L 162.9 170.0 L 167.0 170.3 L 169.9 173.7 L 175.1 176.4 L 178.4 175.7 L 179.2 183.6 L 181.3 184.2 L 184.1 192.9 L 190.6 197.3 L 192.4 201.2 L 191.8 208.1 L 196.6 214.4 L 200.9 213.1 L 206.0 213.8 L 206.3 230.2 L 207.5 234.0 L 206.0 236.2 L 210.4 239.0 L 210.9 241.1 L 208.2 245.3 L 207.0 250.3 L 208.5 252.2 L 213.8 253.5 L 218.6 252.6 L 219.8 255.3 L 223.0 254.3 L 229.7 248.3 L 234.5 249.7 L 235.1 257.4 L 233.2 262.3 L 235.4 269.3 L 234.1 284.9 L 229.8 287.8 L 232.1 291.8 L 229.4 296.8 L 227.0 295.9 L 224.2 300.0 L 216.5 302.6 L 217.7 308.1 L 221.3 303.6 L 225.1 305.8 L 228.6 305.3 L 224.8 313.2 L 218.8 316.1 L 215.9 321.4 L 214.6 326.5 L 216.2 329.7 L 211.5 335.2 L 206.5 338.0 L 206.8 343.4 L 210.6 345.2 L 205.5 353.8 L 199.5 354.0 L 197.5 350.1 L 194.7 350.1 L 190.6 347.5 L 185.8 347.3 L 187.6 341.6 L 186.5 337.7 L 182.9 337.9 L 177.5 332.4 L 174.8 333.5 L 170.1 328.9 L 164.9 327.5 L 159.0 327.2 L 157.8 324.3 L 153.1 324.7 L 152.0 320.7 L 148.0 318.7 L 146.0 316.0 L 143.0 316.1 L 139.9 310.5 L 136.0 306.3 L 138.2 303.3 L 138.8 298.3 L 143.2 298.2 L 147.8 294.7 L 150.7 294.8 L 152.5 290.1 L 158.0 287.2 L 157.8 285.5 L 146.3 283.9 L 141.8 280.3 L 135.6 280.8 L 137.3 275.9 L 135.4 274.5 L 127.4 278.2 L 121.9 273.1 L 126.1 270.4 L 128.8 267.0 L 125.5 262.2 L 130.4 262.0 L 135.2 259.8 L 137.3 255.7 L 138.3 248.0 L 136.5 244.4 L 140.2 242.9 L 136.7 235.7 L 130.4 236.5 L 126.8 239.3 L 119.5 239.9 L 114.8 238.8 L 110.4 240.6 L 111.6 235.3 L 108.0 229.6 L 110.7 225.8 L 115.6 226.4 L 118.7 224.2 L 117.2 217.7 L 122.5 213.8 L 124.4 214.0 L 130.6 211.0 L 130.2 206.4 L 127.2 206.2 L 125.7 199.3 L 121.4 196.8 L 117.5 197.1 L 115.7 194.0 L 112.1 193.5 L 104.8 186.4 L 106.8 184.9 L 104.9 179.6 L 105.4 176.0 L 102.2 169.4 L 110.8 165.8 L 122.3 163.7 L 122.5 160.6 L 117.8 155.5 L 114.2 155.6 L 112.2 153.4 L 112.8 147.8 L 110.7 145.5 L 106.8 144.9 L 102.4 149.0 L 100.7 145.9 L 104.1 138.7 Z" fill="#96a0a9" stroke="#fff" stroke-width="1.2" fill-rule="evenodd"><title>Corse-du-Sud: 10.0 MWp &middot; #2 by installed capacity in the r&eacute;gion</title></path></svg><p class="region-map-note">Darker = larger share of Corse&rsquo;s installed capacity.</p></div>
+            </div>
+
+            <div class="reveal-section" id="region-rankings">
+                <div class="rankings-tabs">
+                    <button type="button" class="rankings-tab is-active" data-panel="region-departements">D&eacute;partements</button>
+                    <button type="button" class="rankings-tab" data-panel="region-cities">Cities</button>
+                </div>
+                <div class="ranking-panel is-active" id="ranking-region-departements">
+                                    <a class="ranking-item rank-1" href="../data/2B.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Corse</span>
+                        <span class="ranking-sub">2 206 systems</span>
+                    </span>
+                    <span class="ranking-value">27.7 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="../data/2A.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corse-du-Sud</span>
+                        <span class="ranking-sub">2 061 systems</span>
+                    </span>
+                    <span class="ranking-value">10.0 MWp</span>
+                </a>
+                </div>
+                <div class="ranking-panel" id="ranking-region-cities">
+                                    <a class="ranking-item rank-1" href="../cities/2B049.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Calenzana</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">5.6 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="../cities/2B096.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corte</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">2.9 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="../cities/2A271.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sarrola-Carcopino</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">1.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A004.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ajaccio</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">1.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B251.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Prunelli-di-Fiumorbo</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B123.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ghisonaccia</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">1.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A247.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Porto-Vecchio</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">901 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B050.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Calvi</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">820 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B037.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Biguglia</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">790 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B042.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Borgo</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">613 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B148.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lucciana</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">368 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A017.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Appietto</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">361 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B033.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bastia</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">356 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A006.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Alata</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">342 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A130.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Grosseto-Prugna</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">336 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B342.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ventiseri</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">323 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A001.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Afa</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">311 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A032.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bastelicaccia</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">309 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B009.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aléria</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">306 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A362.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Zonza</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">277 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B120.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Furiani</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">256 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A103.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cuttoli-Corticchiato</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">211 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A041.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bonifacio</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">190 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2B207.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Penta-di-Casinca</span>
+                        <span class="ranking-sub">Haute-Corse</span>
+                    </span>
+                    <span class="ranking-value">183 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/2A209.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Peri</span>
+                        <span class="ranking-sub">Corse-du-Sud</span>
+                    </span>
+                    <span class="ranking-value">171 kWp</span>
+                </a>
+                </div>
+            </div>
+
+            <div class="report-issue-card">
+                <h3>See something odd here?</h3>
+                <p>Report it &mdash; you'll help improve data quality for Corse and across France.</p>
+                <textarea id="report-comment" rows="3" placeholder="What looks wrong? A count that seems off, a system that looks misclassified..."></textarea>
+                <button type="button" id="report-issue-btn" class="btn" data-target-label="Corse">Report an issue</button>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px;">
+                <a href="../local-statistics.html" class="btn">&larr; Back to all r&eacute;gions</a>
+            </p>
+        </div>
+    </section>
+
+    <div class="chart-tooltip" id="chart-tooltip"></div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../../static/js/script.js"></script>
+    <script>
+        (function () {
+            var tip = document.getElementById('chart-tooltip');
+            if (!tip) return;
+            document.querySelectorAll('.chart-hover-target').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    tip.textContent = el.getAttribute('data-tip') || '';
+                    tip.style.left = (e.clientX + 14) + 'px';
+                    tip.style.top = (e.clientY + 14) + 'px';
+                    tip.style.opacity = '1';
+                });
+                el.addEventListener('mouseleave', function () { tip.style.opacity = '0'; });
+            });
+        })();
+
+        document.querySelectorAll('#region-rankings .rankings-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('#region-rankings .rankings-tab').forEach(function (b) { b.classList.remove('is-active'); });
+                document.querySelectorAll('#region-rankings .ranking-panel').forEach(function (p) { p.classList.remove('is-active'); });
+                btn.classList.add('is-active');
+                document.getElementById('ranking-' + btn.dataset.panel).classList.add('is-active');
+            });
+        });
+
+        (function () {
+            var sections = document.querySelectorAll('.reveal-section');
+            if (!('IntersectionObserver' in window) || !sections.length) {
+                sections.forEach(function (s) { s.classList.add('is-visible'); });
+                return;
+            }
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            sections.forEach(function (s) { observer.observe(s); });
+        })();
+    </script>
+</body>
+</html>

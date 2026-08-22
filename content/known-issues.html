@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Known Issues &middot; DeepPVMapper</title>
+
+    <meta name="description" content="What DeepPVMapper's rooftop PV registry currently gets wrong, why, and how to report a problem — detection limits, geometry precision, attribute uncertainty, and utility-scale misclassification.">
+    <meta name="author" content="Gabriel Kasmi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppvmapper.fr/content/known-issues.html">
+    <meta property="og:title" content="Known Issues &middot; DeepPVMapper">
+    <meta property="og:description" content="What the registry currently gets wrong, why, and how to report a problem.">
+    <link rel="canonical" href="https://deeppvmapper.fr/content/known-issues.html">
+
+    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .issues-prose { max-width: 760px; margin: 0 auto; }
+        .issues-prose p { font-size: 1rem; line-height: 1.75; color: #495057; margin-bottom: 18px; }
+        .issues-prose-intro p { text-align: center; }
+        .issue-category { max-width: 760px; margin: 0 auto 34px; }
+        .issue-category h3 { font-size: 1.1rem; margin-bottom: 8px; color: #2c3e50; }
+        .issue-category p { font-size: 0.95rem; line-height: 1.7; color: #495057; margin: 0 0 8px; }
+        .issue-category .issue-fix { font-size: 0.85rem; color: #6c757d; }
+        .issue-category .issue-fix strong { color: #34495e; }
+
+        #open-reports { max-width: 760px; margin: 46px auto 0; }
+        #open-reports h2 { font-size: 1.3rem; margin-bottom: 6px; }
+        .open-reports-note { font-size: 0.85rem; color: #6c757d; margin: 0 0 18px; }
+        .report-list { border: 1px solid #ece5f7; border-radius: 12px; overflow: hidden; }
+        .report-item {
+            display: block; padding: 12px 18px; text-decoration: none; color: inherit;
+            border-bottom: 1px solid #f2eef8;
+        }
+        .report-item:last-child { border-bottom: none; }
+        .report-item:hover { background: #f7f5fb; }
+        .report-item-title { font-weight: 600; font-size: 0.92rem; color: #2c3e50; }
+        .report-item-meta { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .report-label {
+            font-size: 0.72rem; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+            background: #ece5f7; color: #7248b8;
+        }
+        .report-item-date { font-size: 0.78rem; color: #6c757d; }
+        .report-empty { padding: 24px 18px; text-align: center; font-size: 0.9rem; color: #6c757d; }
+
+        #contact-section {
+            max-width: 760px; margin: 40px auto 0; text-align: center;
+            font-size: 0.95rem; color: #495057; padding-top: 24px; border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header header--compact">
+        <div class="header-background"></div>
+        <nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <div class="topnav-links">
+                    <a href="about.html" class="topnav-link">About</a>
+                    <a href="data.html" class="topnav-link is-active">Data</a>
+                    <a href="software.html" class="topnav-link">Software</a>
+                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
+                        </div>
+                    </div>
+                    <a href="outlook.html" class="topnav-link">Related Works</a>
+                    <a href="publications.html" class="topnav-link">Publications</a>
+                    <a href="in-press.html" class="topnav-link">In Press</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+            <h1 class="title">Known Issues</h1>
+            <div class="quick-links">
+                <a href="data.html" class="quick-link">&larr; Back to Data</a>
+                <a href="data.html#map-section" class="quick-link">Interactive map</a>
+                <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank" class="quick-link">GitHub tracker</a>
+            </div>
+        </div>
+    </header>
+
+    <section id="known-issues-intro">
+        <div class="container">
+            <div class="issues-prose issues-prose-intro">
+                <p>
+                    No automated registry built from remote sensing and heuristics is ever perfectly accurate,
+                    and DeepPVMapper is no exception. This page is a plain account of where the current version
+                    falls short, why, and what to do if you spot one of these problems &mdash; or something
+                    else entirely &mdash; on the <a href="data.html#map-section">interactive map</a>.
+                </p>
+                <p>
+                    Two ways to report a problem: for a false positive, a missing installation, or a polygon
+                    that doesn't match the rooftop, use the pencil tools directly on the map &mdash; they apply
+                    to your view immediately and are reviewed for merge. For anything else (see below), use the
+                    <strong>Report an issue</strong> button at the bottom of the map, or open an issue directly
+                    on the <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">GitHub tracker</a>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="issue-categories">
+        <div class="container">
+
+            <div class="issue-category">
+                <h3>Detection completeness &mdash; false positives &amp; missed installations</h3>
+                <p>
+                    The detection pipeline works from aerial/satellite imagery and a learned model, not a
+                    ground survey &mdash; so a small share of installations are missed (shadowed roofs, small
+                    or unusual arrays, imagery gaps), and a small share of detections aren't real installations
+                    at all (reflective surfaces, skylights, some roof patterns that resemble panels from above).
+                </p>
+                <p class="issue-fix">Fix: use <strong>Add missing installation</strong> or <strong>False positive</strong> directly on the map.</p>
+            </div>
+
+            <div class="issue-category">
+                <h3>Geometry precision</h3>
+                <p>
+                    Polygon outlines are extracted automatically and can be offset from the true roof edge,
+                    especially on complex, multi-plane, or tightly packed rooftops &mdash; the array is real,
+                    but its exact footprint on the map may not be pixel-perfect.
+                </p>
+                <p class="issue-fix">Fix: use <strong>Redraw</strong> on the installation's popup to trace the corrected outline.</p>
+            </div>
+
+            <div class="issue-category">
+                <h3>Attribute uncertainty</h3>
+                <p>
+                    Surface, tilt, azimuth, and installation year are estimated from imagery and metadata
+                    heuristics, not measured on site or self-reported by an owner &mdash; treat them as
+                    reasonable estimates rather than exact figures, particularly for older installations where
+                    the underlying imagery is coarser.
+                </p>
+                <p class="issue-fix">Fix: use <strong>Report an issue</strong> &rarr; "Missing or incorrect attributes".</p>
+            </div>
+
+            <div class="issue-category">
+                <h3>Utility-scale plants misclassified as rooftop</h3>
+                <p>
+                    The detection pipeline is tuned for rooftop arrays. Occasionally a ground-mounted,
+                    utility-scale solar farm gets picked up and classified as a rooftop system instead &mdash;
+                    there isn't yet a fully robust automatic filter for this distinction, so a handful of these
+                    slip through into the registry.
+                </p>
+                <p class="issue-fix">Fix: use <strong>Report an issue</strong> &rarr; "Looks like a utility-scale plant".</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="open-reports">
+        <div class="container">
+            <h2>Currently open reports</h2>
+            <p class="open-reports-note">
+                Pulled live from <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">gabrielkasmi/openpvmapper-issues</a>
+                &mdash; open a data-quality issue there directly if you're comfortable with GitHub.
+            </p>
+            <div class="report-list" id="report-list">
+                <p class="report-empty">Loading&hellip;</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact-section-wrap">
+        <div class="container">
+            <p id="contact-section">
+                Something else &mdash; a question, or a problem that doesn't fit any of the above? If it's
+                general (someone else might wonder the same thing), <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank">start a discussion on GitHub</a>.
+                Otherwise, <a href="mailto:gabriel.kasmi@deeppvmapper.fr">contact Gabriel</a> directly.
+            </p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-contact">
+                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 4h16v16H4z" stroke="none"/>
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 6-10 7L2 6"></path>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                    </svg>
+                </a>
+            </div>
+            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/known-issues.js"></script>
+</body>
+</html>

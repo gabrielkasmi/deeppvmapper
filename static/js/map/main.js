@@ -8,6 +8,7 @@ import { initSearch } from './search.js';
 import { initFilterPanel } from './filters.js';
 import { initExport } from './export.js';
 import { initAnnotate } from './annotate.js';
+import { initReport } from './report.js';
 import { initVersionInfo } from './version.js';
 
 // ─── Intro popup ──────────────────────────────────────────────────────────────
@@ -36,5 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFilterPanel();
     initExport();
     initAnnotate();
+    initReport();
     initSelection();          // last: may immediately fire a ?dept= deep-link selection
 });

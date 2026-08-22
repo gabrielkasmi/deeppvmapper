@@ -5,18 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charente-Maritime (17) &middot; DeepPVMapper Data</title>
 
-    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper in Charente-Maritime (17): 10 602 systems, 53.5 MWp estimated installed capacity. Explore on the map or download the data.">
+    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper in Charente-Maritime (17): 19 820 systems, 258.2 MWp estimated installed capacity. Explore on the map or download the data.">
+    <meta name="keywords" content="panneaux photovoltaïques Charente-Maritime, panneaux solaires Charente-Maritime, installations solaires Charente-Maritime, cadastre solaire Charente-Maritime, énergie solaire 17, photovoltaïque Nouvelle-Aquitaine, rooftop solar Charente-Maritime, solar panels Charente-Maritime France, PV installations 17, photovoltaic map Charente-Maritime, solar energy Nouvelle-Aquitaine, DeepPVMapper, La Rochelle, Saintes, Rochefort, Royan, Aytré, Périgny, Tonnay-Charente, Lagord">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/data/17.html">
     <meta property="og:title" content="Charente-Maritime (17) &middot; DeepPVMapper Data">
-    <meta property="og:description" content="10 602 rooftop PV systems detected in Charente-Maritime, 53.5 MWp estimated installed capacity.">
+    <meta property="og:description" content="19 820 rooftop PV systems detected in Charente-Maritime, 258.2 MWp estimated installed capacity.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
     <link rel="canonical" href="https://deeppvmapper.fr/content/data/17.html">
 
     <link rel="icon" type="image/x-icon" href="../../static/images/favicon.ico">
     <link rel="stylesheet" href="../../static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .dept-chart-card { text-align: left; }
+        .dept-chart-card h3 { text-align: left; font-size: 0.98rem; }
+        .dept-chart-card svg { display: block; margin-top: 10px; }
+        .dept-chart-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px; max-width: 900px; margin: 34px auto 0;
+        }
+        .dept-cities { max-width: 720px; margin: 40px auto 0; }
+        .dept-cities h3 { text-align: center; margin-bottom: 16px; }
+        .ranking-list {
+            max-width: 720px; margin: 0 auto; max-height: 480px;
+            overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px;
+        }
+        .ranking-item {
+            display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+            text-decoration: none; color: inherit; border-bottom: 1px solid #f1f3f5;
+        }
+        .ranking-item:last-child { border-bottom: none; }
+        .ranking-item:hover { background: #f8f9fa; }
+        .ranking-rank {
+            flex: none; width: 28px; height: 28px; border-radius: 50%;
+            background: #e9ecef; color: #34495e; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ranking-item.rank-1 .ranking-rank { background: #f4c95d; color: #5c4400; }
+        .ranking-item.rank-2 .ranking-rank { background: #d8dce3; color: #3a3f47; }
+        .ranking-item.rank-3 .ranking-rank { background: #e3b088; color: #5a3313; }
+        .ranking-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+        .ranking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-sub { font-size: 0.8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-value {
+            flex: none; font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums;
+            font-size: 0.92rem; text-align: right;
+        }
+        .dept-back-links { text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+        .region-intro { max-width: 720px; margin: 0 auto 8px; text-align: left; }
+        .region-intro p { margin: 0 0 14px; line-height: 1.65; color: #495057; }
+        .region-intro p:last-child { margin-bottom: 0; }
+        .region-intro a { color: #34495e; font-weight: 600; }
+        .combo-legend {
+            display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px;
+            font-size: 0.78rem; color: #495057;
+        }
+        .combo-legend-item { display: flex; align-items: center; gap: 6px; }
+        .combo-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+        .power-class-note { font-size: 0.75rem; color: #6c757d; margin-top: 10px; line-height: 1.5; }
+        .chart-hover-target { cursor: pointer; }
+        .chart-tooltip {
+            position: fixed; pointer-events: none; background: #2c3e50; color: #fff;
+            font-size: 0.78rem; padding: 6px 10px; border-radius: 6px; opacity: 0;
+            transition: opacity 0.12s ease; z-index: 9999; white-space: nowrap;
+        }
+        .region-map-card {
+            max-width: 460px; margin: 22px auto 0; text-align: center;
+            border: 1px solid #e9ecef; border-radius: 8px; padding: 20px;
+        }
+        .region-map-card h3 { font-size: 0.98rem; margin: 0 0 4px; }
+        .region-map-card svg { display: block; margin: 10px auto 0; max-width: 100%; height: auto; }
+        .region-map-note { font-size: 0.78rem; color: #6c757d; margin-top: 8px; }
+        .hexbin-slider-row {
+            display: flex; align-items: center; gap: 10px; margin-top: 10px;
+            max-width: 280px; margin-left: auto; margin-right: auto;
+        }
+        .hexbin-slider-row input[type="range"] { flex: 1 1 auto; }
+        .hexbin-year-label { font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums; min-width: 3.2em; }
+    </style>
 </head>
 <body>
 
@@ -53,37 +122,262 @@
 
     <section>
         <div class="container">
+            <div class="region-intro">
+                <p>Charente-Maritime, in Nouvelle-Aquitaine, with La Rochelle as its pr&eacute;fecture, counted 672,279 inhabitants as of 2021.</p>
+            <p>The latest OpenPVMapper release has identified 258.2 MWp of rooftop PV across 19 820 installations in Charente-Maritime &mdash; the 14th d&eacute;partement in France and 4th out of 12 within Nouvelle-Aquitaine by installed capacity. Detections span 2018&ndash;2024. 1% of installations in Charente-Maritime are confirmed by more than two independent sources. To explore every detection in Charente-Maritime, <a href="../map.html?dept=17">click here to see it on the map</a>.</p>
+            </div>
+
             <div class="validation-stats">
                 <div class="stat-item">
-                    <span class="stat-number">10 602</span>
+                    <span class="stat-number">19 820</span>
                     <span class="stat-label">PV systems detected</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">53.5 MWp</span>
+                    <span class="stat-number">258.2 MWp</span>
                     <span class="stat-label">Estimated installed capacity</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">#12</span>
-                    <span class="stat-label">by installed capacity, out of 94 d&eacute;partements</span>
+                    <span class="stat-number">#14</span>
+                    <span class="stat-label">by installed capacity, out of 96 d&eacute;partements</span>
                 </div>
             </div>
-            <div class="card-grid" style="max-width: 700px; margin-left: auto; margin-right: auto;">
-                <div class="hub-card">
-                    <h3>Explore on the map</h3>
-                    <p>Open the interactive registry zoomed straight into Charente-Maritime, with the exact detections, stats and boundary.</p>
-                    <a href="../map.html?dept=17" class="btn">Explore Charente-Maritime &rarr;</a>
+
+            <div class="dept-chart-grid">
+                <div class="hub-card dept-chart-card">
+                    <h3>Source composition</h3>
+                    <svg viewBox="0 0 180 180" width="100%" height="180" role="img" aria-label="Source-combination shares"><path class="chart-hover-target" d="M 90.0 4.0 A 86.0 86.0 0 0 1 138.9 160.7 L 123.0 137.7 A 58.0 58.0 0 0 0 90.0 32.0 Z" fill="#7f8fa6" data-tip="DPVM + FRPV: 40%"></path><path class="chart-hover-target" d="M 138.9 160.7 A 86.0 86.0 0 0 1 15.6 133.1 L 39.8 119.1 A 58.0 58.0 0 0 0 123.0 137.7 Z" fill="#34495e" data-tip="DPVM only: 26%"></path><path class="chart-hover-target" d="M 15.6 133.1 A 86.0 86.0 0 0 1 45.6 16.3 L 60.1 40.3 A 58.0 58.0 0 0 0 39.8 119.1 Z" fill="#c0392b" data-tip="FRPV only: 25%"></path><path class="chart-hover-target" d="M 45.6 16.3 A 86.0 86.0 0 0 1 82.4 4.3 L 84.9 32.2 A 58.0 58.0 0 0 0 60.1 40.3 Z" fill="#e0a94e" data-tip="OSM only: 7%"></path><path class="chart-hover-target" d="M 82.4 4.3 A 86.0 86.0 0 0 1 86.5 4.1 L 87.7 32.0 A 58.0 58.0 0 0 0 84.9 32.2 Z" fill="#5c6b7a" data-tip="DPVM + FRPV + OSM: 1%"></path><path class="chart-hover-target" d="M 86.5 4.1 A 86.0 86.0 0 0 1 89.0 4.0 L 89.4 32.0 A 58.0 58.0 0 0 0 87.7 32.0 Z" fill="#b98fc9" data-tip="FRPV + OSM: 0%"></path><path class="chart-hover-target" d="M 89.0 4.0 A 86.0 86.0 0 0 1 90.0 4.0 L 90.0 32.0 A 58.0 58.0 0 0 0 89.4 32.0 Z" fill="#8ba888" data-tip="DPVM + OSM: 0%"></path></svg><div class="combo-legend"><span class="combo-legend-item"><span class="combo-swatch" style="background:#7f8fa6"></span>DPVM + FRPV &middot; 40%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#34495e"></span>DPVM only &middot; 26%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#c0392b"></span>FRPV only &middot; 25%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#e0a94e"></span>OSM only &middot; 7%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#5c6b7a"></span>DPVM + FRPV + OSM &middot; 1%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#b98fc9"></span>FRPV + OSM &middot; 0%</span><span class="combo-legend-item"><span class="combo-swatch" style="background:#8ba888"></span>DPVM + OSM &middot; 0%</span></div>
                 </div>
-                <div class="hub-card">
-                    <h3>Download this d&eacute;partement's data</h3>
-                    <p>Once on the map, the locked-zone stats card includes an exhaustive CSV export for Charente-Maritime &mdash; every detection, not a sample.</p>
-                    <a href="../map.html?dept=17" class="btn">Get the data &rarr;</a>
+                <div class="hub-card dept-chart-card">
+                    <h3>Installed capacity distribution</h3>
+                    <svg viewBox="0 0 280 130" width="100%" height="130" role="img" aria-label="Installed capacity distribution (log scale)"><text x="4" y="10" font-size="8" fill="#6c757d">log scale</text><line x1="4" y1="110.0" x2="276" y2="110.0" stroke="#e9ecef"/><rect class="chart-hover-target" x="16.2" y="16.0" width="29.9" height="94.0" rx="1.5" fill="#34495e" data-tip="&lt; 9 kWp: 16,763 installations"></rect><rect class="chart-hover-target" x="70.6" y="38.8" width="29.9" height="71.2" rx="1.5" fill="#34495e" data-tip="9&ndash;36 kWp: 1,577 installations"></rect><rect class="chart-hover-target" x="125.0" y="43.2" width="29.9" height="66.8" rx="1.5" fill="#34495e" data-tip="36&ndash;100 kWp: 1,000 installations"></rect><rect class="chart-hover-target" x="179.4" y="50.7" width="29.9" height="59.3" rx="1.5" fill="#34495e" data-tip="100&ndash;250 kWp: 462 installations"></rect><rect class="chart-hover-target" x="233.8" y="81.5" width="29.9" height="28.5" rx="1.5" fill="#34495e" data-tip="&gt; 250 kWp: 18 installations"></rect><text x="31.2" y="126" font-size="8" fill="#6c757d" text-anchor="middle">P1</text><text x="85.6" y="126" font-size="8" fill="#6c757d" text-anchor="middle">P2</text><text x="140.0" y="126" font-size="8" fill="#6c757d" text-anchor="middle">P3</text><text x="194.4" y="126" font-size="8" fill="#6c757d" text-anchor="middle">P4</text><text x="248.8" y="126" font-size="8" fill="#6c757d" text-anchor="middle">P5</text></svg>
                 </div>
             </div>
-            <p style="text-align: center; margin-top: 40px;">
-                <a href="../data.html">&larr; Back to all d&eacute;partements</a>
-            </p>
+
+            <div class="region-map-card"><h3>Installed capacity share over time</h3><div class="hexbin-slider-row"><input type="range" id="hexbin-year-slider" min="0" max="1" value="1" step="1"><span class="hexbin-year-label" id="hexbin-year-label">2024</span></div><svg viewBox="0 0 340 340" width="100%" height="340" role="img" aria-label="Installed capacity share by grid cell over time"><path d="M 47.8 49.9 L 52.7 45.3 L 57.6 44.8 L 56.8 50.9 L 61.2 51.6 L 68.2 50.5 L 75.6 55.6 L 80.8 55.8 L 83.7 62.3 L 83.4 65.5 L 78.4 66.6 L 69.7 63.3 L 63.4 58.1 L 51.2 51.8 L 43.5 53.8 L 38.9 51.8 L 33.8 43.1 L 42.3 37.9 L 46.4 39.1 L 48.9 44.1 L 42.3 46.8 L 47.8 49.9 Z" fill="#f4f6f8" stroke="#c7d0d8" stroke-width="1"></path><path d="M 108.9 24.9 L 117.4 22.1 L 122.3 16.9 L 129.0 13.6 L 135.3 14.8 L 137.5 11.2 L 143.2 11.1 L 141.1 18.5 L 138.0 21.7 L 142.7 24.3 L 147.9 24.0 L 150.9 20.9 L 157.3 23.2 L 159.2 17.4 L 164.5 17.9 L 165.7 21.2 L 174.7 26.4 L 174.8 30.8 L 177.3 35.7 L 174.6 41.2 L 185.1 47.6 L 186.1 52.3 L 191.2 59.8 L 195.9 62.1 L 197.4 67.9 L 210.1 66.2 L 212.5 67.4 L 219.8 75.2 L 231.7 78.8 L 235.4 81.2 L 240.5 78.9 L 242.1 83.3 L 247.6 81.6 L 256.2 82.3 L 257.7 87.9 L 268.1 91.2 L 271.3 91.1 L 272.2 95.6 L 277.1 93.5 L 276.7 99.6 L 281.1 103.0 L 281.3 107.4 L 287.2 109.7 L 290.1 114.6 L 288.0 118.3 L 278.8 120.4 L 279.5 127.3 L 282.3 129.3 L 283.9 139.5 L 280.7 142.8 L 281.5 147.0 L 278.4 152.3 L 271.9 154.4 L 266.6 157.9 L 263.6 151.2 L 254.9 150.3 L 249.3 155.8 L 241.5 156.8 L 235.5 155.2 L 235.2 158.6 L 230.9 160.9 L 227.0 160.4 L 225.2 167.0 L 232.9 166.4 L 231.8 174.4 L 233.8 180.9 L 238.6 186.8 L 234.0 187.8 L 230.1 195.6 L 232.7 197.4 L 237.5 195.2 L 239.8 199.5 L 251.7 208.3 L 253.5 210.7 L 249.8 217.9 L 258.9 220.3 L 260.3 229.7 L 257.5 236.9 L 262.1 242.6 L 261.7 249.3 L 256.8 251.8 L 251.3 258.0 L 258.0 261.9 L 262.0 261.7 L 261.6 266.0 L 256.8 264.5 L 254.9 269.1 L 257.6 275.8 L 265.1 272.7 L 271.0 275.1 L 276.6 274.6 L 281.1 278.1 L 286.2 279.1 L 286.2 289.5 L 298.1 289.6 L 298.8 292.0 L 306.2 296.2 L 305.8 303.3 L 302.1 308.7 L 305.9 312.7 L 298.7 316.4 L 300.0 318.7 L 298.1 325.5 L 294.1 326.3 L 289.9 320.8 L 285.1 322.6 L 282.4 326.9 L 278.5 328.9 L 272.2 327.5 L 267.2 324.5 L 262.2 324.0 L 257.3 315.8 L 249.4 312.1 L 246.3 309.5 L 241.9 308.6 L 239.1 312.3 L 236.1 308.6 L 235.1 303.6 L 232.0 299.1 L 234.1 289.3 L 232.9 284.0 L 228.6 280.4 L 220.6 277.9 L 215.9 279.7 L 206.0 276.4 L 206.3 268.5 L 201.8 271.1 L 193.2 270.9 L 180.2 269.5 L 177.5 259.2 L 173.7 249.9 L 165.8 236.6 L 157.9 226.9 L 143.1 214.6 L 137.8 212.4 L 132.6 207.4 L 132.5 202.3 L 129.7 198.8 L 122.9 196.6 L 117.6 192.0 L 111.3 190.0 L 104.1 183.8 L 95.0 177.6 L 90.2 175.3 L 89.2 156.5 L 95.1 153.0 L 98.0 154.6 L 108.4 150.7 L 104.1 141.2 L 104.8 136.4 L 109.6 137.7 L 113.9 133.9 L 118.6 123.5 L 118.0 117.9 L 120.2 114.6 L 114.2 104.5 L 120.4 103.5 L 122.2 99.4 L 119.9 89.7 L 115.9 88.7 L 113.9 78.8 L 111.4 76.7 L 108.9 70.5 L 101.3 67.5 L 100.4 64.0 L 95.4 65.9 L 92.5 60.8 L 96.8 53.8 L 96.8 49.1 L 101.6 46.4 L 106.6 41.4 L 107.0 38.9 L 112.1 37.1 L 108.9 24.9 Z" fill="#f4f6f8" stroke="#c7d0d8" stroke-width="1"></path><path d="M 87.9 140.5 L 85.1 132.5 L 80.4 127.0 L 70.4 120.8 L 63.8 112.8 L 62.6 107.9 L 64.1 102.8 L 59.6 90.5 L 66.7 92.3 L 66.7 94.1 L 78.1 104.4 L 88.3 104.5 L 90.4 106.7 L 89.3 112.7 L 91.5 116.0 L 90.8 120.3 L 92.5 123.8 L 98.6 130.3 L 95.3 139.4 L 97.4 144.5 L 91.1 151.5 L 88.7 146.6 L 87.9 140.5 Z" fill="#f4f6f8" stroke="#c7d0d8" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.0,0.0" data-colors="#c9d0d7,#8f99a1" d="M 54.6 41.5 L 50.6 48.4 L 42.6 48.4 L 38.6 41.5 L 42.6 34.6 L 50.6 34.6 Z" fill="#8f99a1" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.3,1.2" data-colors="#4e5963,#414c57" d="M 80.1 115.2 L 76.1 122.1 L 68.1 122.1 L 64.1 115.2 L 68.1 108.3 L 76.1 108.3 Z" fill="#414c57" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#636d77,#56606a" d="M 80.1 100.4 L 76.1 107.4 L 68.1 107.4 L 64.1 100.4 L 68.1 93.5 L 76.1 93.5 Z" fill="#56606a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7d868f,#6d7781" d="M 80.1 56.2 L 76.1 63.2 L 68.1 63.2 L 64.1 56.2 L 68.1 49.3 L 76.1 49.3 Z" fill="#6d7781" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.4,1.3" data-colors="#4d5862,#404b56" d="M 92.9 122.6 L 88.9 129.5 L 80.9 129.5 L 76.9 122.6 L 80.9 115.6 L 88.9 115.6 Z" fill="#404b56" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#959ea7,#727c85" d="M 92.9 107.8 L 88.9 114.7 L 80.9 114.7 L 76.9 107.8 L 80.9 100.9 L 88.9 100.9 Z" fill="#727c85" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#848d96,#717b85" d="M 105.7 174.1 L 101.7 181.1 L 93.7 181.1 L 89.7 174.1 L 93.7 167.2 L 101.7 167.2 Z" fill="#717b85" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#88929a,#6f7982" d="M 105.7 159.4 L 101.7 166.3 L 93.7 166.3 L 89.7 159.4 L 93.7 152.5 L 101.7 152.5 Z" fill="#6f7982" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.7" data-colors="#5b6570,#4f5a65" d="M 105.7 129.9 L 101.7 136.8 L 93.7 136.8 L 89.7 129.9 L 93.7 123.0 L 101.7 123.0 Z" fill="#4f5a65" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="3.6,3.4" data-colors="#36414c,#27333f" d="M 105.7 56.2 L 101.7 63.2 L 93.7 63.2 L 89.7 56.2 L 93.7 49.3 L 101.7 49.3 Z" fill="#27333f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#77808a,#646e78" d="M 118.4 181.5 L 114.4 188.4 L 106.4 188.4 L 102.4 181.5 L 106.4 174.6 L 114.4 174.6 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.9,1.9" data-colors="#45505a,#35414c" d="M 118.4 166.8 L 114.4 173.7 L 106.4 173.7 L 102.4 166.8 L 106.4 159.8 L 114.4 159.8 Z" fill="#35414c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.7" data-colors="#656f79,#4d5862" d="M 118.4 152.0 L 114.4 159.0 L 106.4 159.0 L 102.4 152.0 L 106.4 145.1 L 114.4 145.1 Z" fill="#4d5862" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.2,1.2" data-colors="#505b65,#424d58" d="M 118.4 137.3 L 114.4 144.2 L 106.4 144.2 L 102.4 137.3 L 106.4 130.4 L 114.4 130.4 Z" fill="#424d58" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="5.7,5.7" data-colors="#2a3541,#1b2733" d="M 118.4 63.6 L 114.4 70.5 L 106.4 70.5 L 102.4 63.6 L 106.4 56.7 L 114.4 56.7 Z" fill="#1b2733" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.6,1.8" data-colors="#49545f,#37424d" d="M 118.4 48.9 L 114.4 55.8 L 106.4 55.8 L 102.4 48.9 L 106.4 41.9 L 114.4 41.9 Z" fill="#37424d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.8,2.0" data-colors="#47515c,#35404b" d="M 131.2 188.9 L 127.2 195.8 L 119.2 195.8 L 115.2 188.9 L 119.2 181.9 L 127.2 181.9 Z" fill="#35404b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.6" data-colors="#67717b,#535d68" d="M 131.2 174.1 L 127.2 181.1 L 119.2 181.1 L 115.2 174.1 L 119.2 167.2 L 127.2 167.2 Z" fill="#535d68" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7b848d,#6b757f" d="M 131.2 159.4 L 127.2 166.3 L 119.2 166.3 L 115.2 159.4 L 119.2 152.5 L 127.2 152.5 Z" fill="#6b757f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.5" data-colors="#6a747e,#57626c" d="M 131.2 144.7 L 127.2 151.6 L 119.2 151.6 L 115.2 144.7 L 119.2 137.7 L 127.2 137.7 Z" fill="#57626c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7d8790,#69737d" d="M 131.2 129.9 L 127.2 136.8 L 119.2 136.8 L 115.2 129.9 L 119.2 123.0 L 127.2 123.0 Z" fill="#69737d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.2,0.9" data-colors="#505b66,#48535e" d="M 131.2 115.2 L 127.2 122.1 L 119.2 122.1 L 115.2 115.2 L 119.2 108.3 L 127.2 108.3 Z" fill="#48535e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.6" data-colors="#5e6872,#505b65" d="M 131.2 100.4 L 127.2 107.4 L 119.2 107.4 L 115.2 100.4 L 119.2 93.5 L 127.2 93.5 Z" fill="#505b65" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.3,1.1" data-colors="#4e5863,#434e59" d="M 131.2 85.7 L 127.2 92.6 L 119.2 92.6 L 115.2 85.7 L 119.2 78.8 L 127.2 78.8 Z" fill="#434e59" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="2.5,1.9" data-colors="#3e4954,#35414c" d="M 131.2 71.0 L 127.2 77.9 L 119.2 77.9 L 115.2 71.0 L 119.2 64.0 L 127.2 64.0 Z" fill="#35414c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.9,1.9" data-colors="#45505b,#36414d" d="M 131.2 56.2 L 127.2 63.2 L 119.2 63.2 L 115.2 56.2 L 119.2 49.3 L 127.2 49.3 Z" fill="#36414d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.0,0.9" data-colors="#55606a,#48535e" d="M 131.2 41.5 L 127.2 48.4 L 119.2 48.4 L 115.2 41.5 L 119.2 34.6 L 127.2 34.6 Z" fill="#48535e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.5" data-colors="#6c767f,#58626d" d="M 131.2 26.7 L 127.2 33.7 L 119.2 33.7 L 115.2 26.7 L 119.2 19.8 L 127.2 19.8 Z" fill="#58626d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.1,1.4" data-colors="#525d67,#3e4954" d="M 144.0 196.2 L 140.0 203.2 L 132.0 203.2 L 128.0 196.2 L 132.0 189.3 L 140.0 189.3 Z" fill="#3e4954" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.8" data-colors="#5f6973,#4b5661" d="M 144.0 181.5 L 140.0 188.4 L 132.0 188.4 L 128.0 181.5 L 132.0 174.6 L 140.0 174.6 Z" fill="#4b5661" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.8" data-colors="#59636d,#4a5560" d="M 144.0 166.8 L 140.0 173.7 L 132.0 173.7 L 128.0 166.8 L 132.0 159.8 L 140.0 159.8 Z" fill="#4a5560" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#6f7982,#606b75" d="M 144.0 152.0 L 140.0 159.0 L 132.0 159.0 L 128.0 152.0 L 132.0 145.1 L 140.0 145.1 Z" fill="#606b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.8" data-colors="#5a646e,#4a555f" d="M 144.0 137.3 L 140.0 144.2 L 132.0 144.2 L 128.0 137.3 L 132.0 130.4 L 140.0 130.4 Z" fill="#4a555f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="2.7,2.8" data-colors="#3c4752,#2c3843" d="M 144.0 122.6 L 140.0 129.5 L 132.0 129.5 L 128.0 122.6 L 132.0 115.6 L 140.0 115.6 Z" fill="#2c3843" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.1,1.0" data-colors="#535d68,#45505b" d="M 144.0 107.8 L 140.0 114.7 L 132.0 114.7 L 128.0 107.8 L 132.0 100.9 L 140.0 100.9 Z" fill="#45505b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.1" data-colors="#7c858f,#747e88" d="M 144.0 93.1 L 140.0 100.0 L 132.0 100.0 L 128.0 93.1 L 132.0 86.1 L 140.0 86.1 Z" fill="#747e88" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.7,1.8" data-colors="#48535d,#37424d" d="M 144.0 78.3 L 140.0 85.3 L 132.0 85.3 L 128.0 78.3 L 132.0 71.4 L 140.0 71.4 Z" fill="#37424d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.9,1.0" data-colors="#56616b,#45505b" d="M 144.0 63.6 L 140.0 70.5 L 132.0 70.5 L 128.0 63.6 L 132.0 56.7 L 140.0 56.7 Z" fill="#45505b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.8" data-colors="#5c6670,#4c5761" d="M 144.0 48.9 L 140.0 55.8 L 132.0 55.8 L 128.0 48.9 L 132.0 41.9 L 140.0 41.9 Z" fill="#4c5761" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#616b75,#545f69" d="M 144.0 34.1 L 140.0 41.0 L 132.0 41.0 L 128.0 34.1 L 132.0 27.2 L 140.0 27.2 Z" fill="#545f69" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.7" data-colors="#7d8790,#4f5964" d="M 144.0 19.4 L 140.0 26.3 L 132.0 26.3 L 128.0 19.4 L 132.0 12.5 L 140.0 12.5 Z" fill="#4f5964" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7c868f,#727c86" d="M 156.7 218.4 L 152.7 225.3 L 144.7 225.3 L 140.7 218.4 L 144.7 211.4 L 152.7 211.4 Z" fill="#727c86" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#767f89,#5e6973" d="M 156.7 203.6 L 152.7 210.5 L 144.7 210.5 L 140.7 203.6 L 144.7 196.7 L 152.7 196.7 Z" fill="#5e6973" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.8" data-colors="#5e6872,#4a555f" d="M 156.7 188.9 L 152.7 195.8 L 144.7 195.8 L 140.7 188.9 L 144.7 181.9 L 152.7 181.9 Z" fill="#4a555f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.6" data-colors="#5f6a73,#535e68" d="M 156.7 174.1 L 152.7 181.1 L 144.7 181.1 L 140.7 174.1 L 144.7 167.2 L 152.7 167.2 Z" fill="#535e68" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#707a83,#5b656f" d="M 156.7 159.4 L 152.7 166.3 L 144.7 166.3 L 140.7 159.4 L 144.7 152.5 L 152.7 152.5 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.6" data-colors="#636d77,#515c66" d="M 156.7 144.7 L 152.7 151.6 L 144.7 151.6 L 140.7 144.7 L 144.7 137.7 L 152.7 137.7 Z" fill="#515c66" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.5" data-colors="#5c6670,#57616b" d="M 156.7 129.9 L 152.7 136.8 L 144.7 136.8 L 140.7 129.9 L 144.7 123.0 L 152.7 123.0 Z" fill="#57616b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.9,0.9" data-colors="#57626c,#47525d" d="M 156.7 115.2 L 152.7 122.1 L 144.7 122.1 L 140.7 115.2 L 144.7 108.3 L 152.7 108.3 Z" fill="#47525d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#77818a,#66707a" d="M 156.7 100.4 L 152.7 107.4 L 144.7 107.4 L 140.7 100.4 L 144.7 93.5 L 152.7 93.5 Z" fill="#66707a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.0,0.9" data-colors="#545e69,#48535d" d="M 156.7 85.7 L 152.7 92.6 L 144.7 92.6 L 140.7 85.7 L 144.7 78.8 L 152.7 78.8 Z" fill="#48535d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.6" data-colors="#5f6973,#505b65" d="M 156.7 71.0 L 152.7 77.9 L 144.7 77.9 L 140.7 71.0 L 144.7 64.0 L 152.7 64.0 Z" fill="#505b65" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.7" data-colors="#5e6973,#4d5862" d="M 156.7 56.2 L 152.7 63.2 L 144.7 63.2 L 140.7 56.2 L 144.7 49.3 L 152.7 49.3 Z" fill="#4d5862" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.9" data-colors="#5d6872,#47525d" d="M 156.7 41.5 L 152.7 48.4 L 144.7 48.4 L 140.7 41.5 L 144.7 34.6 L 152.7 34.6 Z" fill="#47525d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#717b84,#636d77" d="M 156.7 26.7 L 152.7 33.7 L 144.7 33.7 L 140.7 26.7 L 144.7 19.8 L 152.7 19.8 Z" fill="#636d77" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#727c85,#66707a" d="M 169.5 225.7 L 165.5 232.7 L 157.5 232.7 L 153.5 225.7 L 157.5 218.8 L 165.5 218.8 Z" fill="#66707a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.8" data-colors="#5f6973,#4b5660" d="M 169.5 211.0 L 165.5 217.9 L 157.5 217.9 L 153.5 211.0 L 157.5 204.1 L 165.5 204.1 Z" fill="#4b5660" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#606b74,#555f6a" d="M 169.5 196.2 L 165.5 203.2 L 157.5 203.2 L 153.5 196.2 L 157.5 189.3 L 165.5 189.3 Z" fill="#555f6a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#737c86,#5a656f" d="M 169.5 181.5 L 165.5 188.4 L 157.5 188.4 L 153.5 181.5 L 157.5 174.6 L 165.5 174.6 Z" fill="#5a656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#656f79,#59636e" d="M 169.5 166.8 L 165.5 173.7 L 157.5 173.7 L 153.5 166.8 L 157.5 159.8 L 165.5 159.8 Z" fill="#59636e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.4" data-colors="#69737d,#5c6670" d="M 169.5 152.0 L 165.5 159.0 L 157.5 159.0 L 153.5 152.0 L 157.5 145.1 L 165.5 145.1 Z" fill="#5c6670" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.5" data-colors="#5f6973,#545f69" d="M 169.5 137.3 L 165.5 144.2 L 157.5 144.2 L 153.5 137.3 L 157.5 130.4 L 165.5 130.4 Z" fill="#545f69" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.5" data-colors="#636d77,#56606b" d="M 169.5 122.6 L 165.5 129.5 L 157.5 129.5 L 153.5 122.6 L 157.5 115.6 L 165.5 115.6 Z" fill="#56606b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#657079,#5b656f" d="M 169.5 107.8 L 165.5 114.7 L 157.5 114.7 L 153.5 107.8 L 157.5 100.9 L 165.5 100.9 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.6" data-colors="#646e78,#535e68" d="M 169.5 93.1 L 165.5 100.0 L 157.5 100.0 L 153.5 93.1 L 157.5 86.1 L 165.5 86.1 Z" fill="#535e68" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.8,0.8" data-colors="#5b6670,#4b5660" d="M 169.5 78.3 L 165.5 85.3 L 157.5 85.3 L 153.5 78.3 L 157.5 71.4 L 165.5 71.4 Z" fill="#4b5660" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.6" data-colors="#636d77,#535e68" d="M 169.5 63.6 L 165.5 70.5 L 157.5 70.5 L 153.5 63.6 L 157.5 56.7 L 165.5 56.7 Z" fill="#535e68" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.7" data-colors="#66707a,#505a65" d="M 169.5 48.9 L 165.5 55.8 L 157.5 55.8 L 153.5 48.9 L 157.5 41.9 L 165.5 41.9 Z" fill="#505a65" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.7" data-colors="#646e78,#4e5964" d="M 169.5 34.1 L 165.5 41.0 L 157.5 41.0 L 153.5 34.1 L 157.5 27.2 L 165.5 27.2 Z" fill="#4e5964" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#6b757e,#606b75" d="M 169.5 19.4 L 165.5 26.3 L 157.5 26.3 L 153.5 19.4 L 157.5 12.5 L 165.5 12.5 Z" fill="#606b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#919aa2,#88919a" d="M 182.3 247.8 L 178.3 254.8 L 170.3 254.8 L 166.3 247.8 L 170.3 240.9 L 178.3 240.9 Z" fill="#88919a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#606a74,#59636d" d="M 182.3 233.1 L 178.3 240.0 L 170.3 240.0 L 166.3 233.1 L 170.3 226.2 L 178.3 226.2 Z" fill="#59636d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#6f7983,#67717a" d="M 182.3 218.4 L 178.3 225.3 L 170.3 225.3 L 166.3 218.4 L 170.3 211.4 L 178.3 211.4 Z" fill="#67717a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7a848d,#68727c" d="M 182.3 203.6 L 178.3 210.5 L 170.3 210.5 L 166.3 203.6 L 170.3 196.7 L 178.3 196.7 Z" fill="#68727c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7a848d,#6a747e" d="M 182.3 188.9 L 178.3 195.8 L 170.3 195.8 L 166.3 188.9 L 170.3 181.9 L 178.3 181.9 Z" fill="#6a747e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.5" data-colors="#66707a,#55606a" d="M 182.3 174.1 L 178.3 181.1 L 170.3 181.1 L 166.3 174.1 L 170.3 167.2 L 178.3 167.2 Z" fill="#55606a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.7" data-colors="#636d77,#4d5862" d="M 182.3 159.4 L 178.3 166.3 L 170.3 166.3 L 166.3 159.4 L 170.3 152.5 L 178.3 152.5 Z" fill="#4d5862" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.3" data-colors="#656f79,#5f6a74" d="M 182.3 144.7 L 178.3 151.6 L 170.3 151.6 L 166.3 144.7 L 170.3 137.7 L 178.3 137.7 Z" fill="#5f6a74" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#606b75,#58626c" d="M 182.3 129.9 L 178.3 136.8 L 170.3 136.8 L 166.3 129.9 L 170.3 123.0 L 178.3 123.0 Z" fill="#58626c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.1" data-colors="#818a93,#747e87" d="M 182.3 115.2 L 178.3 122.1 L 170.3 122.1 L 166.3 115.2 L 170.3 108.3 L 178.3 108.3 Z" fill="#747e87" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#818b94,#69737d" d="M 182.3 100.4 L 178.3 107.4 L 170.3 107.4 L 166.3 100.4 L 170.3 93.5 L 178.3 93.5 Z" fill="#69737d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#66707a,#5c6670" d="M 182.3 85.7 L 178.3 92.6 L 170.3 92.6 L 166.3 85.7 L 170.3 78.8 L 178.3 78.8 Z" fill="#5c6670" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.7,1.3" data-colors="#48535d,#3e4954" d="M 182.3 71.0 L 178.3 77.9 L 170.3 77.9 L 166.3 71.0 L 170.3 64.0 L 178.3 64.0 Z" fill="#3e4954" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#7b858e,#667079" d="M 182.3 56.2 L 178.3 63.2 L 170.3 63.2 L 166.3 56.2 L 170.3 49.3 L 178.3 49.3 Z" fill="#667079" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.5" data-colors="#68737c,#58626c" d="M 182.3 41.5 L 178.3 48.4 L 170.3 48.4 L 166.3 41.5 L 170.3 34.6 L 178.3 34.6 Z" fill="#58626c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.0,0.1" data-colors="#aeb7be,#879099" d="M 182.3 26.7 L 178.3 33.7 L 170.3 33.7 L 166.3 26.7 L 170.3 19.8 L 178.3 19.8 Z" fill="#879099" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#79838c,#727c85" d="M 195.0 269.9 L 191.0 276.9 L 183.0 276.9 L 179.0 269.9 L 183.0 263.0 L 191.0 263.0 Z" fill="#727c85" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#89939b,#6c7680" d="M 195.0 255.2 L 191.0 262.1 L 183.0 262.1 L 179.0 255.2 L 183.0 248.3 L 191.0 248.3 Z" fill="#6c7680" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#727c85,#646e78" d="M 195.0 240.5 L 191.0 247.4 L 183.0 247.4 L 179.0 240.5 L 183.0 233.5 L 191.0 233.5 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#838c95,#7a848d" d="M 195.0 225.7 L 191.0 232.7 L 183.0 232.7 L 179.0 225.7 L 183.0 218.8 L 191.0 218.8 Z" fill="#7a848d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#636d77,#58636d" d="M 195.0 211.0 L 191.0 217.9 L 183.0 217.9 L 179.0 211.0 L 183.0 204.1 L 191.0 204.1 Z" fill="#58636d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#656f79,#5b656f" d="M 195.0 196.2 L 191.0 203.2 L 183.0 203.2 L 179.0 196.2 L 183.0 189.3 L 191.0 189.3 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.7" data-colors="#5e6872,#505b65" d="M 195.0 181.5 L 191.0 188.4 L 183.0 188.4 L 179.0 181.5 L 183.0 174.6 L 191.0 174.6 Z" fill="#505b65" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.1,1.0" data-colors="#525d67,#45505a" d="M 195.0 166.8 L 191.0 173.7 L 183.0 173.7 L 179.0 166.8 L 183.0 159.8 L 191.0 159.8 Z" fill="#45505a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#636d77,#58626d" d="M 195.0 152.0 L 191.0 159.0 L 183.0 159.0 L 179.0 152.0 L 183.0 145.1 L 191.0 145.1 Z" fill="#58626d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.6" data-colors="#5e6973,#525c67" d="M 195.0 137.3 L 191.0 144.2 L 183.0 144.2 L 179.0 137.3 L 183.0 130.4 L 191.0 130.4 Z" fill="#525c67" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#707a83,#646e78" d="M 195.0 122.6 L 191.0 129.5 L 183.0 129.5 L 179.0 122.6 L 183.0 115.6 L 191.0 115.6 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.5" data-colors="#5e6872,#545f69" d="M 195.0 107.8 L 191.0 114.7 L 183.0 114.7 L 179.0 107.8 L 183.0 100.9 L 191.0 100.9 Z" fill="#545f69" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#717b84,#626c76" d="M 195.0 93.1 L 191.0 100.0 L 183.0 100.0 L 179.0 93.1 L 183.0 86.1 L 191.0 86.1 Z" fill="#626c76" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#737d87,#69737d" d="M 195.0 78.3 L 191.0 85.3 L 183.0 85.3 L 179.0 78.3 L 183.0 71.4 L 191.0 71.4 Z" fill="#69737d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.6" data-colors="#636d77,#545e69" d="M 195.0 63.6 L 191.0 70.5 L 183.0 70.5 L 179.0 63.6 L 183.0 56.7 L 191.0 56.7 Z" fill="#545e69" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#6e7882,#5e6872" d="M 207.8 262.6 L 203.8 269.5 L 195.8 269.5 L 191.8 262.6 L 195.8 255.6 L 203.8 255.6 Z" fill="#5e6872" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#69737d,#646e78" d="M 207.8 247.8 L 203.8 254.8 L 195.8 254.8 L 191.8 247.8 L 195.8 240.9 L 203.8 240.9 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.5" data-colors="#6a747e,#55606a" d="M 207.8 233.1 L 203.8 240.0 L 195.8 240.0 L 191.8 233.1 L 195.8 226.2 L 203.8 226.2 Z" fill="#55606a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.3" data-colors="#67717b,#616b75" d="M 207.8 218.4 L 203.8 225.3 L 195.8 225.3 L 191.8 218.4 L 195.8 211.4 L 203.8 211.4 Z" fill="#616b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.4" data-colors="#69737d,#5d6872" d="M 207.8 203.6 L 203.8 210.5 L 195.8 210.5 L 191.8 203.6 L 195.8 196.7 L 203.8 196.7 Z" fill="#5d6872" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#747d87,#69737d" d="M 207.8 188.9 L 203.8 195.8 L 195.8 195.8 L 191.8 188.9 L 195.8 181.9 L 203.8 181.9 Z" fill="#69737d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.9" data-colors="#5c6670,#48535e" d="M 207.8 174.1 L 203.8 181.1 L 195.8 181.1 L 191.8 174.1 L 195.8 167.2 L 203.8 167.2 Z" fill="#48535e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.3,1.1" data-colors="#4e5863,#434e59" d="M 207.8 159.4 L 203.8 166.3 L 195.8 166.3 L 191.8 159.4 L 195.8 152.5 L 203.8 152.5 Z" fill="#434e59" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#747e87,#6c7680" d="M 207.8 144.7 L 203.8 151.6 L 195.8 151.6 L 191.8 144.7 L 195.8 137.7 L 203.8 137.7 Z" fill="#6c7680" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#757f89,#6d7680" d="M 207.8 129.9 L 203.8 136.8 L 195.8 136.8 L 191.8 129.9 L 195.8 123.0 L 203.8 123.0 Z" fill="#6d7680" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#78828b,#657079" d="M 207.8 115.2 L 203.8 122.1 L 195.8 122.1 L 191.8 115.2 L 195.8 108.3 L 203.8 108.3 Z" fill="#657079" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#707a84,#5a646f" d="M 207.8 100.4 L 203.8 107.4 L 195.8 107.4 L 191.8 100.4 L 195.8 93.5 L 203.8 93.5 Z" fill="#5a646f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.4" data-colors="#636d77,#59636e" d="M 207.8 85.7 L 203.8 92.6 L 195.8 92.6 L 191.8 85.7 L 195.8 78.8 L 203.8 78.8 Z" fill="#59636e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#757f88,#67717b" d="M 207.8 71.0 L 203.8 77.9 L 195.8 77.9 L 191.8 71.0 L 195.8 64.0 L 203.8 64.0 Z" fill="#67717b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#707a83,#626c76" d="M 220.5 269.9 L 216.5 276.9 L 208.5 276.9 L 204.5 269.9 L 208.5 263.0 L 216.5 263.0 Z" fill="#626c76" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#717b84,#5d6771" d="M 220.5 255.2 L 216.5 262.1 L 208.5 262.1 L 204.5 255.2 L 208.5 248.3 L 216.5 248.3 Z" fill="#5d6771" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.4" data-colors="#69737d,#5d6771" d="M 220.5 240.5 L 216.5 247.4 L 208.5 247.4 L 204.5 240.5 L 208.5 233.5 L 216.5 233.5 Z" fill="#5d6771" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#79828c,#646e78" d="M 220.5 225.7 L 216.5 232.7 L 208.5 232.7 L 204.5 225.7 L 208.5 218.8 L 216.5 218.8 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.7" data-colors="#5e6973,#4f5a64" d="M 220.5 211.0 L 216.5 217.9 L 208.5 217.9 L 204.5 211.0 L 208.5 204.1 L 216.5 204.1 Z" fill="#4f5a64" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#717b84,#656f79" d="M 220.5 196.2 L 216.5 203.2 L 208.5 203.2 L 204.5 196.2 L 208.5 189.3 L 216.5 189.3 Z" fill="#656f79" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#717b85,#5d6771" d="M 220.5 181.5 L 216.5 188.4 L 208.5 188.4 L 204.5 181.5 L 208.5 174.6 L 216.5 174.6 Z" fill="#5d6771" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.5" data-colors="#68727c,#58636d" d="M 220.5 166.8 L 216.5 173.7 L 208.5 173.7 L 204.5 166.8 L 208.5 159.8 L 216.5 159.8 Z" fill="#58636d" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#67717b,#5b656f" d="M 220.5 152.0 L 216.5 159.0 L 208.5 159.0 L 204.5 152.0 L 208.5 145.1 L 216.5 145.1 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#6f7983,#5b656f" d="M 220.5 137.3 L 216.5 144.2 L 208.5 144.2 L 204.5 137.3 L 208.5 130.4 L 216.5 130.4 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.8" data-colors="#5e6872,#49545f" d="M 220.5 122.6 L 216.5 129.5 L 208.5 129.5 L 204.5 122.6 L 208.5 115.6 L 216.5 115.6 Z" fill="#49545f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.7" data-colors="#5d6771,#4f5a64" d="M 220.5 107.8 L 216.5 114.7 L 208.5 114.7 L 204.5 107.8 L 208.5 100.9 L 216.5 100.9 Z" fill="#4f5a64" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#808a93,#737d86" d="M 220.5 93.1 L 216.5 100.0 L 208.5 100.0 L 204.5 93.1 L 208.5 86.1 L 216.5 86.1 Z" fill="#737d86" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#818a93,#707a83" d="M 220.5 78.3 L 216.5 85.3 L 208.5 85.3 L 204.5 78.3 L 208.5 71.4 L 216.5 71.4 Z" fill="#707a83" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7d868f,#6d7781" d="M 233.3 277.3 L 229.3 284.2 L 221.3 284.2 L 217.3 277.3 L 221.3 270.4 L 229.3 270.4 Z" fill="#6d7781" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#808a93,#717b84" d="M 233.3 262.6 L 229.3 269.5 L 221.3 269.5 L 217.3 262.6 L 221.3 255.6 L 229.3 255.6 Z" fill="#717b84" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.6" data-colors="#5f6a74,#535d68" d="M 233.3 247.8 L 229.3 254.8 L 221.3 254.8 L 217.3 247.8 L 221.3 240.9 L 229.3 240.9 Z" fill="#535d68" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.9,1.0" data-colors="#58626c,#46515c" d="M 233.3 233.1 L 229.3 240.0 L 221.3 240.0 L 217.3 233.1 L 221.3 226.2 L 229.3 226.2 Z" fill="#46515c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#868f98,#6d7780" d="M 233.3 218.4 L 229.3 225.3 L 221.3 225.3 L 217.3 218.4 L 221.3 211.4 L 229.3 211.4 Z" fill="#6d7780" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#879199,#737d86" d="M 233.3 203.6 L 229.3 210.5 L 221.3 210.5 L 217.3 203.6 L 221.3 196.7 L 229.3 196.7 Z" fill="#737d86" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.3" data-colors="#67717b,#606a74" d="M 233.3 188.9 L 229.3 195.8 L 221.3 195.8 L 217.3 188.9 L 221.3 181.9 L 229.3 181.9 Z" fill="#606a74" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#6b757f,#67717a" d="M 233.3 174.1 L 229.3 181.1 L 221.3 181.1 L 217.3 174.1 L 221.3 167.2 L 229.3 167.2 Z" fill="#67717a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.5" data-colors="#646e78,#56606a" d="M 233.3 159.4 L 229.3 166.3 L 221.3 166.3 L 217.3 159.4 L 221.3 152.5 L 229.3 152.5 Z" fill="#56606a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.5" data-colors="#616c76,#56606b" d="M 233.3 144.7 L 229.3 151.6 L 221.3 151.6 L 217.3 144.7 L 221.3 137.7 L 229.3 137.7 Z" fill="#56606b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#818a93,#67717b" d="M 233.3 129.9 L 229.3 136.8 L 221.3 136.8 L 217.3 129.9 L 221.3 123.0 L 229.3 123.0 Z" fill="#67717b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.5" data-colors="#717b84,#57626c" d="M 233.3 115.2 L 229.3 122.1 L 221.3 122.1 L 217.3 115.2 L 221.3 108.3 L 229.3 108.3 Z" fill="#57626c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#858e97,#6b757f" d="M 233.3 100.4 L 229.3 107.4 L 221.3 107.4 L 217.3 100.4 L 221.3 93.5 L 229.3 93.5 Z" fill="#6b757f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#848d96,#6e7882" d="M 233.3 85.7 L 229.3 92.6 L 221.3 92.6 L 217.3 85.7 L 221.3 78.8 L 229.3 78.8 Z" fill="#6e7882" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#8c959e,#69737c" d="M 246.1 299.4 L 242.1 306.3 L 234.1 306.3 L 230.1 299.4 L 234.1 292.5 L 242.1 292.5 Z" fill="#69737c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.5" data-colors="#646e78,#56606a" d="M 246.1 284.7 L 242.1 291.6 L 234.1 291.6 L 230.1 284.7 L 234.1 277.8 L 242.1 277.8 Z" fill="#56606a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#7a838c,#656f79" d="M 246.1 269.9 L 242.1 276.9 L 234.1 276.9 L 230.1 269.9 L 234.1 263.0 L 242.1 263.0 Z" fill="#656f79" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#6c7680,#606a74" d="M 246.1 255.2 L 242.1 262.1 L 234.1 262.1 L 230.1 255.2 L 234.1 248.3 L 242.1 248.3 Z" fill="#606a74" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.6,0.6" data-colors="#626c76,#545e69" d="M 246.1 240.5 L 242.1 247.4 L 234.1 247.4 L 230.1 240.5 L 234.1 233.5 L 242.1 233.5 Z" fill="#545e69" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.4" data-colors="#6f7983,#5f6973" d="M 246.1 225.7 L 242.1 232.7 L 234.1 232.7 L 230.1 225.7 L 234.1 218.8 L 242.1 218.8 Z" fill="#5f6973" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="1.1,0.9" data-colors="#535e68,#49545f" d="M 246.1 211.0 L 242.1 217.9 L 234.1 217.9 L 230.1 211.0 L 234.1 204.1 L 242.1 204.1 Z" fill="#49545f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.0" data-colors="#9ca5ad,#949da5" d="M 246.1 196.2 L 242.1 203.2 L 234.1 203.2 L 230.1 196.2 L 234.1 189.3 L 242.1 189.3 Z" fill="#949da5" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.3" data-colors="#6f7982,#616b75" d="M 246.1 152.0 L 242.1 159.0 L 234.1 159.0 L 230.1 152.0 L 234.1 145.1 L 242.1 145.1 Z" fill="#616b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#77808a,#66707a" d="M 246.1 137.3 L 242.1 144.2 L 234.1 144.2 L 230.1 137.3 L 234.1 130.4 L 242.1 130.4 Z" fill="#66707a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.5" data-colors="#727c85,#57626c" d="M 246.1 122.6 L 242.1 129.5 L 234.1 129.5 L 230.1 122.6 L 234.1 115.6 L 242.1 115.6 Z" fill="#57626c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#969fa7,#6f7983" d="M 246.1 107.8 L 242.1 114.7 L 234.1 114.7 L 230.1 107.8 L 234.1 100.9 L 242.1 100.9 Z" fill="#6f7983" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#79838c,#68727c" d="M 246.1 93.1 L 242.1 100.0 L 234.1 100.0 L 230.1 93.1 L 234.1 86.1 L 242.1 86.1 Z" fill="#68727c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.0,0.1" data-colors="#a1a9b1,#89929b" d="M 258.8 306.8 L 254.8 313.7 L 246.8 313.7 L 242.8 306.8 L 246.8 299.9 L 254.8 299.9 Z" fill="#89929b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7e8791,#6e7882" d="M 258.8 292.0 L 254.8 299.0 L 246.8 299.0 L 242.8 292.0 L 246.8 285.1 L 254.8 285.1 Z" fill="#6e7882" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#78828b,#646e78" d="M 258.8 277.3 L 254.8 284.2 L 246.8 284.2 L 242.8 277.3 L 246.8 270.4 L 254.8 270.4 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#757e88,#6c7680" d="M 258.8 262.6 L 254.8 269.5 L 246.8 269.5 L 242.8 262.6 L 246.8 255.6 L 254.8 255.6 Z" fill="#6c7680" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#6b757f,#616b75" d="M 258.8 247.8 L 254.8 254.8 L 246.8 254.8 L 242.8 247.8 L 246.8 240.9 L 254.8 240.9 Z" fill="#616b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#868f98,#707a84" d="M 258.8 233.1 L 254.8 240.0 L 246.8 240.0 L 242.8 233.1 L 246.8 226.2 L 254.8 226.2 Z" fill="#707a84" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7d8790,#6c767f" d="M 258.8 218.4 L 254.8 225.3 L 246.8 225.3 L 242.8 218.4 L 246.8 211.4 L 254.8 211.4 Z" fill="#6c767f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.4" data-colors="#6c767f,#5e6973" d="M 258.8 144.7 L 254.8 151.6 L 246.8 151.6 L 242.8 144.7 L 246.8 137.7 L 254.8 137.7 Z" fill="#5e6973" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.4,0.3" data-colors="#6b757f,#616b75" d="M 258.8 129.9 L 254.8 136.8 L 246.8 136.8 L 242.8 129.9 L 246.8 123.0 L 254.8 123.0 Z" fill="#616b75" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#8d979f,#808a93" d="M 258.8 115.2 L 254.8 122.1 L 246.8 122.1 L 242.8 115.2 L 246.8 108.3 L 254.8 108.3 Z" fill="#808a93" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.1" data-colors="#7a848d,#747e87" d="M 258.8 100.4 L 254.8 107.4 L 246.8 107.4 L 242.8 100.4 L 246.8 93.5 L 254.8 93.5 Z" fill="#747e87" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#8f98a1,#7f8992" d="M 258.8 85.7 L 254.8 92.6 L 246.8 92.6 L 242.8 85.7 L 246.8 78.8 L 254.8 78.8 Z" fill="#7f8992" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#848e97,#768089" d="M 271.6 314.2 L 267.6 321.1 L 259.6 321.1 L 255.6 314.2 L 259.6 307.2 L 267.6 307.2 Z" fill="#768089" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.7,0.5" data-colors="#5e6872,#555f6a" d="M 271.6 299.4 L 267.6 306.3 L 259.6 306.3 L 255.6 299.4 L 259.6 292.5 L 267.6 292.5 Z" fill="#555f6a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#78828b,#66707a" d="M 271.6 284.7 L 267.6 291.6 L 259.6 291.6 L 255.6 284.7 L 259.6 277.8 L 267.6 277.8 Z" fill="#66707a" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#858e97,#6d7780" d="M 271.6 137.3 L 267.6 144.2 L 259.6 144.2 L 255.6 137.3 L 259.6 130.4 L 267.6 130.4 Z" fill="#6d7780" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#929ba3,#828b94" d="M 271.6 122.6 L 267.6 129.5 L 259.6 129.5 L 255.6 122.6 L 259.6 115.6 L 267.6 115.6 Z" fill="#828b94" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7f8992,#707a83" d="M 271.6 107.8 L 267.6 114.7 L 259.6 114.7 L 255.6 107.8 L 259.6 100.9 L 267.6 100.9 Z" fill="#707a83" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#9099a2,#79828b" d="M 271.6 93.1 L 267.6 100.0 L 259.6 100.0 L 255.6 93.1 L 259.6 86.1 L 267.6 86.1 Z" fill="#79828b" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.3" data-colors="#89939b,#636e77" d="M 284.4 321.5 L 280.4 328.5 L 272.4 328.5 L 268.4 321.5 L 272.4 314.6 L 280.4 314.6 Z" fill="#636e77" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#808992,#6e7882" d="M 284.4 306.8 L 280.4 313.7 L 272.4 313.7 L 268.4 306.8 L 272.4 299.9 L 280.4 299.9 Z" fill="#6e7882" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.5,0.4" data-colors="#67717b,#5b656f" d="M 284.4 292.0 L 280.4 299.0 L 272.4 299.0 L 268.4 292.0 L 272.4 285.1 L 280.4 285.1 Z" fill="#5b656f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#8d969f,#838c95" d="M 284.4 277.3 L 280.4 284.2 L 272.4 284.2 L 268.4 277.3 L 272.4 270.4 L 280.4 270.4 Z" fill="#838c95" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#78828b,#6c767f" d="M 284.4 144.7 L 280.4 151.6 L 272.4 151.6 L 268.4 144.7 L 272.4 137.7 L 280.4 137.7 Z" fill="#6c767f" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.2" data-colors="#98a1a9,#6d7781" d="M 284.4 129.9 L 280.4 136.8 L 272.4 136.8 L 268.4 129.9 L 272.4 123.0 L 280.4 123.0 Z" fill="#6d7781" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.1" data-colors="#969fa7,#818a93" d="M 284.4 115.2 L 280.4 122.1 L 272.4 122.1 L 268.4 115.2 L 272.4 108.3 L 280.4 108.3 Z" fill="#818a93" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.1,0.0" data-colors="#97a0a8,#97a0a8" d="M 284.4 100.4 L 280.4 107.4 L 272.4 107.4 L 268.4 100.4 L 272.4 93.5 L 280.4 93.5 Z" fill="#97a0a8" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.2" data-colors="#7d8790,#6a747e" d="M 297.1 314.2 L 293.1 321.1 L 285.1 321.1 L 281.1 314.2 L 285.1 307.2 L 293.1 307.2 Z" fill="#6a747e" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.3,0.2" data-colors="#757f89,#68727c" d="M 297.1 299.4 L 293.1 306.3 L 285.1 306.3 L 281.1 299.4 L 285.1 292.5 L 293.1 292.5 Z" fill="#68727c" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><path class="hexbin-cell chart-hover-target" data-values="0.2,0.3" data-colors="#7e8790,#646e78" d="M 309.9 306.8 L 305.9 313.7 L 297.9 313.7 L 293.9 306.8 L 297.9 299.9 L 305.9 299.9 Z" fill="#646e78" fill-opacity="0.92" stroke="#fff" stroke-width="1"></path><circle cx="100.7" cy="61.8" r="3.2" fill="#2c3e50" stroke="#fff" stroke-width="1"></circle><text x="105.7" y="65.3" font-size="9" fill="#2c3e50">La Rochelle</text><circle cx="192.9" cy="165.3" r="3.2" fill="#2c3e50" stroke="#fff" stroke-width="1"></circle><text x="197.9" y="168.8" font-size="9" fill="#2c3e50">Saintes</text><circle cx="135.8" cy="115.7" r="3.2" fill="#2c3e50" stroke="#fff" stroke-width="1"></circle><text x="140.8" y="119.2" font-size="9" fill="#2c3e50">Rochefort</text><circle cx="129.2" cy="193.1" r="3.2" fill="#2c3e50" stroke="#fff" stroke-width="1"></circle><text x="134.2" y="196.6" font-size="9" fill="#2c3e50">Royan</text><circle cx="111.5" cy="69.5" r="3.2" fill="#2c3e50" stroke="#fff" stroke-width="1"></circle><text x="116.5" y="73.0" font-size="9" fill="#2c3e50">Aytré</text></svg><script type="application/json" id="hexbin-years-data">[2018, 2024]</script><p class="region-map-note">Cumulative share of installed capacity by grid cell, 2018&ndash;2024. Drag the slider to see it build up over time.</p></div>
+
+            <div class="dept-cities">
+                <h3>Cities in Charente-Maritime ranked by installed capacity</h3>
+                <div class="ranking-list">
+                <a class="ranking-item rank-1" href="../cities/17347.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Jean-d'Angély</span>
+                        <span class="ranking-sub">110 systems</span>
+                    </span>
+                    <span class="ranking-value">8.2 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="../cities/17300.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Rochelle</span>
+                        <span class="ranking-sub">635 systems</span>
+                    </span>
+                    <span class="ranking-value">6.8 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="../cities/17434.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Surgères</span>
+                        <span class="ranking-sub">189 systems</span>
+                    </span>
+                    <span class="ranking-value">4.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17003.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aigrefeuille-d'Aunis</span>
+                        <span class="ranking-sub">170 systems</span>
+                    </span>
+                    <span class="ranking-value">3.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17299.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Rochefort</span>
+                        <span class="ranking-sub">301 systems</span>
+                    </span>
+                    <span class="ranking-value">2.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17028.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aytré</span>
+                        <span class="ranking-sub">194 systems</span>
+                    </span>
+                    <span class="ranking-value">1.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17415.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saintes</span>
+                        <span class="ranking-sub">327 systems</span>
+                    </span>
+                    <span class="ranking-value">1.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17218.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marans</span>
+                        <span class="ranking-sub">130 systems</span>
+                    </span>
+                    <span class="ranking-value">1.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17274.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Périgny</span>
+                        <span class="ranking-sub">209 systems</span>
+                    </span>
+                    <span class="ranking-value">1.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17385.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Pierre-d'Oléron</span>
+                        <span class="ranking-sub">229 systems</span>
+                    </span>
+                    <span class="ranking-value">1.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17306.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Royan</span>
+                        <span class="ranking-sub">261 systems</span>
+                    </span>
+                    <span class="ranking-value">1.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17421.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saujon</span>
+                        <span class="ranking-sub">226 systems</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17200.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lagord</span>
+                        <span class="ranking-sub">174 systems</span>
+                    </span>
+                    <span class="ranking-value">1.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17449.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Tonnay-Charente</span>
+                        <span class="ranking-sub">203 systems</span>
+                    </span>
+                    <span class="ranking-value">1.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17142.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Dompierre-sur-Mer</span>
+                        <span class="ranking-sub">208 systems</span>
+                    </span>
+                    <span class="ranking-value">1.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17452.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Tremblade</span>
+                        <span class="ranking-sub">171 systems</span>
+                    </span>
+                    <span class="ranking-value">947 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17283.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pons</span>
+                        <span class="ranking-sub">86 systems</span>
+                    </span>
+                    <span class="ranking-value">927 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17414.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Xandre</span>
+                        <span class="ranking-sub">166 systems</span>
+                    </span>
+                    <span class="ranking-value">884 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17291.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Puilboreau</span>
+                        <span class="ranking-sub">151 systems</span>
+                    </span>
+                    <span class="ranking-value">656 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17407.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sainte-Soulle</span>
+                        <span class="ranking-sub">121 systems</span>
+                    </span>
+                    <span class="ranking-value">570 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17094.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Châtelaillon-Plage</span>
+                        <span class="ranking-sub">170 systems</span>
+                    </span>
+                    <span class="ranking-value">531 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17093.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Le Château-d'Oléron</span>
+                        <span class="ranking-sub">93 systems</span>
+                    </span>
+                    <span class="ranking-value">530 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17264.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nieul-sur-Mer</span>
+                        <span class="ranking-sub">163 systems</span>
+                    </span>
+                    <span class="ranking-value">510 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17219.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marennes-Hiers-Brouage</span>
+                        <span class="ranking-sub">122 systems</span>
+                    </span>
+                    <span class="ranking-value">501 kWp</span>
+                </a>
+                <a class="ranking-item" href="../cities/17333.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Georges-de-Didonne</span>
+                        <span class="ranking-sub">112 systems</span>
+                    </span>
+                    <span class="ranking-value">475 kWp</span>
+                </a>
+                </div>
+            </div>
+
+            <p class="city-request-note">Don&rsquo;t see your commune above? It may not have enough confirmed detections yet &mdash; <a href="https://github.com/gabrielkasmi/openpvmapper-issues/issues/new?title=City%20request%3A%20&body=I%27d%20like%20to%20see%20a%20page%20for%20a%20specific%20commune%20in%20Charente-Maritime%20%2817%29%20that%20doesn%27t%20appear%20in%20its%20city%20ranking.%0A%0ACommune%3A%20%0A%0A%28It%20may%20not%20have%20enough%20confirmed%20detections%20yet%2C%20or%20wasn%27t%20among%20the%20largest%20communes%20checked%20for%20this%20d%C3%A9partement%20%E2%80%94%20this%20isn%27t%20an%20instant%20request%2C%20just%20a%20signal%20of%20interest.%29&labels=city-request" target="_blank">let us know which one you had in mind</a>.</p>
+
+            <div class="report-issue-card">
+                <h3>See something odd here?</h3>
+                <p>Report it &mdash; you'll help improve data quality for Charente-Maritime (17) and across France.</p>
+                <textarea id="report-comment" rows="3" placeholder="What looks wrong? A count that seems off, a system that looks misclassified..."></textarea>
+                <button type="button" id="report-issue-btn" class="btn" data-target-label="Charente-Maritime (17)">Report an issue</button>
+            </div>
+
+            <div class="dept-back-links">
+                <a href="../regions/nouvelle-aquitaine.html" class="btn">&larr; Back to Nouvelle-Aquitaine</a>
+                <a href="../local-statistics.html" class="btn">&larr; Back to all d&eacute;partements</a>
+            </div>
         </div>
     </section>
+
+    <div class="chart-tooltip" id="chart-tooltip"></div>
 
     <footer class="footer">
         <div class="container">
@@ -92,5 +386,42 @@
     </footer>
 
     <script src="../../static/js/script.js"></script>
+    <script>
+        (function () {
+            var tip = document.getElementById('chart-tooltip');
+            if (!tip) return;
+            var slider = document.getElementById('hexbin-year-slider');
+            document.querySelectorAll('.chart-hover-target').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    var text;
+                    if (el.classList.contains('hexbin-cell') && slider) {
+                        var vals = el.getAttribute('data-values').split(',');
+                        text = vals[parseInt(slider.value, 10)] + '% of capacity that year';
+                    } else {
+                        text = el.getAttribute('data-tip') || '';
+                    }
+                    tip.textContent = text;
+                    tip.style.left = (e.clientX + 14) + 'px';
+                    tip.style.top = (e.clientY + 14) + 'px';
+                    tip.style.opacity = '1';
+                });
+                el.addEventListener('mouseleave', function () { tip.style.opacity = '0'; });
+            });
+
+            if (slider) {
+                var label = document.getElementById('hexbin-year-label');
+                var years = JSON.parse(document.getElementById('hexbin-years-data').textContent);
+                var cells = document.querySelectorAll('.hexbin-cell');
+                slider.addEventListener('input', function () {
+                    var idx = parseInt(slider.value, 10);
+                    label.textContent = years[idx];
+                    cells.forEach(function (c) {
+                        var colors = c.getAttribute('data-colors').split(',');
+                        c.setAttribute('fill', colors[idx]);
+                    });
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

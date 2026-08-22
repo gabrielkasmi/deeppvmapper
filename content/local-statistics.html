@@ -3,19 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Statistics &middot; DeepPVMapper</title>
+    <title>Leaderboard &middot; DeepPVMapper</title>
 
-    <meta name="description" content="Browse DeepPVMapper's rooftop PV registry département by département — headline stats and a direct link into the interactive map, pre-zoomed to each area.">
+    <meta name="description" content="Which région, département or city has the most rooftop solar? Rankings by estimated installed capacity across DeepPVMapper's PV registry, with a direct link into the interactive map for each.">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/local-statistics.html">
-    <meta property="og:title" content="Local Statistics &middot; DeepPVMapper">
-    <meta property="og:description" content="Browse the rooftop PV registry département by département — headline stats and a direct link into the map for each area.">
+    <meta property="og:title" content="Leaderboard &middot; DeepPVMapper">
+    <meta property="og:description" content="Rankings by estimated installed capacity — régions, départements and cities — across DeepPVMapper's rooftop PV registry.">
     <link rel="canonical" href="https://deeppvmapper.fr/content/local-statistics.html">
 
     <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
     <link rel="stylesheet" href="../static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .rankings-tabs {
+            display: flex; justify-content: center; gap: 8px; margin: 8px 0 20px;
+            flex-wrap: wrap;
+        }
+        .rankings-tab {
+            font: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+            padding: 8px 20px; border-radius: 6px; border: 1px solid #dee2e6;
+            background: #fff; color: #34495e;
+        }
+        .rankings-tab.is-active { background: #34495e; border-color: #34495e; color: #fff; }
+        .ranking-panel {
+            display: none; max-width: 720px; margin: 0 auto; max-height: 560px;
+            overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px;
+        }
+        .ranking-panel.is-active { display: block; }
+        .ranking-note {
+            text-align: center; font-size: 0.85rem; color: #6c757d; margin: -8px 0 14px;
+        }
+        .ranking-item {
+            display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+            text-decoration: none; color: inherit; border-bottom: 1px solid #f1f3f5;
+        }
+        .ranking-item:last-child { border-bottom: none; }
+        .ranking-item:hover { background: #f8f9fa; }
+        .ranking-rank {
+            flex: none; width: 28px; height: 28px; border-radius: 50%;
+            background: #e9ecef; color: #34495e; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ranking-item.rank-1 .ranking-rank { background: #f4c95d; color: #5c4400; }
+        .ranking-item.rank-2 .ranking-rank { background: #d8dce3; color: #3a3f47; }
+        .ranking-item.rank-3 .ranking-rank { background: #e3b088; color: #5a3313; }
+        .ranking-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+        .ranking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-sub { font-size: 0.8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ranking-value {
+            flex: none; font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums;
+            font-size: 0.92rem; text-align: right;
+        }
+    </style>
 </head>
 <body>
     <header class="header header--compact">
@@ -44,7 +86,7 @@
         </nav>
         <div class="container">
             <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
-            <h1 class="title">Local Statistics</h1>
+            <h1 class="title">Leaderboard</h1>
             <div class="quick-links">
                 <a href="data.html" class="quick-link">&larr; Back to Data</a>
                 <a href="data.html#map-section" class="quick-link">Interactive map</a>
@@ -52,179 +94,1339 @@
         </div>
     </header>
 
-    <section id="departements">
+    <section id="rankings">
         <div class="container">
-            <h2>Browse by D&eacute;partement</h2>
             <p class="hub-intro">
-                <span style="display:block; text-align:center;">Each département has its own page with headline stats and a direct link into the map, pre-zoomed to that area.</span>
+                <span style="display:block; text-align:center;">Ranked by estimated installed capacity &mdash; the région, département or city with the most rooftop PV, straight from the registry. Click through to a région or département to see its own ranking of what's inside it.</span>
             </p>
-            <div class="dept-grid">
-                <!-- DEPARTMENTS_GRID_START -->
-                <div class="dept-region">
-                    <h3>Auvergne-Rhône-Alpes</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/01.html">Ain <span class="dept-link-code">01</span></a>
-                    <a class="dept-link" href="data/03.html">Allier <span class="dept-link-code">03</span></a>
-                    <a class="dept-link" href="data/07.html">Ardèche <span class="dept-link-code">07</span></a>
-                    <a class="dept-link" href="data/15.html">Cantal <span class="dept-link-code">15</span></a>
-                    <a class="dept-link" href="data/26.html">Drôme <span class="dept-link-code">26</span></a>
-                    <a class="dept-link" href="data/43.html">Haute-Loire <span class="dept-link-code">43</span></a>
-                    <a class="dept-link" href="data/74.html">Haute-Savoie <span class="dept-link-code">74</span></a>
-                    <a class="dept-link" href="data/38.html">Isère <span class="dept-link-code">38</span></a>
-                    <a class="dept-link" href="data/42.html">Loire <span class="dept-link-code">42</span></a>
-                    <a class="dept-link" href="data/63.html">Puy-de-Dôme <span class="dept-link-code">63</span></a>
-                    <a class="dept-link" href="data/69.html">Rhône <span class="dept-link-code">69</span></a>
-                    <a class="dept-link" href="data/73.html">Savoie <span class="dept-link-code">73</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Bourgogne-Franche-Comté</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/21.html">Côte-d'Or <span class="dept-link-code">21</span></a>
-                    <a class="dept-link" href="data/25.html">Doubs <span class="dept-link-code">25</span></a>
-                    <a class="dept-link" href="data/70.html">Haute-Saône <span class="dept-link-code">70</span></a>
-                    <a class="dept-link" href="data/39.html">Jura <span class="dept-link-code">39</span></a>
-                    <a class="dept-link" href="data/58.html">Nièvre <span class="dept-link-code">58</span></a>
-                    <a class="dept-link" href="data/71.html">Saône-et-Loire <span class="dept-link-code">71</span></a>
-                    <a class="dept-link" href="data/90.html">Territoire de Belfort <span class="dept-link-code">90</span></a>
-                    <a class="dept-link" href="data/89.html">Yonne <span class="dept-link-code">89</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Bretagne</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/22.html">Côtes-d'Armor <span class="dept-link-code">22</span></a>
-                    <a class="dept-link" href="data/29.html">Finistère <span class="dept-link-code">29</span></a>
-                    <a class="dept-link" href="data/35.html">Ille-et-Vilaine <span class="dept-link-code">35</span></a>
-                    <a class="dept-link" href="data/56.html">Morbihan <span class="dept-link-code">56</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Centre-Val de Loire</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/18.html">Cher <span class="dept-link-code">18</span></a>
-                    <a class="dept-link" href="data/28.html">Eure-et-Loir <span class="dept-link-code">28</span></a>
-                    <a class="dept-link" href="data/36.html">Indre <span class="dept-link-code">36</span></a>
-                    <a class="dept-link" href="data/37.html">Indre-et-Loire <span class="dept-link-code">37</span></a>
-                    <a class="dept-link" href="data/41.html">Loir-et-Cher <span class="dept-link-code">41</span></a>
-                    <a class="dept-link" href="data/45.html">Loiret <span class="dept-link-code">45</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Grand Est</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/08.html">Ardennes <span class="dept-link-code">08</span></a>
-                    <a class="dept-link" href="data/10.html">Aube <span class="dept-link-code">10</span></a>
-                    <a class="dept-link" href="data/67.html">Bas-Rhin <span class="dept-link-code">67</span></a>
-                    <a class="dept-link" href="data/68.html">Haut-Rhin <span class="dept-link-code">68</span></a>
-                    <a class="dept-link" href="data/52.html">Haute-Marne <span class="dept-link-code">52</span></a>
-                    <a class="dept-link" href="data/51.html">Marne <span class="dept-link-code">51</span></a>
-                    <a class="dept-link" href="data/54.html">Meurthe-et-Moselle <span class="dept-link-code">54</span></a>
-                    <a class="dept-link" href="data/55.html">Meuse <span class="dept-link-code">55</span></a>
-                    <a class="dept-link" href="data/57.html">Moselle <span class="dept-link-code">57</span></a>
-                    <a class="dept-link" href="data/88.html">Vosges <span class="dept-link-code">88</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Hauts-de-France</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/02.html">Aisne <span class="dept-link-code">02</span></a>
-                    <a class="dept-link" href="data/59.html">Nord <span class="dept-link-code">59</span></a>
-                    <a class="dept-link" href="data/60.html">Oise <span class="dept-link-code">60</span></a>
-                    <a class="dept-link" href="data/62.html">Pas-de-Calais <span class="dept-link-code">62</span></a>
-                    <a class="dept-link" href="data/80.html">Somme <span class="dept-link-code">80</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Normandie</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/14.html">Calvados <span class="dept-link-code">14</span></a>
-                    <a class="dept-link" href="data/27.html">Eure <span class="dept-link-code">27</span></a>
-                    <a class="dept-link" href="data/50.html">Manche <span class="dept-link-code">50</span></a>
-                    <a class="dept-link" href="data/61.html">Orne <span class="dept-link-code">61</span></a>
-                    <a class="dept-link" href="data/76.html">Seine-Maritime <span class="dept-link-code">76</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Nouvelle-Aquitaine</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/16.html">Charente <span class="dept-link-code">16</span></a>
-                    <a class="dept-link" href="data/17.html">Charente-Maritime <span class="dept-link-code">17</span></a>
-                    <a class="dept-link" href="data/19.html">Corrèze <span class="dept-link-code">19</span></a>
-                    <a class="dept-link" href="data/23.html">Creuse <span class="dept-link-code">23</span></a>
-                    <a class="dept-link" href="data/79.html">Deux-Sèvres <span class="dept-link-code">79</span></a>
-                    <a class="dept-link" href="data/24.html">Dordogne <span class="dept-link-code">24</span></a>
-                    <a class="dept-link" href="data/33.html">Gironde <span class="dept-link-code">33</span></a>
-                    <a class="dept-link" href="data/87.html">Haute-Vienne <span class="dept-link-code">87</span></a>
-                    <a class="dept-link" href="data/40.html">Landes <span class="dept-link-code">40</span></a>
-                    <a class="dept-link" href="data/47.html">Lot-et-Garonne <span class="dept-link-code">47</span></a>
-                    <a class="dept-link" href="data/64.html">Pyrénées-Atlantiques <span class="dept-link-code">64</span></a>
-                    <a class="dept-link" href="data/86.html">Vienne <span class="dept-link-code">86</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Occitanie</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/09.html">Ariège <span class="dept-link-code">09</span></a>
-                    <a class="dept-link" href="data/11.html">Aude <span class="dept-link-code">11</span></a>
-                    <a class="dept-link" href="data/12.html">Aveyron <span class="dept-link-code">12</span></a>
-                    <a class="dept-link" href="data/30.html">Gard <span class="dept-link-code">30</span></a>
-                    <a class="dept-link" href="data/32.html">Gers <span class="dept-link-code">32</span></a>
-                    <a class="dept-link" href="data/31.html">Haute-Garonne <span class="dept-link-code">31</span></a>
-                    <a class="dept-link" href="data/65.html">Hautes-Pyrénées <span class="dept-link-code">65</span></a>
-                    <a class="dept-link" href="data/34.html">Hérault <span class="dept-link-code">34</span></a>
-                    <a class="dept-link" href="data/46.html">Lot <span class="dept-link-code">46</span></a>
-                    <a class="dept-link" href="data/48.html">Lozère <span class="dept-link-code">48</span></a>
-                    <a class="dept-link" href="data/66.html">Pyrénées-Orientales <span class="dept-link-code">66</span></a>
-                    <a class="dept-link" href="data/81.html">Tarn <span class="dept-link-code">81</span></a>
-                    <a class="dept-link" href="data/82.html">Tarn-et-Garonne <span class="dept-link-code">82</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Pays de la Loire</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/44.html">Loire-Atlantique <span class="dept-link-code">44</span></a>
-                    <a class="dept-link" href="data/49.html">Maine-et-Loire <span class="dept-link-code">49</span></a>
-                    <a class="dept-link" href="data/53.html">Mayenne <span class="dept-link-code">53</span></a>
-                    <a class="dept-link" href="data/72.html">Sarthe <span class="dept-link-code">72</span></a>
-                    <a class="dept-link" href="data/85.html">Vendée <span class="dept-link-code">85</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Provence-Alpes-Côte d'Azur</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/06.html">Alpes-Maritimes <span class="dept-link-code">06</span></a>
-                    <a class="dept-link" href="data/04.html">Alpes-de-Haute-Provence <span class="dept-link-code">04</span></a>
-                    <a class="dept-link" href="data/13.html">Bouches-du-Rhône <span class="dept-link-code">13</span></a>
-                    <a class="dept-link" href="data/05.html">Hautes-Alpes <span class="dept-link-code">05</span></a>
-                    <a class="dept-link" href="data/83.html">Var <span class="dept-link-code">83</span></a>
-                    <a class="dept-link" href="data/84.html">Vaucluse <span class="dept-link-code">84</span></a>
-                    </div>
-                </div>
-                <div class="dept-region">
-                    <h3>Île-de-France</h3>
-                    <div class="dept-list">
-                    <a class="dept-link" href="data/91.html">Essonne <span class="dept-link-code">91</span></a>
-                    <a class="dept-link" href="data/92.html">Hauts-de-Seine <span class="dept-link-code">92</span></a>
-                    <a class="dept-link" href="data/75.html">Paris <span class="dept-link-code">75</span></a>
-                    <a class="dept-link" href="data/93.html">Seine-Saint-Denis <span class="dept-link-code">93</span></a>
-                    <a class="dept-link" href="data/77.html">Seine-et-Marne <span class="dept-link-code">77</span></a>
-                    <a class="dept-link" href="data/95.html">Val-d'Oise <span class="dept-link-code">95</span></a>
-                    <a class="dept-link" href="data/94.html">Val-de-Marne <span class="dept-link-code">94</span></a>
-                    <a class="dept-link" href="data/78.html">Yvelines <span class="dept-link-code">78</span></a>
-                    </div>
-                </div>
-                <!-- DEPARTMENTS_GRID_END -->
+            <div class="rankings-tabs">
+                <button type="button" class="rankings-tab is-active" data-panel="regions">R&eacute;gions</button>
+                <button type="button" class="rankings-tab" data-panel="departements">D&eacute;partements</button>
+                <button type="button" class="rankings-tab" data-panel="cities">Cities</button>
+            </div>
+            <div class="ranking-panel is-active" id="ranking-regions">
+                <!-- RANKING_REGIONS_START -->
+                <a class="ranking-item rank-1" href="regions/nouvelle-aquitaine.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nouvelle-Aquitaine</span>
+                        <span class="ranking-sub">12 départements</span>
+                    </span>
+                    <span class="ranking-value">4 075.5 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="regions/occitanie.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Occitanie</span>
+                        <span class="ranking-sub">13 départements</span>
+                    </span>
+                    <span class="ranking-value">2 329.5 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="regions/auvergne-rhone-alpes.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Auvergne-Rhône-Alpes</span>
+                        <span class="ranking-sub">12 départements</span>
+                    </span>
+                    <span class="ranking-value">1 798.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/provence-alpes-cote-d-azur.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Provence-Alpes-Côte d'Azur</span>
+                        <span class="ranking-sub">6 départements</span>
+                    </span>
+                    <span class="ranking-value">1 430.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/grand-est.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Grand Est</span>
+                        <span class="ranking-sub">10 départements</span>
+                    </span>
+                    <span class="ranking-value">1 126.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/pays-de-la-loire.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pays de la Loire</span>
+                        <span class="ranking-sub">5 départements</span>
+                    </span>
+                    <span class="ranking-value">1 031.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/bourgogne-franche-comte.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bourgogne-Franche-Comté</span>
+                        <span class="ranking-sub">8 départements</span>
+                    </span>
+                    <span class="ranking-value">756.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/centre-val-de-loire.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Centre-Val de Loire</span>
+                        <span class="ranking-sub">6 départements</span>
+                    </span>
+                    <span class="ranking-value">668.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/hauts-de-france.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hauts-de-France</span>
+                        <span class="ranking-sub">5 départements</span>
+                    </span>
+                    <span class="ranking-value">529.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/bretagne.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bretagne</span>
+                        <span class="ranking-sub">4 départements</span>
+                    </span>
+                    <span class="ranking-value">477.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/normandie.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Normandie</span>
+                        <span class="ranking-sub">5 départements</span>
+                    </span>
+                    <span class="ranking-value">364.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/ile-de-france.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Île-de-France</span>
+                        <span class="ranking-sub">8 départements</span>
+                    </span>
+                    <span class="ranking-value">354.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="regions/corse.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corse</span>
+                        <span class="ranking-sub">2 départements</span>
+                    </span>
+                    <span class="ranking-value">37.7 MWp</span>
+                </a>
+                <!-- RANKING_REGIONS_END -->
+            </div>
+            <div class="ranking-panel" id="ranking-departements">
+                <!-- RANKING_DEPARTEMENTS_START -->
+                <a class="ranking-item rank-1" href="data/33.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gironde</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">1 225.0 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="data/40.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Landes</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">907.7 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="data/13.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bouches-du-Rhône</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">386.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/03.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Allier</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">379.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/44.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Loire-Atlantique</span>
+                        <span class="ranking-sub">Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">361.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/83.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Var</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">335.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/34.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hérault</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">331.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/54.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Meurthe-et-Moselle</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">331.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/04.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Alpes-de-Haute-Provence</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">300.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/30.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gard</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">295.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/47.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lot-et-Garonne</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">286.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/31.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Garonne</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">282.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/89.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Yonne</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">271.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/17.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Charente-Maritime</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">258.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/16.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Charente</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">252.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/66.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pyrénées-Orientales</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">250.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/59.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nord</span>
+                        <span class="ranking-sub">Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">246.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/32.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gers</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">245.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/85.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vendée</span>
+                        <span class="ranking-sub">Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">233.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/84.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vaucluse</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">232.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/64.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pyrénées-Atlantiques</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">216.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/49.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Maine-et-Loire</span>
+                        <span class="ranking-sub">Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">204.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/81.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Tarn</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">199.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/15.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cantal</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">190.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/86.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vienne</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">190.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/26.html">
+                    <span class="ranking-rank">26</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Drôme</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">189.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/12.html">
+                    <span class="ranking-rank">27</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aveyron</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">182.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/79.html">
+                    <span class="ranking-rank">28</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Deux-Sèvres</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">181.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/37.html">
+                    <span class="ranking-rank">29</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Indre-et-Loire</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">178.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/19.html">
+                    <span class="ranking-rank">30</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corrèze</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">175.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/38.html">
+                    <span class="ranking-rank">31</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Isère</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">173.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/82.html">
+                    <span class="ranking-rank">32</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Tarn-et-Garonne</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">171.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/57.html">
+                    <span class="ranking-rank">33</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Moselle</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">170.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/67.html">
+                    <span class="ranking-rank">34</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bas-Rhin</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">167.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/71.html">
+                    <span class="ranking-rank">35</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saône-et-Loire</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">162.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/11.html">
+                    <span class="ranking-rank">36</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aude</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">158.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/72.html">
+                    <span class="ranking-rank">37</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sarthe</span>
+                        <span class="ranking-sub">Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">146.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/43.html">
+                    <span class="ranking-rank">38</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Loire</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">145.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/35.html">
+                    <span class="ranking-rank">39</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ille-et-Vilaine</span>
+                        <span class="ranking-sub">Bretagne</span>
+                    </span>
+                    <span class="ranking-value">144.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/56.html">
+                    <span class="ranking-rank">40</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Morbihan</span>
+                        <span class="ranking-sub">Bretagne</span>
+                    </span>
+                    <span class="ranking-value">140.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/63.html">
+                    <span class="ranking-rank">41</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Puy-de-Dôme</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">140.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/87.html">
+                    <span class="ranking-rank">42</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Vienne</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">139.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/77.html">
+                    <span class="ranking-rank">43</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Seine-et-Marne</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">135.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/68.html">
+                    <span class="ranking-rank">44</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haut-Rhin</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">135.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/24.html">
+                    <span class="ranking-rank">45</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Dordogne</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">134.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/18.html">
+                    <span class="ranking-rank">46</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cher</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">133.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/69.html">
+                    <span class="ranking-rank">47</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Rhône</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">130.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/41.html">
+                    <span class="ranking-rank">48</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Loir-et-Cher</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">128.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/05.html">
+                    <span class="ranking-rank">49</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hautes-Alpes</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">117.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/01.html">
+                    <span class="ranking-rank">50</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ain</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">117.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/62.html">
+                    <span class="ranking-rank">51</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Pas-de-Calais</span>
+                        <span class="ranking-sub">Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">113.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/23.html">
+                    <span class="ranking-rank">52</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Creuse</span>
+                        <span class="ranking-sub">Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">109.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/22.html">
+                    <span class="ranking-rank">53</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Côtes-d'Armor</span>
+                        <span class="ranking-sub">Bretagne</span>
+                    </span>
+                    <span class="ranking-value">105.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/42.html">
+                    <span class="ranking-rank">54</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Loire</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">104.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/07.html">
+                    <span class="ranking-rank">55</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ardèche</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">96.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/36.html">
+                    <span class="ranking-rank">56</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Indre</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">93.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/27.html">
+                    <span class="ranking-rank">57</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Eure</span>
+                        <span class="ranking-sub">Normandie</span>
+                    </span>
+                    <span class="ranking-value">89.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/29.html">
+                    <span class="ranking-rank">58</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Finistère</span>
+                        <span class="ranking-sub">Bretagne</span>
+                    </span>
+                    <span class="ranking-value">87.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/46.html">
+                    <span class="ranking-rank">59</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lot</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">87.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/53.html">
+                    <span class="ranking-rank">60</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mayenne</span>
+                        <span class="ranking-sub">Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">85.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/51.html">
+                    <span class="ranking-rank">61</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marne</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">84.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/39.html">
+                    <span class="ranking-rank">62</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Jura</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">83.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/50.html">
+                    <span class="ranking-rank">63</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Manche</span>
+                        <span class="ranking-sub">Normandie</span>
+                    </span>
+                    <span class="ranking-value">82.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/88.html">
+                    <span class="ranking-rank">64</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vosges</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">76.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/74.html">
+                    <span class="ranking-rank">65</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Savoie</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">74.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/45.html">
+                    <span class="ranking-rank">66</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Loiret</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">73.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/14.html">
+                    <span class="ranking-rank">67</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Calvados</span>
+                        <span class="ranking-sub">Normandie</span>
+                    </span>
+                    <span class="ranking-value">73.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/21.html">
+                    <span class="ranking-rank">68</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Côte-d'Or</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">72.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/76.html">
+                    <span class="ranking-rank">69</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Seine-Maritime</span>
+                        <span class="ranking-sub">Normandie</span>
+                    </span>
+                    <span class="ranking-value">67.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/60.html">
+                    <span class="ranking-rank">70</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Oise</span>
+                        <span class="ranking-sub">Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">61.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/58.html">
+                    <span class="ranking-rank">71</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nièvre</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">61.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/25.html">
+                    <span class="ranking-rank">72</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Doubs</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">61.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/28.html">
+                    <span class="ranking-rank">73</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Eure-et-Loir</span>
+                        <span class="ranking-sub">Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">60.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/06.html">
+                    <span class="ranking-rank">74</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Alpes-Maritimes</span>
+                        <span class="ranking-sub">Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">57.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/73.html">
+                    <span class="ranking-rank">75</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Savoie</span>
+                        <span class="ranking-sub">Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">57.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/80.html">
+                    <span class="ranking-rank">76</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Somme</span>
+                        <span class="ranking-sub">Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">56.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/91.html">
+                    <span class="ranking-rank">77</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Essonne</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">54.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/02.html">
+                    <span class="ranking-rank">78</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aisne</span>
+                        <span class="ranking-sub">Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">51.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/61.html">
+                    <span class="ranking-rank">79</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Orne</span>
+                        <span class="ranking-sub">Normandie</span>
+                    </span>
+                    <span class="ranking-value">51.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/55.html">
+                    <span class="ranking-rank">80</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Meuse</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">49.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/65.html">
+                    <span class="ranking-rank">81</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hautes-Pyrénées</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">48.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/78.html">
+                    <span class="ranking-rank">82</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Yvelines</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">45.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/09.html">
+                    <span class="ranking-rank">83</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ariège</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">45.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/10.html">
+                    <span class="ranking-rank">84</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Aube</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">42.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/52.html">
+                    <span class="ranking-rank">85</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Marne</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">34.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/70.html">
+                    <span class="ranking-rank">86</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Saône</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">34.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/08.html">
+                    <span class="ranking-rank">87</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ardennes</span>
+                        <span class="ranking-sub">Grand Est</span>
+                    </span>
+                    <span class="ranking-value">33.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/48.html">
+                    <span class="ranking-rank">88</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lozère</span>
+                        <span class="ranking-sub">Occitanie</span>
+                    </span>
+                    <span class="ranking-value">31.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/2B.html">
+                    <span class="ranking-rank">89</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Haute-Corse</span>
+                        <span class="ranking-sub">Corse</span>
+                    </span>
+                    <span class="ranking-value">27.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/95.html">
+                    <span class="ranking-rank">90</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Val-d'Oise</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">27.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/93.html">
+                    <span class="ranking-rank">91</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Seine-Saint-Denis</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">24.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/75.html">
+                    <span class="ranking-rank">92</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Paris</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">22.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/94.html">
+                    <span class="ranking-rank">93</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Val-de-Marne</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">22.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/92.html">
+                    <span class="ranking-rank">94</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Hauts-de-Seine</span>
+                        <span class="ranking-sub">Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">21.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/2A.html">
+                    <span class="ranking-rank">95</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corse-du-Sud</span>
+                        <span class="ranking-sub">Corse</span>
+                    </span>
+                    <span class="ranking-value">10.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="data/90.html">
+                    <span class="ranking-rank">96</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Territoire de Belfort</span>
+                        <span class="ranking-sub">Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">9.8 MWp</span>
+                </a>
+                <!-- RANKING_DEPARTEMENTS_END -->
+            </div>
+            <div class="ranking-panel" id="ranking-cities">
+                <p class="ranking-note">Top 50 shown &mdash; every city with its own page is ranked, but only the leaders are listed here.</p>
+                <!-- RANKING_CITIES_START -->
+                <a class="ranking-item rank-1" href="cities/33122.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cestas</span>
+                        <span class="ranking-sub">Gironde · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">292.3 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="cities/04094.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gréoux-les-Bains</span>
+                        <span class="ranking-sub">Alpes-de-Haute-Provence · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">126.4 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="cities/13039.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Fos-sur-Mer</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">61.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13047.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Istres</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">60.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/33063.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bordeaux</span>
+                        <span class="ranking-sub">Gironde · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">57.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31555.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Toulouse</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">46.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/34032.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Béziers</span>
+                        <span class="ranking-sub">Hérault · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">45.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/15083.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Jussac</span>
+                        <span class="ranking-sub">Cantal · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">36.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/40217.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Parentis-en-Born</span>
+                        <span class="ranking-sub">Landes · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">33.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/81048.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cagnac-les-Mines</span>
+                        <span class="ranking-sub">Tarn · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">32.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66136.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Perpignan</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">31.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84007.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Avignon</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">31.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/72003.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Allonnes</span>
+                        <span class="ranking-sub">Sarthe · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">29.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/18050.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Chapelle-Saint-Ursin</span>
+                        <span class="ranking-sub">Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">27.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/83023.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Brignoles</span>
+                        <span class="ranking-sub">Var · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">26.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/79329.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Thouars</span>
+                        <span class="ranking-sub">Deux-Sèvres · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">25.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/87075.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Isle</span>
+                        <span class="ranking-sub">Haute-Vienne · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">25.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/81099.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gaillac</span>
+                        <span class="ranking-sub">Tarn · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">22.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/46083.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cressensac-Sarrazac</span>
+                        <span class="ranking-sub">Lot · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">22.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/75056.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Paris</span>
+                        <span class="ranking-sub">Paris · Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">22.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13097.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Martin-de-Crau</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">21.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66088.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ille-sur-Têt</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">21.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13055.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marseille</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">21.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/32256.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mirande</span>
+                        <span class="ranking-sub">Gers · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">20.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/30189.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nîmes</span>
+                        <span class="ranking-sub">Gard · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">19.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/12270.html">
+                    <span class="ranking-rank">26</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sévérac d'Aveyron</span>
+                        <span class="ranking-sub">Aveyron · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">18.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/60057.html">
+                    <span class="ranking-rank">27</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Beauvais</span>
+                        <span class="ranking-sub">Oise · Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">18.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41136.html">
+                    <span class="ranking-rank">28</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mer</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">18.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66195.html">
+                    <span class="ranking-rank">29</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Le Soler</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">17.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/04116.html">
+                    <span class="ranking-rank">30</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Les Mées</span>
+                        <span class="ranking-sub">Alpes-de-Haute-Provence · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">16.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/77284.html">
+                    <span class="ranking-rank">31</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Meaux</span>
+                        <span class="ranking-sub">Seine-et-Marne · Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">16.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/58059.html">
+                    <span class="ranking-rank">32</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Charité-sur-Loire</span>
+                        <span class="ranking-sub">Nièvre · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">16.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/71499.html">
+                    <span class="ranking-rank">33</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sanvignes-les-Mines</span>
+                        <span class="ranking-sub">Saône-et-Loire · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">15.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/03101.html">
+                    <span class="ranking-rank">34</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Domérat</span>
+                        <span class="ranking-sub">Allier · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">15.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84129.html">
+                    <span class="ranking-rank">35</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sorgues</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">15.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/34172.html">
+                    <span class="ranking-rank">36</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Montpellier</span>
+                        <span class="ranking-sub">Hérault · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">14.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13103.html">
+                    <span class="ranking-rank">37</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Salon-de-Provence</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">14.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41280.html">
+                    <span class="ranking-rank">38</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Villefranche-sur-Cher</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">14.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/89263.html">
+                    <span class="ranking-rank">39</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Monéteau</span>
+                        <span class="ranking-sub">Yonne · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">14.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/71230.html">
+                    <span class="ranking-rank">40</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gueugnon</span>
+                        <span class="ranking-sub">Saône-et-Loire · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">14.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41269.html">
+                    <span class="ranking-rank">41</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vendôme</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">13.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49244.html">
+                    <span class="ranking-rank">42</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mauges-sur-Loire</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">13.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/69273.html">
+                    <span class="ranking-rank">43</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corbas</span>
+                        <span class="ranking-sub">Rhône · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">13.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/15012.html">
+                    <span class="ranking-rank">44</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Arpajon-sur-Cère</span>
+                        <span class="ranking-sub">Cantal · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">12.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31424.html">
+                    <span class="ranking-rank">45</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Plaisance-du-Touch</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">12.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/22113.html">
+                    <span class="ranking-rank">46</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lannion</span>
+                        <span class="ranking-sub">Côtes-d'Armor · Bretagne</span>
+                    </span>
+                    <span class="ranking-value">12.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49023.html">
+                    <span class="ranking-rank">47</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Beaupréau-en-Mauges</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">12.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49092.html">
+                    <span class="ranking-rank">48</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Chemillé-en-Anjou</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">12.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84035.html">
+                    <span class="ranking-rank">49</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cavaillon</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">12.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31069.html">
+                    <span class="ranking-rank">50</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Blagnac</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">11.9 MWp</span>
+                </a>
+                <!-- RANKING_CITIES_END -->
             </div>
         </div>
     </section>
 
     <footer class="footer">
         <div class="container">
+            <div class="footer-contact">
+                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 4h16v16H4z" stroke="none"/>
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 6-10 7L2 6"></path>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                    </svg>
+                </a>
+            </div>
             <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 
     <script src="../static/js/script.js"></script>
+    <script>
+        document.querySelectorAll('.rankings-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.rankings-tab').forEach(function (b) { b.classList.remove('is-active'); });
+                document.querySelectorAll('.ranking-panel').forEach(function (p) { p.classList.remove('is-active'); });
+                btn.classList.add('is-active');
+                document.getElementById('ranking-' + btn.dataset.panel).classList.add('is-active');
+            });
+        });
+    </script>
 </body>
 </html>

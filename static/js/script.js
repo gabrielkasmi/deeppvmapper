@@ -79,42 +79,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Open GitHub issues (Contribute → Coder modal): live list, fetched
-    // lazily the first time the Coder modal is opened (not on every
+    // Open GitHub issues (Contribute → Coder / Mapper modals): live lists,
+    // fetched lazily the first time each modal is opened (not on every
     // pageview), to be gentle with GitHub's unauthenticated rate limit.
     // Best-effort — falls back to a plain "view on GitHub" link if it can't
     // fetch. Issue titles and label names are user-generated content on a
     // public repo, so they're escaped before being inserted as HTML.
+    // Two independent lists share this same rendering logic: the Coder one
+    // (code bugs, gabrielkasmi/deeppvmapper) and the Mapper one (data-quality
+    // reports, gabrielkasmi/openpvmapper-issues — see known-issues.html for
+    // the same live-fetch pattern applied there).
+    const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+    function renderIssuesInto(container, issues, emptyHtml) {
+        if (!issues.length) { container.innerHTML = `<p class="issues-empty">${emptyHtml}</p>`; return; }
+        container.innerHTML = issues.map(issue => {
+            const labels = (issue.labels || []).map(l => {
+                const color = /^[0-9a-fA-F]{6}$/.test(l.color || '') ? l.color : '34495e';
+                return `<span class="issue-label" style="background-color:#${color}1a; color:#${color}; border-color:#${color}55;">${escapeHtml(l.name)}</span>`;
+            }).join('');
+            return `<a href="${issue.html_url}" target="_blank" class="issue-item">
+                <span class="issue-title">${escapeHtml(issue.title)}</span>
+                ${labels ? `<span class="issue-labels">${labels}</span>` : ''}
+            </a>`;
+        }).join('');
+    }
+
+    function loadIssuesFrom(repo, container, emptyHtml, errorHtml) {
+        fetch(`https://api.github.com/repos/${repo}/issues?state=open&per_page=10&sort=created&direction=desc`)
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => renderIssuesInto(container, data.filter(i => !i.pull_request).slice(0, 6), emptyHtml))
+            .catch(() => { container.innerHTML = `<p class="issues-empty">${errorHtml}</p>`; });
+    }
+
     const issuesList = document.getElementById('gh-issues-list');
     let issuesLoaded = false;
     function loadIssues() {
         if (issuesLoaded || !issuesList) return;
         issuesLoaded = true;
-        const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
-        fetch('https://api.github.com/repos/gabrielkasmi/deeppvmapper/issues?state=open&per_page=10&sort=created&direction=desc')
-            .then(r => r.ok ? r.json() : Promise.reject())
-            .then(data => {
-                const issues = data.filter(i => !i.pull_request).slice(0, 6);
-                if (!issues.length) {
-                    issuesList.innerHTML = '<p class="issues-empty">No open issues right now &mdash; check back soon, or <a href="https://github.com/gabrielkasmi/deeppvmapper/issues/new" target="_blank">open one yourself &rarr;</a></p>';
-                    return;
-                }
-                issuesList.innerHTML = issues.map(issue => {
-                    const labels = (issue.labels || []).map(l => {
-                        const color = /^[0-9a-fA-F]{6}$/.test(l.color || '') ? l.color : '34495e';
-                        return `<span class="issue-label" style="background-color:#${color}1a; color:#${color}; border-color:#${color}55;">${escapeHtml(l.name)}</span>`;
-                    }).join('');
-                    return `<a href="${issue.html_url}" target="_blank" class="issue-item">
-                        <span class="issue-title">${escapeHtml(issue.title)}</span>
-                        ${labels ? `<span class="issue-labels">${labels}</span>` : ''}
-                    </a>`;
-                }).join('');
-            })
-            .catch(() => {
-                issuesList.innerHTML = '<p class="issues-empty">Couldn&rsquo;t load issues right now &mdash; <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank">view them directly on GitHub &rarr;</a></p>';
-            });
+        loadIssuesFrom(
+            'gabrielkasmi/deeppvmapper', issuesList,
+            'No open issues right now &mdash; check back soon, or <a href="https://github.com/gabrielkasmi/deeppvmapper/issues/new" target="_blank">open one yourself &rarr;</a>',
+            'Couldn&rsquo;t load issues right now &mdash; <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank">view them directly on GitHub &rarr;</a>'
+        );
+    }
+
+    const mapperIssuesList = document.getElementById('gh-mapper-issues-list');
+    let mapperIssuesLoaded = false;
+    function loadMapperIssues() {
+        if (mapperIssuesLoaded || !mapperIssuesList) return;
+        mapperIssuesLoaded = true;
+        loadIssuesFrom(
+            'gabrielkasmi/openpvmapper-issues', mapperIssuesList,
+            'No open reports right now &mdash; nice. <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">Browse the tracker &rarr;</a>',
+            'Couldn&rsquo;t load reports right now &mdash; <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">view them directly on GitHub &rarr;</a>'
+        );
     }
 
     // Generic modal triggers: any [data-modal-target] opens the .modal-overlay
@@ -135,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 overlay.style.display = 'flex';
                 if (overlay.id === 'modal-coder') loadIssues();
+                if (overlay.id === 'modal-mapper') loadMapperIssues();
             });
         });
         targetOverlays.forEach(overlay => {
@@ -149,6 +171,30 @@ document.addEventListener('DOMContentLoaded', function() {
             targetOverlays.forEach(overlay => {
                 if (overlay.style.display === 'flex') overlay.style.display = 'none';
             });
+        });
+    }
+
+    // "Report an issue" CTA on département/city (and, potentially, région)
+    // pages — a lightweight, no-backend alternative to the interactive
+    // map's Supabase-backed report form (static/js/map/report.js): these
+    // pages have no database wiring, so a click just folds the visitor's
+    // comment and the page URL into a mailto: link instead of an insert.
+    const reportBtn = document.getElementById('report-issue-btn');
+    if (reportBtn) {
+        reportBtn.addEventListener('click', () => {
+            const commentEl = document.getElementById('report-comment');
+            const comment = (commentEl && commentEl.value || '').trim();
+            const targetLabel = reportBtn.dataset.targetLabel || 'DeepPVMapper page';
+            const subject = `DeepPVMapper — Issue report: ${targetLabel}`;
+            const bodyLines = [
+                comment || '(no comment provided)',
+                '',
+                `Page: ${location.href}`,
+            ];
+            const mailto = 'mailto:gabriel.kasmi@deeppvmapper.fr'
+                + `?subject=${encodeURIComponent(subject)}`
+                + `&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+            window.location.href = mailto;
         });
     }
 });

@@ -13,6 +13,7 @@ import { IGN_ORTHO, MAX_ZOOM, POLYGON_ZOOM,
 import { S, show, hide, centroid, featureKey, logEvent, pointInGeoJSON,
          fetchDetectionsPoints, fetchDetectionsBBox, fetchDetectionsByAdminPoints } from './store.js';
 import { applyFilters, updateFilterBounds } from './filters.js';
+import { refreshReportButtonState } from './report.js';
 
 let clusterLayer, singleLayer;
 let singleFeatureId = null;   // id of the one installation currently shown as a polygon, or null
@@ -211,6 +212,7 @@ function showSingleFeature(feature, latlng) {
     if (S.map.hasLayer(clusterLayer))  S.map.removeLayer(clusterLayer);
     S.lastClickedDetection = { feature, layer: singleLayer, latlng };
     showDetectionInfo(feature, latlng);
+    refreshReportButtonState();
 }
 
 /** Back to the marker cluster — a blank-map click, a fresh selection landing,
@@ -222,6 +224,8 @@ function revertToClusters() {
     if (S.map.hasLayer(singleLayer)) S.map.removeLayer(singleLayer);
     if (S.rawFeatures.length && !S.map.hasLayer(clusterLayer)) S.map.addLayer(clusterLayer);
     hideDetectionInfo();
+    S.lastClickedDetection = null;   // no installation shown anymore — report.js reads this
+    refreshReportButtonState();
 }
 
 /** Re-render detections after an annotation edit (annotate.js) — same data,
@@ -268,6 +272,7 @@ function bindSingleEvents(f, layer) {
         if (S.drawing) return;
         S.lastClickedDetection = { feature: f, layer, latlng: e.latlng };
         showDetectionInfo(f, e.latlng);
+        refreshReportButtonState();
     });
 }
 

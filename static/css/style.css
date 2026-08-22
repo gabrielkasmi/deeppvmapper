@@ -962,6 +962,72 @@ a.hub-card:hover {
     margin-bottom: 14px;
 }
 
+/* "Ask for a specific city" note — under a département page's city
+   ranking, for a commune that isn't listed (either it hasn't crossed the
+   minimum detection count yet, or wasn't among the largest communes
+   checked for this département). Links out to a prefilled GitHub issue on
+   the same public tracker used by known-issues.html/contribute.html —
+   a demand signal, not an instant request. */
+.city-request-note {
+    max-width: 560px;
+    margin: 18px auto 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.city-request-note a {
+    color: #34495e;
+    font-weight: 600;
+}
+
+/* "Report an issue" CTA — département/city (and région) pages. A single
+   textarea + button that hands off to a mailto: link client-side (see
+   static/js/script.js) rather than a database insert, since these are
+   static pages with no backend wiring of their own. */
+.report-issue-card {
+    max-width: 560px;
+    margin: 40px auto 0;
+    text-align: center;
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 26px 30px;
+}
+
+.report-issue-card h3 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 6px;
+}
+
+.report-issue-card p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: #6c757d;
+    margin-bottom: 14px;
+}
+
+.report-issue-card textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 64px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 14px;
+}
+
+.report-issue-card textarea:focus {
+    outline: none;
+    border-color: #34495e;
+}
+
 /* Hero byline: de-emphasized author/affiliation credit, secondary to the
    name + description + CTA hierarchy of the hero. */
 .hero-byline {

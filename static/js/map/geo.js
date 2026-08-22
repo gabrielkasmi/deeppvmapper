@@ -86,3 +86,65 @@ export async function resolveDepartementByCode(code) {
     if (!feature) return null;
     return { feature, admin: { deptCodes: [code] } };
 }
+
+/** Resolve a région's exact polygon + its member départements' codes straight
+ *  from its code — used by the ?region=CODE deep link (per-région static
+ *  Data pages). */
+export async function resolveRegionByCode(code) {
+    const [regions, regionDepts] = await Promise.all([loadRegions(), loadRegionDepts()]);
+    const feature = regions.features.find(f => f.properties.code === code);
+    if (!feature) return null;
+    return { feature, admin: { deptCodes: regionDepts[code] || [] } };
+}
+
+/** Resolve a commune's exact polygon + admin code straight from its INSEE
+ *  code — used by the ?insee=CODE deep link (per-département static Data
+ *  pages link to their largest cities this way). deptCode narrows which
+ *  communes-XX.geojson to load; when absent, it's derived from the INSEE
+ *  code itself (same départment-prefix heuristic used elsewhere here). */
+export async function resolveCommuneByCode(inseeCode, deptCode) {
+    const dept = deptCode || deptCodeFromInsee(inseeCode);
+    if (!dept) return null;
+    try {
+        const communes = await loadCommunes(dept);
+        const feature = communes.features.find(f => f.properties.code === inseeCode);
+        if (!feature) return null;
+        return { feature, admin: { inseeCodes: [inseeCode] } };
+    } catch (e) {
+        console.error('Commune lookup failed:', e);
+        return null;
+    }
+}
+
+/** INSEE code -> département code (same Corse postcode-style split as
+ *  deptCodeFromPostcode, but INSEE codes for Corse already use 2A/2B). */
+function deptCodeFromInsee(insee) {
+    if (!insee || insee.length < 2) return null;
+    if (insee.startsWith('97') || insee.startsWith('98')) return insee.slice(0, 3);
+    return insee.slice(0, 2);
+}
+
+/** "Explore a random location" — picks a random département (the boundary
+ *  set is already loaded for every deep link, so this costs nothing extra),
+ *  then a random commune inside it (one extra, small, lazily-cached
+ *  communes-XX.geojson fetch) for a town-level surprise rather than a whole
+ *  département. Falls back to the département itself if that département
+ *  happens to ship no commune file. Same { feature, admin } shape as every
+ *  other resolver here, ready for setSelectionFromFeature. */
+export async function resolveRandomLocation() {
+    const departements = await loadDepartements();
+    const feats = departements.features;
+    const deptFeature = feats[Math.floor(Math.random() * feats.length)];
+    const deptCode = deptFeature.properties.code;
+    try {
+        const communes = await loadCommunes(deptCode);
+        const communeFeats = communes.features;
+        if (communeFeats && communeFeats.length) {
+            const commune = communeFeats[Math.floor(Math.random() * communeFeats.length)];
+            return { feature: commune, admin: { inseeCodes: [commune.properties.code] } };
+        }
+    } catch (e) {
+        console.error('Random commune lookup failed, falling back to département:', e);
+    }
+    return { feature: deptFeature, admin: { deptCodes: [deptCode] } };
+}
