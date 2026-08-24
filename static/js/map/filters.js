@@ -22,7 +22,7 @@
 
 import { SOURCE_LABELS } from './config.js';
 import { S, $ } from './store.js';
-import { renderFiltered } from './render.js';
+import { renderFiltered, refreshUnreviewedOverlay } from './render.js';
 
 // Sorted lists of actual values in the current selection — index-based
 // sliders read/write positions into these, never raw numbers directly.
@@ -97,6 +97,18 @@ export function initFilterPanel() {
         <div class="fp-row">
             <label class="fp-check"><input id="fp-hide-fp" type="checkbox" checked> Remove false positives</label>
         </div>
+        <div class="fp-row fp-row-unreviewed">
+            <div class="fp-unreviewed-head">
+                <label class="fp-check">
+                    <input id="fp-show-unreviewed" type="checkbox">
+                    Show unreviewed community edits<span id="fp-unreviewed-count" class="fp-unreviewed-count"></span>
+                </label>
+                <button type="button" id="fp-unreviewed-reload" class="fp-icon-btn" title="Reload unreviewed edits" aria-label="Reload unreviewed edits" style="display:none">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v6h-6"/></svg>
+                </button>
+            </div>
+            <p class="fp-unreviewed-note">Not yet checked by a maintainer. <a href="#map-help">More info &darr;</a></p>
+        </div>
     `;
 
     $('fp-kwp-min').addEventListener('input', () => updateSliderLabel('kwp'));
@@ -111,6 +123,15 @@ export function initFilterPanel() {
 
     panel.querySelectorAll('[data-source]').forEach(el => el.addEventListener('change', applySourcesAndFP));
     $('fp-hide-fp').addEventListener('change', applySourcesAndFP);
+    $('fp-show-unreviewed').addEventListener('change', (e) => {
+        S.showUnreviewedEdits = e.target.checked;
+        $('fp-unreviewed-reload').style.display = e.target.checked ? 'inline-flex' : 'none';
+        refreshUnreviewedOverlay();
+    });
+    // Manual reload — for a mapping party / live-editing session where new
+    // edits land while this stays checked and you don't want to wait for
+    // the next selection change to see them.
+    $('fp-unreviewed-reload').addEventListener('click', () => refreshUnreviewedOverlay());
 
     resetSlider('kwp',  domains.kwp);
     resetSlider('year', domains.year);
@@ -144,6 +165,28 @@ export function updateFilterBounds(features) {
     resetSlider('year', domains.year);
     S.filters.kwpMin = null; S.filters.kwpMax = null;
     S.filters.yearMin = null; S.filters.yearMax = null;
+
+    resetUnreviewedToggle();
+}
+
+/** Uncheck "Show unreviewed community edits" and clear its badge — every new
+ *  selection starts with the overlay off (render.js clears the layer itself;
+ *  this only resets the checkbox UI + count). */
+export function resetUnreviewedToggle() {
+    S.showUnreviewedEdits = false;
+    const box = $('fp-show-unreviewed');
+    if (box) box.checked = false;
+    const reload = $('fp-unreviewed-reload');
+    if (reload) reload.style.display = 'none';
+    setUnreviewedCount(null);
+}
+
+/** Called by render.js after every overlay fetch — null while loading/hidden,
+ *  a number once known. */
+export function setUnreviewedCount(n) {
+    const el = $('fp-unreviewed-count');
+    if (!el) return;
+    el.textContent = n == null ? '' : ` (${n.toLocaleString('fr-FR')})`;
 }
 
 function resetSlider(kind, values) {

@@ -26,6 +26,14 @@ export const ZONE_RPC        = 'get_detections_in_zone';
 export const ADMIN_POINTS_RPC = 'get_detections_admin_points';
 export const ADMIN_ZONE_RPC   = 'get_detections_admin';
 
+// "Show unreviewed version" export option (see scripts/supabase_annotations_overlay_setup.sql):
+// same shape as ZONE_RPC's output, but with public.annotations layered over
+// public.detections (merged annotations always applied, pending ones only
+// when explicitly opted in). Purely additive — ZONE_RPC itself is untouched
+// and stays the default, unannotated export.
+export const ANNOTATIONS_ZONE_RPC  = 'get_detections_in_zone_with_annotations';
+export const UNREVIEWED_COUNT_RPC  = 'count_unreviewed_annotations_in_zone';
+
 export const POINTS_MAX      = 200000;  // whole-selection light fetch
 export const SINGLE_FETCH_MAX = 50;     // tiny box around a click — just needs the one polygon
 export const ZONE_FETCH_MAX  = 300000;  // exhaustive GeoJSON export

@@ -151,6 +151,27 @@
         .fp-sources { display: flex; flex-direction: column; gap: 4px; }
         .fp-check { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: #2c3e50; }
 
+        /* "Show unreviewed community edits" — set apart from the ordinary
+           client-side filters above it (it triggers a real fetch + redraw,
+           not just a re-filter of what's already in memory). */
+        .fp-row-unreviewed { padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .fp-unreviewed-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+        .fp-unreviewed-count { color: #6c757d; font-weight: 400; }
+        .fp-unreviewed-note { margin: 4px 0 0; font-size: 10px; line-height: 1.4; color: #adb5bd; }
+        .fp-unreviewed-note a { color: #adb5bd; text-decoration: underline; text-underline-offset: 2px; }
+        .fp-unreviewed-note a:hover { color: #6c757d; }
+
+        /* Manual reload for the unreviewed-edits overlay — same small,
+           borderless icon-button look as .fp-close-btn. Only shown once the
+           checkbox is on (useful mid mapping-party, when new edits keep
+           landing and you don't want to wait for the next selection). */
+        .fp-icon-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; border: none; background: none; color: #adb5bd;
+            cursor: pointer; border-radius: 4px; flex-shrink: 0; padding: 0;
+        }
+        .fp-icon-btn:hover { background: #f1f3f5; color: #6c757d; }
+
         /* Dual-handle range slider: two overlapping <input type=range>, each
            only clickable at its own thumb (the track ignores clicks). The
            visible line is a separate, non-interactive element behind both
@@ -184,7 +205,10 @@
         .fp-dropdown { position: relative; }
         .fp-export-btn { width: 100%; text-align: left; }
         .fp-dropdown-menu {
-            position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px;
+            /* Opens upward, not downward: the toggle button sits near
+               bottom:12px of #map-embed-wrap, which clips overflow — a
+               menu opening below it would be cut off by that clip. */
+            position: absolute; bottom: 100%; left: 0; right: 0; margin-bottom: 6px;
             background: white; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
             border-radius: 8px; overflow: hidden; z-index: 950;
         }
@@ -193,6 +217,15 @@
             font-family: inherit; color: #2c3e50; background: none; border: none; cursor: pointer;
         }
         .fp-dropdown-item:hover { background: #f8f9fa; }
+
+        /* Note shown in the download menu only when "Show unreviewed
+           community edits" (filter panel) is on — the actual toggle lives
+           there now, this is just a heads-up that the download will include
+           them too. */
+        .fp-dropdown-note {
+            margin: 0; padding: 8px 12px; font-size: 11px; line-height: 1.4; color: #6c757d;
+            border-bottom: 1px solid #f1f3f5;
+        }
 
         /* Export notification: separate from #wfs-spinner (which is also used
            by selection/single-feature loads) so a large export doesn't block
@@ -231,6 +264,13 @@
             cursor: pointer; border: 1px solid #dee2e6; background: white; color: #495057;
         }
         .di-action-btn:hover { background: #f8f9fa; }
+        .di-action-btn:disabled { opacity: .5; cursor: default; }
+
+        /* "Confirm"/"Dispute" on the unreviewed-edits overlay popup — same
+           layout as .di-actions above, informational only (see render.js's
+           window.voteUnreviewed). */
+        .di-vote-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .di-vote-thanks { font-size: 0.78rem; color: #6c757d; }
 
         /* Bottom toolbar: "Add missing installation" is always present;
            "Download detections" (#export-controls) joins it only once a
@@ -558,6 +598,7 @@
                     <li>Missing an installation entirely? Click <strong>Add missing installation</strong> at the bottom of the map, then trace its outline directly on the map (click to place each corner, click the first point again to close the shape).</li>
                     <li>For any edit, you can add an optional comment and estimated surface/capacity before submitting &mdash; nothing is deleted from the official dataset on your say-so alone; edits are reviewed before they're merged in.</li>
                     <li>Something wrong that isn't a false positive, a bad shape, or a missing installation &mdash; e.g. incorrect attributes, or a solar farm mistagged as a rooftop system? Select a zone or click an installation, then use the warning-sign <strong>Report an issue</strong> icon (below the pencil and eraser, top-left of the map) to describe it.</li>
+                    <li>Curious what the community has already flagged? Check <strong>Show unreviewed community edits</strong> in the filter panel (gear icon). New installations and shape corrections show with a dashed amber outline; reported false positives (not yet removed from the official data) show with a dashed red outline. Click one for details, and optionally mark it <strong>Looks right</strong> or <strong>Looks wrong</strong> &mdash; this doesn't approve or remove anything itself, it just gives whoever reviews it an extra data point. Capacity/surface/year aren't guaranteed for these &mdash; DeepPVMapper doesn't compute them for community-submitted shapes until a maintainer reviews the edit. The reload button next to the checkbox re-fetches for the current selection without waiting for a new one &mdash; handy if you're editing live with others. Downloads always exclude reported false positives, whether or not this is checked.</li>
                 </ul>
                 <p id="map-version-info" class="map-version-info"></p>
             </div>

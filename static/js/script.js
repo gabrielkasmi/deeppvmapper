@@ -79,16 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Open GitHub issues (Contribute → Coder / Mapper modals): live lists,
-    // fetched lazily the first time each modal is opened (not on every
-    // pageview), to be gentle with GitHub's unauthenticated rate limit.
-    // Best-effort — falls back to a plain "view on GitHub" link if it can't
-    // fetch. Issue titles and label names are user-generated content on a
-    // public repo, so they're escaped before being inserted as HTML.
-    // Two independent lists share this same rendering logic: the Coder one
-    // (code bugs, gabrielkasmi/deeppvmapper) and the Mapper one (data-quality
-    // reports, gabrielkasmi/openpvmapper-issues — see known-issues.html for
-    // the same live-fetch pattern applied there).
+    // Open GitHub issues (Contribute → Code issues / Map reports modals):
+    // live lists, fetched lazily the first time each modal is opened (not
+    // on every pageview), to be gentle with GitHub's unauthenticated rate
+    // limit. Best-effort — falls back to a plain "view on GitHub" link if
+    // it can't fetch. Issue titles and label names are user-generated
+    // content on a public repo, so they're escaped before being inserted
+    // as HTML. Two independent lists share this same rendering logic: Code
+    // issues (code bugs, gabrielkasmi/deeppvmapper) and Map reports
+    // (data-quality reports, gabrielkasmi/openpvmapper-issues — see
+    // known-issues.html for the same live-fetch pattern applied there).
     const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
@@ -138,6 +138,82 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     }
 
+    // MapRoulette challenges — same live-fetch-on-modal-open pattern as the
+    // GitHub issues lists above, mirrored per the site owner's request
+    // ("fetch challenges the way issues are fetched, so new ones show up
+    // automatically"). Project 64195 (DeepPVMapper) has no "list challenges
+    // by project id" endpoint that works unauthenticated (confirmed by
+    // testing /project/:id/challenges, which returns [] even for a live
+    // challenge, and /challenges/listing, which needs auth) — the public,
+    // no-auth endpoint that does work is /challenges/extendedFind?ps=<name>,
+    // which matches against the project's *name* (its internal
+    // "Home_24273900" slug won't match; its displayName "DeepPVMapper"
+    // does). Since that's a loose text match, every result is re-checked
+    // client-side against parent.id === 64195 before being shown, so a
+    // same-named or similarly-named project elsewhere on MapRoulette can
+    // never sneak into this list.
+    //
+    // NB: unlike the GitHub API, MapRoulette's API may or may not send
+    // permissive CORS headers for a browser-side fetch from a third-party
+    // origin like deeppvmapper.fr — this hasn't been verified from an
+    // actual browser. If it turns out to be blocked, fetch() simply rejects
+    // and the existing .catch() below falls back to the "view on
+    // MapRoulette" link, same as a GitHub API hiccup would — no broken UI
+    // either way.
+    const mrChallengesList = document.getElementById('mr-challenges-list');
+    const mrChallengesBanner = document.getElementById('mr-challenges-banner');
+    const MR_PROJECT_ID = 64195;
+    let mrChallengesLoaded = false;
+
+    function renderChallengesInto(container, bannerEl, challenges) {
+        if (!challenges.length) {
+            container.innerHTML = '<p class="issues-empty">No live challenges right now &mdash; check back soon, or <a href="https://maproulette.org/browse/projects/64195" target="_blank">browse the project on MapRoulette &rarr;</a></p>';
+            if (bannerEl) bannerEl.style.display = 'none';
+            return;
+        }
+        let totalTasks = 0, doneTasks = 0;
+        container.innerHTML = challenges.map(c => {
+            const m = c.completionMetrics || {};
+            const total = m.total || 0;
+            const remaining = m.tasksRemaining != null ? m.tasksRemaining : total;
+            const done = Math.max(0, total - remaining);
+            totalTasks += total;
+            doneTasks += done;
+            const pct = total ? Math.round((done / total) * 100) : 0;
+            return `<a href="https://maproulette.org/browse/challenges/${c.id}" target="_blank" class="issue-item mr-challenge-item">
+                <span class="mr-challenge-top">
+                    <span class="issue-title">${escapeHtml(c.name)}</span>
+                    <span class="mr-challenge-pct">${pct}%</span>
+                </span>
+                <span class="mr-challenge-bar"><span class="mr-challenge-bar-fill" style="width:${pct}%"></span></span>
+                <span class="mr-challenge-meta">${done.toLocaleString('en-US')} / ${total.toLocaleString('en-US')} tasks reviewed</span>
+            </a>`;
+        }).join('');
+        if (bannerEl) {
+            const overallPct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+            const label = challenges.length > 1 ? `${challenges.length} live challenges` : '1 live challenge';
+            bannerEl.innerHTML = `${overallPct}% complete &mdash; ${doneTasks.toLocaleString('en-US')} of ${totalTasks.toLocaleString('en-US')} tasks reviewed across ${label}.`;
+            bannerEl.style.display = '';
+        }
+    }
+
+    function loadMapperChallenges() {
+        if (mrChallengesLoaded || !mrChallengesList) return;
+        mrChallengesLoaded = true;
+        fetch('https://maproulette.org/api/v2/challenges/extendedFind?ps=DeepPVMapper&limit=50')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                const live = (Array.isArray(data) ? data : [])
+                    .filter(c => c.parent && c.parent.id === MR_PROJECT_ID && c.enabled && !c.deleted && !c.isArchived)
+                    .sort((a, b) => new Date(b.created) - new Date(a.created));
+                renderChallengesInto(mrChallengesList, mrChallengesBanner, live);
+            })
+            .catch(() => {
+                mrChallengesList.innerHTML = '<p class="issues-empty">Couldn&rsquo;t load challenges right now &mdash; <a href="https://maproulette.org/browse/projects/64195" target="_blank">view them directly on MapRoulette &rarr;</a></p>';
+                if (mrChallengesBanner) mrChallengesBanner.style.display = 'none';
+            });
+    }
+
     // Generic modal triggers: any [data-modal-target] opens the .modal-overlay
     // with that id (used by the Contribute page's Enthusiast/Mapper/Coder
     // cards, instead of duplicating content both as cards and as inline
@@ -156,7 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 overlay.style.display = 'flex';
                 if (overlay.id === 'modal-coder') loadIssues();
-                if (overlay.id === 'modal-mapper') loadMapperIssues();
+                if (overlay.id === 'modal-mapreports') loadMapperIssues();
+                if (overlay.id === 'modal-maproulette') loadMapperChallenges();
             });
         });
         targetOverlays.forEach(overlay => {

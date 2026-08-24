@@ -19,12 +19,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        .persona-card {
+        /* Contribution-mode cards (was persona cards — Enthusiast/Mapper/
+           Coder — replaced by one card per concrete way to contribute, so
+           people can pick the activity directly instead of a profile that
+           routes them to it). Position: relative so the status ribbon
+           (Featured/New/Coming soon) can sit in the corner. */
+        .contrib-card {
+            position: relative;
             text-align: center;
             text-decoration: none;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
-        .persona-card:hover {
+        .contrib-card:hover {
             transform: translateY(-3px);
             border-color: #34495e;
             box-shadow: 0 12px 28px rgba(44, 62, 80, 0.1);
@@ -39,12 +45,57 @@
             width: 100%;
             height: 100%;
         }
-        .persona-card h3 {
+        .contrib-card h3 {
             text-align: center;
         }
-        .persona-card p {
+        .contrib-card p {
             text-align: center;
             margin-bottom: 0;
+        }
+
+        /* Small audience hint under the icon ("No skills needed", "For
+           developers"...) — a lightweight stand-in for the old profile
+           split, so a visitor can still tell at a glance which card fits
+           them without the page forcing them down a single profile path. */
+        .contrib-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #6c8299;
+            background-color: #eef1f4;
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Corner ribbon for a card the site owner wants to highlight
+           (Featured), something recently added (New), or something not
+           live yet (Coming soon) — same three-variant pattern, different
+           color per meaning. */
+        .contrib-status {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+        .contrib-status--featured {
+            background-color: #fff3d6;
+            color: #a86a00;
+        }
+        .contrib-status--new {
+            background-color: #e3f3e8;
+            color: #1e7d3c;
+        }
+        .contrib-status--soon {
+            background-color: #eceef1;
+            color: #6c757d;
         }
 
         .sub-block {
@@ -103,6 +154,52 @@
             border-radius: 999px;
             border: 1px solid;
             white-space: nowrap;
+        }
+
+        /* MapRoulette challenges — same live-fetch pattern as the GitHub
+           issues list above (.issues-list/.issue-item reused for the outer
+           card), plus a per-challenge completion bar and an aggregate
+           banner across all live challenges. */
+        .mr-challenges-banner {
+            font-size: 0.88rem;
+            color: #34495e;
+            font-weight: 500;
+            margin: 0 0 14px 0;
+        }
+        .mr-challenge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+        }
+        .mr-challenge-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+        }
+        .mr-challenge-pct {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #34495e;
+            white-space: nowrap;
+        }
+        .mr-challenge-bar {
+            display: block;
+            height: 6px;
+            border-radius: 999px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .mr-challenge-bar-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background-color: #34495e;
+        }
+        .mr-challenge-meta {
+            font-size: 0.78rem;
+            color: #868e96;
         }
 
         /* Persona modals (Enthusiast / Mapper / Coder): reuse the shared
@@ -167,38 +264,86 @@
     <section>
         <div class="container">
 
-            <div class="card-grid" style="margin-top: 0;">
+            <p style="max-width: 640px; margin: 0 auto 8px; text-align: center; color: #6c757d;">
+                Six ways to help, from a five-minute task to a pull request &mdash; pick whichever fits how much
+                time and which skills you want to bring.
+            </p>
 
-                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-enthusiast">
+            <div class="card-grid" style="margin-top: 30px;">
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-maproulette">
                     <div class="persona-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
                         </svg>
                     </div>
-                    <h3>Enthusiast</h3>
-                    <p>New to the project? Take on a structured challenge &mdash; no coding or GIS skills needed.</p>
+                    <span class="contrib-tag">No skills needed</span>
+                    <h3>MapRoulette</h3>
+                    <p>Guided, bite-sized verification tasks against aerial imagery &mdash; just follow the brief.</p>
                 </a>
 
-                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-mapper">
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-editmap">
+                    <span class="contrib-status contrib-status--featured">Featured</span>
                     <div class="persona-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
                     </div>
-                    <h3>Mapper</h3>
-                    <p>Correct or add PV installations directly on the interactive map.</p>
+                    <span class="contrib-tag">Local knowledge</span>
+                    <h3>Edit on the map</h3>
+                    <p>Correct or add installations yourself. Pick a location, then hover around to see what needs fixing.</p>
                 </a>
 
-                <a href="javascript:void(0);" class="hub-card persona-card" data-modal-target="modal-coder">
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-mapreports">
+                    <span class="contrib-status contrib-status--new">New</span>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                            <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Local knowledge</span>
+                    <h3>Map reports</h3>
+                    <p>Data-quality issues already flagged by the community &mdash; pick one, check the spot, fix it.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-coder">
                     <div class="persona-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="16 18 22 12 16 6"></polyline>
                             <polyline points="8 6 2 12 8 18"></polyline>
                         </svg>
                     </div>
-                    <h3>Coder</h3>
-                    <p>Pick up an open issue and contribute to the detection pipeline.</p>
+                    <span class="contrib-tag">For developers</span>
+                    <h3>Code issues</h3>
+                    <p>Pick up an open issue and contribute to the detection pipeline itself.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-pvswipe">
+                    <span class="contrib-status contrib-status--soon">Coming soon</span>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="7" width="13" height="17" rx="2" transform="rotate(-8 9.5 15.5)"></rect>
+                            <rect x="8" y="3" width="13" height="17" rx="2"></rect>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Quick &amp; casual</span>
+                    <h3>PV Swipe</h3>
+                    <p>Rapid-fire confirm/reject on detections, phone-friendly &mdash; a challenge in the works.</p>
+                </a>
+
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" class="hub-card contrib-card">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Ideas &amp; questions</span>
+                    <h3>Discussions</h3>
+                    <p>Not sure where to start, or got an idea? Ask on GitHub Discussions &mdash; open to everyone.</p>
                 </a>
 
             </div>
@@ -217,33 +362,42 @@
         </div>
     </section>
 
-    <!-- Persona modals: opened by the Enthusiast/Mapper/Coder cards above
-         (see [data-modal-target] handling in script.js). -->
-    <div class="modal-overlay" id="modal-enthusiast">
+    <!-- One modal per contribution mode, opened by the cards above (see
+         [data-modal-target] handling in script.js). The old Enthusiast/
+         Mapper/Coder profile modals were split apart: MapRoulette and Map
+         reports each get their own focused modal instead of living as two
+         sub-blocks tucked inside "Mapper". -->
+    <div class="modal-overlay" id="modal-maproulette">
         <div class="modal-box">
             <button type="button" class="modal-close" aria-label="Close">&times;</button>
             <div class="persona-modal-header">
                 <div class="persona-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
                     </svg>
                 </div>
-                <h3>Enthusiast</h3>
-                <p class="persona-modal-sub">No coding or mapping skills required</p>
+                <h3>MapRoulette</h3>
+                <p class="persona-modal-sub">No GIS skills required</p>
             </div>
             <p>
-                Curious about the project and want to help without writing code or drawing rooftops? Structured,
-                self-contained challenges are the best fit &mdash; nothing to install, just follow the brief.
+                Prefer working through structured, bite-sized tasks instead of free-form annotation? Every
+                challenge published on the
+                <a href="https://maproulette.org/browse/projects/64195" target="_blank">DeepPVMapper project on MapRoulette</a>
+                shows up below automatically &mdash; pick one and start verifying detections against aerial imagery.
             </p>
-            <div class="placeholder-box">
-                Coming soon &mdash; the first community challenge is in the works. In the meantime,
-                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank">join the conversation on GitHub Discussions</a>
-                &mdash; propose a challenge idea, or just say hi.
+            <p id="mr-challenges-banner" class="mr-challenges-banner" style="display:none;"></p>
+            <div id="mr-challenges-list" class="issues-list">
+                <p class="issues-loading">Loading challenges&hellip;</p>
             </div>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://maproulette.org/browse/projects/64195" target="_blank" class="btn">Browse all challenges on MapRoulette &rarr;</a>
+            </p>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-mapper">
+    <div class="modal-overlay" id="modal-editmap">
         <div class="modal-box">
             <button type="button" class="modal-close" aria-label="Close">&times;</button>
             <div class="persona-modal-header">
@@ -253,12 +407,13 @@
                         <circle cx="12" cy="10" r="3"></circle>
                     </svg>
                 </div>
-                <h3>Mapper</h3>
+                <h3>Edit on the map</h3>
                 <p class="persona-modal-sub">No coding required</p>
             </div>
             <p>
                 The fastest way to improve the registry is via the
-                <a href="map.html">interactive map</a>:
+                <a href="map.html">interactive map</a>: pick a location, then hover around &mdash; the map
+                highlights detections as you go, so you don't need to already know where the errors are.
             </p>
             <ul style="padding-left: 22px; margin-bottom: 16px;">
                 <li style="margin-bottom: 8px; line-height: 1.7;">Spot a false detection? Click it and report it.</li>
@@ -273,32 +428,58 @@
             <p style="text-align: center; margin-top: 24px;">
                 <a href="map.html" class="btn">Open the map &rarr;</a>
             </p>
+        </div>
+    </div>
 
-            <div class="sub-block">
-                <h4>Open issues</h4>
-                <p>
-                    Prefer picking up something specific instead of free-form annotation? These are
-                    data-quality reports filed by the community on
-                    <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">openpvmapper-issues</a>
-                    &mdash; pick one, take a look at the spot on the map it points to, and fix it.
-                </p>
-                <div id="gh-mapper-issues-list" class="issues-list">
-                    <p class="issues-loading">Loading open issues&hellip;</p>
+    <div class="modal-overlay" id="modal-mapreports">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                        <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
                 </div>
-                <p style="text-align: center; margin-top: 8px;">
-                    <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank" class="btn">View all reports on GitHub &rarr;</a>
-                </p>
+                <h3>Map reports</h3>
+                <p class="persona-modal-sub">Local knowledge</p>
             </div>
+            <p>
+                Prefer picking up something specific instead of free-form annotation? These are data-quality
+                reports filed by the community on
+                <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">openpvmapper-issues</a>
+                &mdash; pick one, take a look at the spot on the map it points to, and fix it.
+            </p>
+            <div id="gh-mapper-issues-list" class="issues-list">
+                <p class="issues-loading">Loading open issues&hellip;</p>
+            </div>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank" class="btn">View all reports on GitHub &rarr;</a>
+            </p>
+        </div>
+    </div>
 
-            <div class="sub-block">
-                <h4>MapRoulette challenges</h4>
-                <p>
-                    Prefer working through structured, bite-sized mapping tasks instead of free-form annotation?
-                    MapRoulette challenges built on top of the registry are on the way.
-                </p>
-                <div class="placeholder-box">
-                    Coming soon &mdash; MapRoulette challenges for targeted correction tasks.
+    <div class="modal-overlay" id="modal-pvswipe">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="7" width="13" height="17" rx="2" transform="rotate(-8 9.5 15.5)"></rect>
+                        <rect x="8" y="3" width="13" height="17" rx="2"></rect>
+                    </svg>
                 </div>
+                <h3>PV Swipe</h3>
+                <p class="persona-modal-sub">Quick &amp; casual</p>
+            </div>
+            <p>
+                A phone-friendly way to help in spare minutes: swipe through detections one at a time and
+                confirm or reject them, no map navigation involved &mdash; think Tinder for rooftop solar panels.
+            </p>
+            <div class="placeholder-box">
+                Coming soon &mdash; this is the next challenge in the works. In the meantime,
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank">join the conversation on GitHub Discussions</a>
+                to get notified when it's live, or share what you'd want from it.
             </div>
         </div>
     </div>
@@ -313,8 +494,8 @@
                         <polyline points="8 6 2 12 8 18"></polyline>
                     </svg>
                 </div>
-                <h3>Coder</h3>
-                <p class="persona-modal-sub">Code</p>
+                <h3>Code issues</h3>
+                <p class="persona-modal-sub">For developers</p>
             </div>
             <p>
                 The fastest way in is to pick up an open issue &mdash; issues labelled <code>good first issue</code>

@@ -10,14 +10,27 @@
 
 import { IGN_ORTHO, MAX_ZOOM, POLYGON_ZOOM,
          POINTS_MAX, SINGLE_FETCH_MAX, SINGLE_FETCH_RADIUS_DEG } from './config.js';
-import { S, show, hide, centroid, featureKey, logEvent, pointInGeoJSON,
-         fetchDetectionsPoints, fetchDetectionsBBox, fetchDetectionsByAdminPoints } from './store.js';
-import { applyFilters, updateFilterBounds } from './filters.js';
+import { S, show, hide, centroid, featureKey, logEvent, pointInGeoJSON, getSupabase,
+         fetchDetectionsPoints, fetchDetectionsBBox, fetchDetectionsByAdminPoints,
+         fetchDetectionsInZoneWithAnnotations, selectionZoneFeature } from './store.js';
+import { applyFilters, updateFilterBounds, resetUnreviewedToggle, setUnreviewedCount } from './filters.js';
 import { refreshReportButtonState } from './report.js';
 
-let clusterLayer, singleLayer;
+let clusterLayer, singleLayer, unreviewedLayer;
 let singleFeatureId = null;   // id of the one installation currently shown as a polygon, or null
 let singleAbort = null;
+let unreviewedAbort = null;
+
+// Dashed amber for add/modify — visually distinct both from the normal
+// kWp-colored polygons (stylePolygon) and from a user's own not-yet-submitted
+// local sketch (annotate.js's ADDED_STYLE, solid green). Pending deletions
+// (false-positive reports) get their own sparse red dash instead — "flagged
+// for removal" reads differently from "flagged as an addition/correction".
+const UNREVIEWED_STYLE = { color: '#f59e0b', weight: 2, dashArray: '4 3', fillColor: '#f59e0b', fillOpacity: 0.25 };
+const UNREVIEWED_DELETE_STYLE = { color: '#dc2626', weight: 2, dashArray: '2 5', fillColor: '#dc2626', fillOpacity: 0.12 };
+function unreviewedStyle(f) {
+    return f.properties?.edit_action === 'delete' ? UNREVIEWED_DELETE_STYLE : UNREVIEWED_STYLE;
+}
 
 // ─── Init: base tiles, called once at boot. Nothing is rendered on the map
 // until a zone is selected — no ambient/national overview layer. ──────────────
@@ -26,6 +39,9 @@ export function initMap() {
     const map = S.map;
 
     map.createPane('detectionsPane').style.zIndex = '400';
+    // Above detectionsPane so the "unreviewed edits" overlay always reads
+    // clearly on top of the normal cluster/polygon layers underneath it.
+    map.createPane('unreviewedPane').style.zIndex = '410';
 
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -44,6 +60,7 @@ export function initMap() {
         spiderfyOnMaxZoom: false, showCoverageOnHover: false, chunkedLoading: true
     });
     singleLayer = L.geoJSON(null, { pane: 'detectionsPane', style: stylePolygon, onEachFeature: bindSingleEvents });
+    unreviewedLayer = L.geoJSON(null, { pane: 'unreviewedPane', style: unreviewedStyle, onEachFeature: bindUnreviewedEvents });
 
     // A click on blank map (not a marker, not the currently-shown polygon —
     // both stop propagation) drops back to the cluster view.
@@ -112,6 +129,7 @@ export async function loadSelection(bounds, label) {
         S.selectionLabel = label;
         logEvent('browse_selection', `${label} (${features.length} points)`);
         revertToClusters();             // drop any single-feature view left from a previous selection
+        clearUnreviewedOverlay();       // new zone — "show unreviewed edits" starts off, re-enable per selection
         updateFilterBounds(features);   // rebind power/year sliders to this selection's range
         drawClusters();
         if (!S.map.hasLayer(clusterLayer)) S.map.addLayer(clusterLayer);
@@ -144,10 +162,110 @@ export function clearSelectionRender() {
     revertToClusters();
     clusterLayer.clearLayers();
     if (S.map.hasLayer(clusterLayer)) S.map.removeLayer(clusterLayer);
+    clearUnreviewedOverlay();
     hide('filter-panel');
     hide('filter-toggle-btn');
     hide('export-controls');
 }
+
+// ─── "Show unreviewed community edits" overlay ─────────────────────────────────
+// A distinct dashed-amber layer, separate from the normal cluster/polygon
+// rendering above — only ever populated with features the annotations-
+// overlay RPC flagged is_unreviewed_edit (pending 'add'/'modify'; a pending
+// 'delete' has nothing to draw, the target is just omitted). Toggled from
+// the filter panel (filters.js); export.js reads the same S.showUnreviewedEdits
+// flag and always re-fetches fresh at download time, so a download never
+// depends on this overlay having been refreshed first.
+
+function clearUnreviewedOverlay() {
+    if (unreviewedAbort) { unreviewedAbort.abort(); unreviewedAbort = null; }
+    resetUnreviewedToggle();
+    unreviewedLayer.clearLayers();
+    if (S.map.hasLayer(unreviewedLayer)) S.map.removeLayer(unreviewedLayer);
+}
+
+/** Re-fetch and redraw the overlay for the current selection — called on
+ *  toggle (filters.js) and safe to call any time (no-ops with nothing
+ *  selected or the toggle off). */
+export async function refreshUnreviewedOverlay() {
+    if (unreviewedAbort) { unreviewedAbort.abort(); unreviewedAbort = null; }
+
+    if (!S.showUnreviewedEdits) {
+        unreviewedLayer.clearLayers();
+        if (S.map.hasLayer(unreviewedLayer)) S.map.removeLayer(unreviewedLayer);
+        setUnreviewedCount(null);
+        return;
+    }
+
+    const zone = selectionZoneFeature();
+    if (!zone) return;
+
+    const abort = unreviewedAbort = new AbortController();
+    setUnreviewedCount(null);   // "…" isn't worth a dedicated state — blank while loading is fine, brief fetch
+    try {
+        const features = await fetchDetectionsInZoneWithAnnotations(zone, true);
+        if (abort.signal.aborted) return;
+        const edits = features.filter(f => f.properties?.is_unreviewed_edit);
+        unreviewedLayer.clearLayers();
+        if (edits.length) unreviewedLayer.addData({ type: 'FeatureCollection', features: edits });
+        if (!S.map.hasLayer(unreviewedLayer)) S.map.addLayer(unreviewedLayer);
+        setUnreviewedCount(edits.length);
+    } catch (e) {
+        if (abort.signal.aborted) return;
+        console.error('Unreviewed-overlay fetch error:', e);
+        logEvent('detections_error', `unreviewed_overlay: ${e.message || e}`);
+        setUnreviewedCount(null);
+    } finally {
+        if (unreviewedAbort === abort) unreviewedAbort = null;
+    }
+}
+
+function bindUnreviewedEvents(f, layer) {
+    layer.on('mouseover', function () { this.setStyle({ weight: 3, fillOpacity: 0.4 }); });
+    layer.on('mouseout',  function () { unreviewedLayer.resetStyle(this); });
+    layer.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        const p = f.properties || {};
+        const what = p.edit_action === 'add' ? 'New installation reported by the community'
+                   : p.edit_action === 'modify' ? 'Shape correction submitted by the community'
+                   : p.edit_action === 'delete' ? 'Reported as not a PV system (false positive)'
+                   : 'Unreviewed community edit';
+        const kwp = (p.kwp != null && !isNaN(p.kwp)) ? `${parseFloat(p.kwp).toFixed(2)} kWp` : 'not available yet';
+        // "Confirm"/"Dispute" are informational only — see annotation_votes
+        // in supabase_annotations_overlay_setup.sql: it never changes the
+        // annotation's status, just gives the maintainer an extra data point
+        // at review time. No accounts on this map, so a public button can't
+        // safely resolve moderation itself (see that file's own comment).
+        const votes = p.annotation_id && getSupabase() ? `
+            <div class="di-vote-actions">
+                <button type="button" class="di-action-btn" onclick="window.voteUnreviewed('${p.annotation_id}','confirm',this)">Looks right</button>
+                <button type="button" class="di-action-btn" onclick="window.voteUnreviewed('${p.annotation_id}','dispute',this)">Looks wrong</button>
+            </div>` : '';
+        L.popup({ className: 'di-popup-wrap', maxWidth: 220 })
+            .setLatLng(e.latlng)
+            .setContent(`<div class="di-popup"><h4>${what}</h4><p style="margin:0;font-size:12px;color:#6c757d;">Not yet checked by a maintainer. Capacity: ${kwp}.</p>${votes}</div>`)
+            .openOn(S.map);
+    });
+}
+
+/** Record an informational "confirm"/"dispute" vote on an unreviewed edit —
+ *  wired via inline onclick from the popup above (same pattern as
+ *  window.annotDelete/window.annotModify in annotate.js). Never touches the
+ *  annotation's own status; purely a signal for review time. */
+window.voteUnreviewed = async function (annotationId, vote, btnEl) {
+    const sb = getSupabase();
+    const group = btnEl?.closest('.di-vote-actions');
+    if (!sb || !annotationId) return;
+    if (group) group.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    try {
+        const { error } = await sb.from('annotation_votes').insert({ annotation_id: annotationId, vote });
+        if (error) throw error;
+        if (group) group.innerHTML = '<span class="di-vote-thanks">Thanks — noted for review.</span>';
+    } catch (e) {
+        console.error('Vote insert failed:', e);
+        if (group) group.querySelectorAll('button').forEach(b => { b.disabled = false; });
+    }
+};
 
 /** Re-render with the current filters (filters.js on any filter change). */
 export function renderFiltered() {

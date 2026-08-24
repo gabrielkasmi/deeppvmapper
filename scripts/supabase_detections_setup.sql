@@ -11,6 +11,12 @@
 -- Requires the postgis extension (create extension if not exists postgis;)
 -- enabled BEFORE the ogr2ogr import, otherwise geometry lands in a plain
 -- wkb_geometry column instead of a real PostGIS `geometry` type.
+--
+-- 2026-08-23 fix: get_detections_bbox/get_detections_in_zone referenced a
+-- `year` column that doesn't exist on `detections` (real column is
+-- `first_seen`, the detection's first-seen year — same convention as
+-- build_department_pages.py). Both functions are `create or replace`, so
+-- re-running this whole file is safe and just patches them in place.
 
 create index if not exists detections_geom_idx on public.detections using gist (geom);
 
@@ -37,7 +43,7 @@ as $$
             'properties', jsonb_build_object(
                 'surface', surface,
                 'kwp', kwp,
-                'year', year
+                'year', first_seen
             )
         )
     ), '[]'::jsonb)
@@ -68,7 +74,7 @@ as $$
             'properties', jsonb_build_object(
                 'surface', surface,
                 'kwp', kwp,
-                'year', year
+                'year', first_seen
             )
         )
     ), '[]'::jsonb)
