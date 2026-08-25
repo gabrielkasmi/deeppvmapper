@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PV Check — DeepPVMapper</title>
+<meta name="description" content="Check. Validate. Improve the map. Help verify solar panel installations detected across France, one swipe at a time." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2c3e50" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <section id="auth-screen">
+    <div class="game-topbar">
+      <a class="back-home" href="../">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        DeepPVMapper
+      </a>
+    </div>
+
+    <div class="game-hero">
+      <h1>PV Check</h1>
+      <p class="pitch">Check. Validate. Improve the map.</p>
+
+      <p class="hero-stats" id="landing-stats">
+        <span><strong id="landing-count">—</strong> verifications so far</span>
+        <span class="hero-stat-sep">&middot;</span>
+        <span>Last one <strong id="landing-last">—</strong></span>
+      </p>
+      <p class="hero-explore">
+        <a href="#" id="landing-leaderboard-link">Leaderboard &rarr;</a>
+        <span class="hero-stat-sep">&middot;</span>
+        <a href="#" id="landing-progress-link">Progress &rarr;</a>
+      </p>
+
+      <div id="pseudo-form">
+        <div class="pseudo-row">
+          <input id="pseudo-input" maxlength="24" placeholder="Enter your name" autocomplete="off" />
+          <button id="pseudo-random" type="button" aria-label="Random name">🎲</button>
+        </div>
+        <button id="play-btn" class="btn" disabled>Play</button>
+        <p id="pseudo-error" class="error" hidden></p>
+        <p class="hint">No personal data is stored — just this name.</p>
+      </div>
+
+      <button id="auth-email-link" class="link">Keep my score across devices</button>
+      <div id="email-form" hidden>
+        <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email" />
+        <button id="email-send" class="btn">Send a code</button>
+        <div id="email-otp-step" hidden>
+          <input id="email-otp-input" maxlength="6" placeholder="6-digit code" inputmode="numeric" />
+          <button id="email-verify" class="btn">Verify</button>
+        </div>
+        <p id="email-error" class="error" hidden></p>
+      </div>
+
+      <button class="google-badge" disabled aria-label="Sign in with Google — coming soon">
+        <svg viewBox="0 0 18 18" width="18" height="18">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
+        </svg>
+        <span>Sign in with Google — coming soon</span>
+      </button>
+      <p id="auth-error" class="error"></p>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <a href="../content/about.html" class="footer-about-link">About</a>
+        <div class="footer-contact">
+          <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16v16H4z" stroke="none"/>
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="m22 6-10 7L2 6"></path>
+            </svg>
+          </a>
+          <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+            </svg>
+          </a>
+          <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+          </a>
+        </div>
+        <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+      </div>
+    </footer>
+  </section>
+
+  <section id="game-screen" hidden>
+    <header>
+      <button id="menu-open" aria-label="Menu">☰</button>
+      <span id="header-pseudo"></span>
+      <button id="help-open" aria-label="Help">?</button>
+    </header>
+
+    <div id="session-counts" aria-live="polite">
+      <span class="sc sc-confirm">✓ <strong id="sc-confirm">0</strong></span>
+      <span class="sc sc-reject">✕ <strong id="sc-reject">0</strong></span>
+      <span class="sc sc-ambiguous">? <strong id="sc-ambiguous">0</strong></span>
+    </div>
+
+    <div id="card-stack">
+      <div id="card-loading" class="card loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+      <div id="card-empty" class="card" hidden>
+        <p class="empty-title">You're all caught up 🎉</p>
+        <p>Nice work — come back later, more installations will be ready to check.</p>
+        <div id="notify-form">
+          <input id="notify-email" type="email" placeholder="you@example.com (optional)" />
+          <button id="notify-submit" class="btn">Notify me</button>
+        </div>
+      </div>
+      <div id="card-current" class="card" hidden>
+        <div class="card-image-wrap">
+          <img id="card-image" alt="" />
+          <div id="card-marker" aria-hidden="true">
+            <svg viewBox="0 0 64 64" width="34" height="34">
+              <circle cx="32" cy="32" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="32" y1="2" x2="32" y2="16" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="32" y1="48" x2="32" y2="62" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="2" y1="32" x2="16" y2="32" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="48" y1="32" x2="62" y2="32" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ambiguous-form" hidden>
+      <textarea id="ambiguous-comment" maxlength="500" placeholder="Why is it ambiguous? (optional)"></textarea>
+      <button id="ambiguous-submit" class="btn">Submit</button>
+      <button id="ambiguous-cancel">Cancel</button>
+    </div>
+
+    <div id="controls">
+      <div class="ctrl-wrap">
+        <button id="btn-reject" class="ctrl reject" aria-label="Not a PV system (←)">✕</button>
+        <span class="ctrl-label">No</span>
+      </div>
+      <div class="ctrl-wrap">
+        <button id="btn-skip" class="ctrl skip" aria-label="Skip — come back to this one later, not a vote (↓)">↓</button>
+        <span class="ctrl-label">Skip</span>
+      </div>
+      <div class="ctrl-wrap">
+        <button id="btn-ambiguous" class="ctrl ambiguous" aria-label="Ambiguous, but counts as a vote">?</button>
+        <span class="ctrl-label">Unsure</span>
+      </div>
+      <div class="ctrl-wrap">
+        <button id="btn-confirm" class="ctrl confirm" aria-label="It's a PV system (→)">✓</button>
+        <span class="ctrl-label">Yes</span>
+      </div>
+    </div>
+    <button id="btn-undo" class="undo" hidden aria-label="Undo last swipe" title="Undo last swipe">↩</button>
+
+    <p id="toast" hidden></p>
+
+    <div id="tutorial" hidden>
+      <div class="tutorial-box">
+        <h2>How to play</h2>
+        <ul>
+          <li>The <span class="key">✛</span> marker shows where to look — the question is "is there a solar installation here", not whether an outline is drawn perfectly.</li>
+          <li><span class="key">→</span> swipe right, click <strong>✓</strong>, or right arrow — <strong>it's a solar panel</strong></li>
+          <li><span class="key">←</span> swipe left, click <strong>✕</strong>, or left arrow — <strong>not a PV system</strong></li>
+          <li><span class="key">↓</span> swipe down, click <strong>↓ Skip</strong>, or down arrow — <strong>come back to this one later</strong> (broken image, obstructed view…), doesn't count as a vote and isn't one of your counters below</li>
+          <li><span class="key">?</span> click <strong>? Unsure</strong> — you have a hunch but you're not sure — <strong>ambiguous</strong>, with an optional comment, this DOES count as a vote</li>
+          <li><span class="key">↩</span> undoes your last action, while the button is still shown</li>
+        </ul>
+        <button id="tutorial-close" class="btn">Got it, let's go</button>
+      </div>
+    </div>
+  </section>
+
+  <aside id="menu" hidden>
+    <button id="menu-close" aria-label="Close">✕</button>
+    <p class="menu-pseudo">Name: <strong id="menu-pseudo"></strong></p>
+    <p>My verifications: <strong id="menu-mycount"></strong></p>
+    <p class="menu-breakdown">
+      <span class="bd bd-confirm">✓ <strong id="menu-bd-confirm">0</strong> yes</span>
+      <span class="bd bd-reject">✕ <strong id="menu-bd-reject">0</strong> no</span>
+      <span class="bd bd-ambiguous">? <strong id="menu-bd-ambiguous">0</strong> unsure</span>
+    </p>
+
+    <div id="menu-main-tabs">
+      <button data-panel="leaderboard" class="active">Leaderboard</button>
+      <button data-panel="progress">Progress</button>
+    </div>
+
+    <div id="menu-panel-leaderboard">
+      <div id="menu-tabs">
+        <button data-window="week">Week</button>
+        <button data-window="month">Month</button>
+        <button data-window="all" class="active">All time</button>
+      </div>
+      <ol id="menu-leaderboard"></ol>
+    </div>
+
+    <div id="menu-panel-progress" hidden>
+      <div id="menu-completion">
+        <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
+        <div class="bar"><div id="menu-pct-bar"></div></div>
+        <p class="menu-completion-sub"><span id="menu-pct"></span> of batch <span id="menu-batch-no"></span> of <span id="menu-batch-count"></span> — <span id="menu-pct-detail"></span></p>
+        <p class="menu-completion-note">This is the current batch of Season 1 — about 6,500 installations to validate.</p>
+      </div>
+
+      <p class="menu-dept-title">Where the community's votes have gone</p>
+      <div id="menu-dept-map"></div>
+      <div id="menu-dept-legend">
+        <span>Less activity</span>
+        <span id="menu-dept-legend-bar"></span>
+        <span>More activity</span>
+      </div>
+    </div>
+
+    <div id="menu-cta">
+      <p class="menu-cta-line">Know someone who'd enjoy this? Spread the word.</p>
+      <div class="menu-cta-actions">
+        <button id="menu-share" class="btn">Share PV Check</button>
+        <a id="menu-discuss" class="link" href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" rel="noopener">Join the discussion &rarr;</a>
+      </div>
+    </div>
+
+    <button id="menu-claim" class="btn">Secure my account (email)</button>
+    <button id="menu-signout" class="danger">Start over (clears local session)</button>
+  </aside>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
