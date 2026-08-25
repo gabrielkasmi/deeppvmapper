@@ -274,4 +274,38 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = mailto;
         });
     }
+
+    // Back to top: only on the long-form, text-heavy pages that opt in via
+    // body.has-back-to-top (About, Pipeline, OpenPVMapper, Use Cases,
+    // Registry Audit, Contribute, Software, Publications, In Press, Known
+    // Issues, Data Documentation, Resources — not the landing page, the
+    // interactive map, the leaderboard, or the generated département/city/
+    // région pages, which are stat/table-driven rather than prose-heavy).
+    // The button itself is injected here rather than hand-added to every
+    // page's HTML, so there's a single place to change its markup/behavior.
+    if (document.body.classList.contains('has-back-to-top')) {
+        const backToTop = document.createElement('button');
+        backToTop.type = 'button';
+        backToTop.className = 'back-to-top';
+        backToTop.setAttribute('aria-label', 'Back to top');
+        backToTop.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>';
+        document.body.appendChild(backToTop);
+
+        let ticking = false;
+        function updateBackToTop() {
+            backToTop.classList.toggle('is-visible', window.scrollY > 600);
+            ticking = false;
+        }
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(updateBackToTop);
+                ticking = true;
+            }
+        }, { passive: true });
+        updateBackToTop();
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 });

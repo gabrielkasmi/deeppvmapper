@@ -20,6 +20,25 @@ body {
     padding: 0 20px;
 }
 
+/* Responsive images site-wide. Root cause of figures overflowing to the
+   right on mobile: most <img> tags on content pages set an inline
+   max-width in px (e.g. "max-width: 800px") meant for desktop, with no
+   fallback for viewports narrower than that — on a phone the image just
+   renders at its intrinsic pixel width past the edge of the screen. A
+   max-width here is a hard clamp: it wins over any wider inline width/
+   max-width already on the element (browsers resolve the final width by
+   computing 'width' first, then clamping to 'max-width' — image-specific
+   inline styles keep working on wide screens, this only kicks in once the
+   viewport is narrower than what they specify), so it's safe to apply
+   unconditionally rather than hunting down every page's inline styles.
+   Icons/badges (SVG nav icons, shields.io badges) are unaffected — they're
+   either <svg> or already small enough that 100% of their container never
+   binds. */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Top nav: slim, persistent site-wide navigation (every page except the map,
    which is a full-screen app with its own topbar). Separate from the hero
    CTA cards on the landing page — this is for wayfinding once you're
@@ -69,6 +88,14 @@ body {
     align-items: center;
     gap: 26px;
     flex-wrap: wrap;
+}
+
+/* Forces a line break inside .topnav-links right before the Docs dropdown,
+   so Docs & Publications land together on their own row on mobile instead
+   of wherever natural flex-wrap happens to fold — see the mobile-nav rule
+   below. Invisible/inert on desktop, where the nav never wraps. */
+.topnav-break {
+    display: none;
 }
 
 .topnav-link {
@@ -316,6 +343,51 @@ body.landing-page .subtitle a {
 body.landing-page .subtitle a:hover,
 body.landing-page .subtitle a:focus-visible {
     border-bottom-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Homepage hero stat strip — sells the scale of the dataset in one glance
+   (visitors currently see the pitch but no numbers until they click
+   through) without turning the hero into a dashboard: a single muted line
+   between the subtitle and the Data/Software/Contribute cards. */
+.hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 0 0 34px 0;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-stats strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.hero-stats .hero-stat-sep {
+    color: rgba(255, 255, 255, 0.32);
+}
+
+/* Small text link under the stat strip pointing to the Use Cases page —
+   it was findable only from the nav before, with no mention in the hero
+   itself. */
+.hero-explore {
+    margin: 0 0 34px 0;
+    font-size: 0.92rem;
+}
+
+.hero-explore a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-explore a:hover,
+.hero-explore a:focus-visible {
+    color: #ffffff;
+    border-bottom-color: rgba(255, 255, 255, 0.85);
 }
 
 /* Small region label under a département's name, replacing the old
@@ -659,6 +731,83 @@ h3.subsection .section-number {
     max-width: 480px;
     text-align: center;
     margin: 0;
+}
+
+@media (max-width: 360px) {
+    /* The 280px floor above sits right at the edge of the narrowest real
+       phones once container padding is subtracted — drop it here instead
+       of letting two figures fight for space side by side. */
+    .side-by-side figure,
+    .side-by-side .placeholder-box {
+        min-width: 100%;
+    }
+}
+
+/* Figures that still overflow on mobile past a certain width: several
+   <img> tags carry an inline "max-width: 700/750/800px" (sized for
+   desktop reading width) — sometimes paired with an inline width:100%,
+   sometimes not. Inline style attributes always win over any rule in this
+   stylesheet for the same property, no matter its specificity, so the
+   global `img { max-width: 100% }` above and `.teaser-image` are both
+   silently overridden by that inline px cap on any image that doesn't
+   also carry an inline width:100%. Below this breakpoint, force every
+   image back down to its container's width with !important — the only
+   thing that can out-rank an inline style — which is safe because no
+   image is meant to overflow a phone screen. */
+@media (max-width: 600px) {
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Back to top: injected by script.js on the long-form, text-heavy pages
+   (see the has-back-to-top check there), hidden by default and faded/
+   slid in past a scroll threshold rather than shown on every short page. */
+.back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #34495e;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 6px 18px rgba(44, 62, 80, 0.28);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease;
+    z-index: 500;
+}
+
+.back-to-top:hover {
+    background-color: #2c3e50;
+}
+
+.back-to-top svg {
+    width: 20px;
+    height: 20px;
+}
+
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+    .back-to-top {
+        right: 16px;
+        bottom: 16px;
+        width: 40px;
+        height: 40px;
+    }
 }
 
 /* Platform badges (Zenodo / Hugging Face / GitHub, ...) */
@@ -1400,17 +1549,30 @@ a.hub-card:hover {
     .topnav-inner {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 12px;
     }
 
+    /* About/Data/Software/Contribute/Use Cases wrap onto their own line(s)
+       naturally; .topnav-break then forces Docs & Publications — the two
+       dropdowns — onto a fresh row together, rather than leaving it to
+       chance where flex-wrap happens to fold given the viewport width. */
     .topnav-links {
         justify-self: auto;
+        justify-content: center;
         gap: 18px;
         flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .topnav-break {
+        display: block;
+        flex-basis: 100%;
+        height: 0;
     }
 
     .topnav-right {
+        justify-content: center;
         padding-left: 0;
         border-left: none;
         padding-top: 10px;

@@ -37,29 +37,34 @@
         }
     </style>
 </head>
-<body>
+<body class="has-back-to-top">
     <header class="header header--compact">
         <div class="header-background"></div>
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
                 <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
                                                                 <div class="topnav-links">
-                                    <a href="about.html" class="topnav-link">About</a>
-                                    <a href="data.html" class="topnav-link">Data</a>
-                                    <a href="software.html" class="topnav-link">Software</a>
-                                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                                    <div class="dropdown">
-                                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
-                                        <div class="dropdown-content">
-                                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
-                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
-                                        </div>
-                                    </div>
-                                    <a href="outlook.html" class="topnav-link">Related Works</a>
-                                    <a href="publications.html" class="topnav-link">Publications</a>
-                                    <a href="in-press.html" class="topnav-link">In Press</a>
-                                </div>
+                                                                    <a href="about.html" class="topnav-link">About</a>
+                                                                    <a href="data.html" class="topnav-link">Data</a>
+                                                                    <a href="software.html" class="topnav-link">Software</a>
+                                                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                                                    <a href="outlook.html" class="topnav-link">Use Cases</a>
+                                                                    <span class="topnav-break" aria-hidden="true"></span>
+                                                                    <div class="dropdown">
+                                                                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
+                                                                        <div class="dropdown-content">
+                                                                            <a href="pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="dropdown">
+                                                                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
+                                                                        <div class="dropdown-content">
+                                                                            <a href="publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
+                                                                            <a href="in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
             </div>
         </nav>
         <div class="container">
@@ -179,32 +184,7 @@
         <div class="container doc-content">
             <h2><span class="section-number">4.</span>Interoperability &amp; Standards</h2>
 
-            <h3 class="subsection"><span class="section-number">4.1</span>OpenStreetMap tagging conventions</h3>
-            <p>
-                The OSM-sourced subset (<code>sources</code> index <code>2</code>) is built from OpenStreetMap
-                contributions tagged along conventional lines. For readers comparing our schema against the OSM
-                tagging scheme directly:
-            </p>
-            <ul>
-                <li><a href="https://wiki.openstreetmap.org/wiki/Key:building" target="_blank">Key:building</a> &mdash; building footprint tagging, the basis for our own footprint polygons. Note that OSM itself also covers ground-mounted arrays and solar farms that are not anchored to a building at all; our footprint-from-building convention reflects the rooftop scope of this subset, not a general OSM constraint.</li>
-                <li><a href="https://wiki.openstreetmap.org/wiki/Tag:power=generator" target="_blank">Tag:power=generator</a>, <a href="https://wiki.openstreetmap.org/wiki/Key:generator:source" target="_blank">Key:generator:source</a>, and <a href="https://wiki.openstreetmap.org/wiki/Tag:generator:source=solar" target="_blank">Tag:generator:source=solar</a> &mdash; how a solar installation is tagged as a power generator in OSM. We always emit a closed polygon (an OSM "area") per installation; note that in raw OSM contributions, small rooftop installations are frequently mapped as a single node instead, so a 1:1 geometry match against arbitrary OSM extracts isn't guaranteed.</li>
-                <li><a href="https://wiki.openstreetmap.org/wiki/Tag:generator:method=photovoltaic" target="_blank">Tag:generator:method=photovoltaic</a> &mdash; paired with <code>generator:source=solar</code> to specify the conversion technology, the closest OSM analogue to our panel-type/technology field.</li>
-                <li><a href="https://wiki.openstreetmap.org/wiki/Key:location" target="_blank">Key:location</a> (<code>location=roof</code> for rooftop installations, <code>location=surface</code> for ground-mounted arrays) &mdash; the OSM analogue to our mounting-context field.</li>
-                <li><a href="https://wiki.openstreetmap.org/wiki/Key:direction" target="_blank">Key:direction</a> &mdash; the correct OSM analogue to our own <code>azimuth</code> field, applied directly to the generator object. This is <em>not</em> the same as <a href="https://wiki.openstreetmap.org/wiki/Key:roof:direction" target="_blank">Key:roof:direction</a>, which describes the compass orientation of a sloped roof on the <em>building</em> object and does not always match the panel's actual azimuth (panels aren't always roof-aligned, e.g. tilted racking on flat roofs).</li>
-            </ul>
-            <p>
-                Note that "rooftop" status is not inferred from the presence of an OSM <code>building</code> tag
-                per se: it is verified operationally by filtering detections against spatial intersection with the
-                BDTOPO&reg; b&acirc;ti layer (IGN's national building database), independently of this subset's
-                motivational scope. One open question here is parking-lot solar canopies (<em>ombri&egrave;res de
-                parking</em>): these are picked up as intersecting BDTOPO b&acirc;ti footprints in at least some
-                cases, but whether BDTOPO classifies this structure type as b&acirc;ti systematically, or only
-                inconsistently, hasn't been confirmed. This falls within the scope of the broader OSM-integration
-                discussion happening at
-                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions/18" target="_blank">DeepPVMapper discussion #18</a>
-            </p>
-
-            <h3 class="subsection"><span class="section-number">4.2</span>STAC</h3>
+            <h3 class="subsection"><span class="section-number">4.1</span>STAC</h3>
             <p>
                 <a href="https://stacspec.org/en" target="_blank">STAC (SpatioTemporal Asset Catalog)</a> is a
                 widely-used specification for cataloging Earth observation data &mdash; its core unit, a STAC
@@ -229,6 +209,18 @@
                 all. That's a cheap, optional addition on top of the current format &mdash; not a prerequisite for
                 using the data today.
             </p>
+
+            <h3 class="subsection"><span class="section-number">4.2</span>OpenStreetMap tagging conventions</h3>
+            <p>
+                The OSM-sourced subset (<code>sources</code> index <code>2</code>) is built from OpenStreetMap
+                contributions tagged along conventional lines. For readers comparing our schema against the OSM
+                tagging scheme directly:
+            </p>
+            <ul>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:building" target="_blank">Key:building</a> &mdash; building footprint tagging, the basis for our own footprint polygons.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:generator:source" target="_blank">Key:generator:source</a> and <a href="https://wiki.openstreetmap.org/wiki/Tag:generator:source=solar" target="_blank">Tag:generator:source=solar</a> &mdash; how a solar installation is tagged as a power generator in OSM.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:roof:direction" target="_blank">Key:roof:direction</a> &mdash; the closest OSM analogue to our own <code>azimuth</code> field, though roof direction and panel azimuth aren't always the same thing (panels aren't always roof-aligned).</li>
+            </ul>
 
             <h3 class="subsection"><span class="section-number">4.3</span>Licensing &amp; citation</h3>
             <p>
@@ -260,7 +252,7 @@
                     </svg>
                 </a>
             </div>
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 

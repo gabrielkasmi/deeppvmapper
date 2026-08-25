@@ -1517,17 +1517,22 @@ TEMPLATE = """<!DOCTYPE html>
                     <a href="../data.html" class="topnav-link is-active">Data</a>
                     <a href="../software.html" class="topnav-link">Software</a>
                     <a href="../contribute.html" class="topnav-link">Contribute</a>
+                    <a href="../outlook.html" class="topnav-link">Use Cases</a>
+                    <span class="topnav-break" aria-hidden="true"></span>
                     <div class="dropdown">
-                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
                         <div class="dropdown-content">
-                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
                             <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
                         </div>
                     </div>
-                    <a href="../outlook.html" class="topnav-link">Related Works</a>
-                    <a href="../publications.html" class="topnav-link">Publications</a>
-                    <a href="../in-press.html" class="topnav-link">In Press</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
+                            <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -1583,7 +1588,7 @@ TEMPLATE = """<!DOCTYPE html>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 
@@ -1858,17 +1863,22 @@ CITY_TEMPLATE = """<!DOCTYPE html>
                     <a href="../data.html" class="topnav-link is-active">Data</a>
                     <a href="../software.html" class="topnav-link">Software</a>
                     <a href="../contribute.html" class="topnav-link">Contribute</a>
+                    <a href="../outlook.html" class="topnav-link">Use Cases</a>
+                    <span class="topnav-break" aria-hidden="true"></span>
                     <div class="dropdown">
-                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
                         <div class="dropdown-content">
-                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
                             <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
                         </div>
                     </div>
-                    <a href="../outlook.html" class="topnav-link">Related Works</a>
-                    <a href="../publications.html" class="topnav-link">Publications</a>
-                    <a href="../in-press.html" class="topnav-link">In Press</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
+                            <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -1919,7 +1929,7 @@ CITY_TEMPLATE = """<!DOCTYPE html>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 
@@ -2169,17 +2179,22 @@ REGION_TEMPLATE = """<!DOCTYPE html>
                     <a href="../data.html" class="topnav-link is-active">Data</a>
                     <a href="../software.html" class="topnav-link">Software</a>
                     <a href="../contribute.html" class="topnav-link">Contribute</a>
+                    <a href="../outlook.html" class="topnav-link">Use Cases</a>
+                    <span class="topnav-break" aria-hidden="true"></span>
                     <div class="dropdown">
-                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
+                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
                         <div class="dropdown-content">
-                            <a href="../pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                            <a href="../pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
                             <a href="../openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                            <a href="../main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
                         </div>
                     </div>
-                    <a href="../outlook.html" class="topnav-link">Related Works</a>
-                    <a href="../publications.html" class="topnav-link">Publications</a>
-                    <a href="../in-press.html" class="topnav-link">In Press</a>
+                    <div class="dropdown">
+                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
+                        <div class="dropdown-content">
+                            <a href="../publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
+                            <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -2245,7 +2260,7 @@ REGION_TEMPLATE = """<!DOCTYPE html>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 

@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Related Work · DeepPVMapper</title>
+    <title>Use Cases · DeepPVMapper</title>
 
-    <meta name="description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta name="description" content="What DeepPVMapper and OpenPVMapper are used for: the registry audit, PV production estimation, socio-economic adoption studies, and external mapping projects.">
     <meta name="author" content="Gabriel Kasmi">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/outlook.html">
-    <meta property="og:title" content="Related Work · DeepPVMapper">
-    <meta property="og:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta property="og:title" content="Use Cases · DeepPVMapper">
+    <meta property="og:description" content="What DeepPVMapper and OpenPVMapper are used for: the registry audit, PV production estimation, socio-economic adoption studies, and external mapping projects.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://deeppvmapper.fr/content/outlook.html">
-    <meta property="twitter:title" content="Related Work · DeepPVMapper">
-    <meta property="twitter:description" content="Related works on PV production estimation, registry reliability, adoption determinants, and explainability.">
+    <meta property="twitter:title" content="Use Cases · DeepPVMapper">
+    <meta property="twitter:description" content="What DeepPVMapper and OpenPVMapper are used for: the registry audit, PV production estimation, socio-economic adoption studies, and external mapping projects.">
     <meta property="twitter:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
 
     <link rel="canonical" href="https://deeppvmapper.fr/content/outlook.html">
@@ -220,6 +220,55 @@
             display: none;
         }
 
+        /* Hierarchy: registry audit alone on its own row, then rows of 2,
+           then a compact row of 3+. A row with only 1-2 cards uses fewer,
+           wider columns instead of the same small fixed card width as a
+           full row — same .work-card look throughout, just more (or less)
+           room per card depending on how many share the row. */
+        .use-case-row-title {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #2c3e50;
+            text-align: center;
+            margin: 0 0 18px 0;
+        }
+        .use-case-row-title.hidden {
+            display: none;
+        }
+        .use-case-row {
+            display: grid;
+            gap: 20px;
+            margin: 0 auto 46px auto;
+        }
+        .use-case-row.hidden {
+            display: none;
+        }
+        .use-case-row--1 {
+            grid-template-columns: 1fr;
+            max-width: 720px;
+        }
+        .use-case-row--2,
+        .use-case-row--3 {
+            grid-template-columns: repeat(2, 1fr);
+            max-width: 900px;
+        }
+        .use-case-row--1 .work-card,
+        .use-case-row--2 .work-card,
+        .use-case-row--3 .work-card {
+            min-height: 190px;
+        }
+        .use-case-row--4 {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            max-width: 1100px;
+        }
+        @media (max-width: 700px) {
+            .use-case-row--1,
+            .use-case-row--2,
+            .use-case-row--3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Modal */
         .modal-overlay {
             display: none;
@@ -365,7 +414,7 @@
         }
     </style>
 </head>
-<body>
+<body class="has-back-to-top">
     <!-- Header -->
     <header class="header header--compact">
         <div class="header-background"></div>
@@ -373,31 +422,36 @@
             <div class="container topnav-inner">
                 <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
                                                                 <div class="topnav-links">
-                                    <a href="about.html" class="topnav-link">About</a>
-                                    <a href="data.html" class="topnav-link">Data</a>
-                                    <a href="software.html" class="topnav-link">Software</a>
-                                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                                    <div class="dropdown">
-                                        <span class="topnav-link dropdown-btn">Resources &#9662;</span>
-                                        <div class="dropdown-content">
-                                            <a href="pipeline.html" class="dropdown-item">Pipeline<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
-                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                                            <a href="main-results.html" class="dropdown-item">Registry Audit<span class="dropdown-item-sub">Auditing France's PV registries</span></a>
-                                        </div>
-                                    </div>
-                                    <a href="outlook.html" class="topnav-link is-active">Related Works</a>
-                                    <a href="publications.html" class="topnav-link">Publications</a>
-                                    <a href="in-press.html" class="topnav-link">In Press</a>
-                                </div>
+                                                                    <a href="about.html" class="topnav-link">About</a>
+                                                                    <a href="data.html" class="topnav-link">Data</a>
+                                                                    <a href="software.html" class="topnav-link">Software</a>
+                                                                    <a href="contribute.html" class="topnav-link">Contribute</a>
+                                                                    <a href="outlook.html" class="topnav-link is-active">Use Cases</a>
+                                                                    <span class="topnav-break" aria-hidden="true"></span>
+                                                                    <div class="dropdown">
+                                                                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
+                                                                        <div class="dropdown-content">
+                                                                            <a href="pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
+                                                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="dropdown">
+                                                                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
+                                                                        <div class="dropdown-content">
+                                                                            <a href="publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
+                                                                            <a href="in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
             </div>
         </nav>
         <div class="container">
             <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
-            <h1 class="title">Related Work</h1>
+            <h1 class="title">Use Cases</h1>
         </div>
     </header>
 
-    <!-- Related works -->
+    <!-- Use cases -->
     <section class="abstract" style="padding-top: 30px;">
         <div class="container">
             <div class="filter-bar">
@@ -406,9 +460,36 @@
                 </svg>
                 <input type="text" id="work-filter" placeholder="Filter by keyword&hellip;">
             </div>
-            <div class="work-grid" id="work-grid">
-                <!-- cards injected by script -->
+
+            <h2 class="use-case-row-title">Registry audit</h2>
+            <div class="use-case-row use-case-row--1">
+                <!-- Only card that navigates to a real page instead of opening
+                     the popup — justified by volume, this is a full page, not
+                     a 200-word summary like the others. -->
+                <a href="main-results.html" class="work-card has-image"
+                   style="background-image: url('../static/images/assets/registry-discrepancy-map.webp');"
+                   data-keywords="registry audit rni rte bias bayesian reliability truncation"
+                   data-title="nationally consistent, locally incomplete: a bayesian remote-sensing audit of rooftop photovoltaic registries">
+                    <span class="work-date">2026</span>
+                    <h3 class="work-title">Nationally Consistent, Locally Incomplete: A Bayesian Remote-Sensing Audit of Rooftop Photovoltaic Registries</h3>
+                    <div class="work-keywords">
+                        <span class="keyword-chip">registry audit</span>
+                        <span class="keyword-chip">rni</span>
+                        <span class="keyword-chip">rte</span>
+                        <span class="keyword-chip">bias</span>
+                    </div>
+                </a>
             </div>
+
+            <h2 class="use-case-row-title">Socio-economic impact</h2>
+            <div class="use-case-row use-case-row--2" id="row-socioeconomic"></div>
+
+            <h2 class="use-case-row-title">Rooftop PV power estimation</h2>
+            <div class="use-case-row use-case-row--3" id="row-estimation"></div>
+
+            <h2 class="use-case-row-title">More</h2>
+            <div class="use-case-row use-case-row--4" id="row-more"></div>
+
             <p class="no-results" id="no-results"></p>
         </div>
     </section>
@@ -456,7 +537,7 @@
                     </svg>
                 </a>
             </div>
-            <p>&copy; 2021-2026 Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
         </div>
     </footer>
 
@@ -803,7 +884,9 @@
             }
         ];
 
-        const grid = document.getElementById('work-grid');
+        const rowSocioeconomic = document.getElementById('row-socioeconomic');
+        const rowEstimation = document.getElementById('row-estimation');
+        const rowMore = document.getElementById('row-more');
         const noResults = document.getElementById('no-results');
         noResults.textContent = 'Nothing matches your search.';
         const overlay = document.getElementById('modal-overlay');
@@ -818,7 +901,7 @@
             return keywords.map(k => `<span class="keyword-chip">${k}</span>`).join('');
         }
 
-        works.forEach((work, idx) => {
+        function makeCard(work, idx) {
             const card = document.createElement('div');
             card.className = 'work-card';
             if (work.image) {
@@ -837,8 +920,13 @@
                 ${work.featured ? `<span class="featured-badge">&#9733; Flagship result</span>` : ''}
             `;
             card.addEventListener('click', () => openModal(idx));
-            grid.appendChild(card);
-        });
+            return card;
+        }
+
+        // Row assignment: socio-economic impact, rooftop PV power estimation, more
+        [2, 6].forEach(idx => rowSocioeconomic.appendChild(makeCard(works[idx], idx)));
+        [0, 1].forEach(idx => rowEstimation.appendChild(makeCard(works[idx], idx)));
+        [3, 4, 5].forEach(idx => rowMore.appendChild(makeCard(works[idx], idx)));
 
         // CTA card inviting people to suggest related work to feature
         const cta = document.createElement('a');
@@ -850,7 +938,7 @@
             <h3 class="work-title">Got something to add?</h3>
             <p class="cta-sub">Get in touch to suggest related work to feature here →</p>
         `;
-        grid.appendChild(cta);
+        rowMore.appendChild(cta);
 
         let currentIndex = null;
 
@@ -905,6 +993,19 @@
                 card.classList.toggle('hidden', !matches);
                 if (matches) visibleCount++;
             });
+
+            // Hide a row (and its title) entirely when filtering leaves it with no visible cards.
+            // querySelectorAll('.work-card') also matches the registry-audit row's <a class="work-card">.
+            document.querySelectorAll('.use-case-row').forEach(row => {
+                const cards = row.querySelectorAll('.work-card');
+                const rowIsEmpty = cards.length > 0 && Array.from(cards).every(c => c.classList.contains('hidden'));
+                row.classList.toggle('hidden', rowIsEmpty);
+                const title = row.previousElementSibling;
+                if (title && title.classList.contains('use-case-row-title')) {
+                    title.classList.toggle('hidden', rowIsEmpty);
+                }
+            });
+
             noResults.style.display = visibleCount === 0 ? 'block' : 'none';
         });
     </script>
