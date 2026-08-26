@@ -61,7 +61,7 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
     flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto;
 }
 
-.game-topbar { padding: 14px 18px 0; }
+.game-topbar { padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 0; }
 .back-home {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 0.82rem; font-weight: 500; color: rgba(255, 255, 255, 0.68);
@@ -169,7 +169,7 @@ input {
 
 header {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; background: var(--surface); border-bottom: 1px solid var(--border);
 }
 header button {
     background: var(--surface-2); color: var(--ink); font-size: 1.1rem;
@@ -255,7 +255,7 @@ header button:hover { background: var(--border-2); }
    card underneath. Top-right: reachable by thumb when holding the phone in
    the right hand, out of the way of the card and the marker at its center. */
 .undo {
-    position: fixed; top: 68px; right: 16px; z-index: 15;
+    position: fixed; top: calc(68px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 15;
     width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem;
     display: flex; align-items: center; justify-content: center;
     background: var(--surface-2); color: var(--ink); border: 1px solid var(--border-2);
@@ -304,11 +304,11 @@ header button:hover { background: var(--border-2); }
     height: 100vh; height: 100dvh;
 }
 #menu-close {
-    position: absolute; top: 16px; right: 16px; background: var(--surface-2); color: var(--ink);
+    position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; background: var(--surface-2); color: var(--ink);
     font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; z-index: 1;
 }
 
-#menu-account { flex-shrink: 0; padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+#menu-account { flex-shrink: 0; padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 14px; border-bottom: 1px solid var(--border); }
 .menu-section-title {
     margin: 0 0 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.04em; color: var(--muted-2);
