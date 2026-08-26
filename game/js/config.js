@@ -9,7 +9,7 @@ export const CAMPAIGN_ID = 'season-1';
 
 export const BATCH_SIZE    = 12;   // cards fetched per RPC call
 export const PREFETCH_AT   = 5;    // fetch the next batch when this many cards remain
-export const UNDO_WINDOW_MS = 1200; // optimistic delay before a swipe is actually inserted
+export const UNDO_WINDOW_MS = 3000; // optimistic delay before a swipe is actually inserted
 
 // Géoplateforme IGN — WMS GetMap (arbitrary bbox + pixel size, exact crop,
 // unlike the WMTS tiles used for the map's satellite layer — see

@@ -175,6 +175,7 @@ header button {
     background: var(--surface-2); color: var(--ink); font-size: 1.1rem;
     width: 36px; height: 36px; border-radius: 50%;
 }
+.header-actions { display: flex; align-items: center; gap: 8px; }
 header button:hover { background: var(--border-2); }
 #header-pseudo { color: var(--muted); font-size: 0.9rem; flex: 1; text-align: center; }
 
@@ -274,8 +275,11 @@ header button:hover { background: var(--border-2); }
 #ambiguous-cancel { background: none; color: var(--muted); }
 
 #install-nudge {
-    margin: 0 16px 10px; padding: 12px 14px; background: var(--surface);
+    position: fixed; top: calc(150px + env(safe-area-inset-top, 0px)); left: 16px; right: 16px;
+    max-width: 380px; margin: 0 auto; z-index: 17;
+    padding: 12px 14px; background: var(--surface);
     border: 1px solid var(--border-2); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     display: flex; flex-direction: column; gap: 10px;
 }
 .install-nudge-text { margin: 0; font-size: 0.85rem; color: var(--ink); }
@@ -300,11 +304,12 @@ header button:hover { background: var(--border-2); }
    the right hand, out of the way of the card and the marker at its center. */
 .undo {
     position: fixed; top: calc(68px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 15;
-    width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem;
-    display: flex; align-items: center; justify-content: center;
+    height: 40px; padding: 0 16px 0 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
     background: var(--surface-2); color: var(--ink); border: 1px solid var(--border-2);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
+.undo svg { width: 16px; height: 16px; flex-shrink: 0; }
 .undo:hover { background: var(--border-2); }
 
 #toast {

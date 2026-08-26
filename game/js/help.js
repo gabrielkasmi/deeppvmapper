@@ -4,12 +4,14 @@
 // d'affichage, rien qui doit être fiable ou partagé), et réouvrable à tout
 // moment via le bouton (?) de l'en-tête.
 
-import { $, show, hide } from './store.js';
+import { $, show, hide, toast } from './store.js';
+import { wireInstallButton } from './pwa.js';
 
 const SEEN_KEY = 'pvscroll_tutorial_seen';
 
 export function initHelp() {
     $('#help-open').addEventListener('click', () => show($('#tutorial')));
+    wireInstallButton($('#header-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
     $('#tutorial-close').addEventListener('click', dismiss);
 
     let seen = false;
