@@ -1,28 +1,33 @@
-// ─── The swipe screen: card rendering + the three input modes ────────────
-// touch swipe / mouse drag / keyboard, same convention everywhere:
-//   → / swipe right  = confirme (c'est un PV)
-//   ← / swipe left   = infirme
-//   ↓ / bouton dédié = passe sans juger (pas un vote — voir campaign.js)
-//   ⌫ / bouton dédié = annule le dernier geste (fenêtre courte, voir campaign.js)
+// ─── The swipe screen: card rendering + the four input modes ─────────────
+// touch swipe / mouse drag / keyboard / buttons, same convention everywhere:
+//   → / swipe right = confirme (c'est un PV)
+//   ← / swipe left  = infirme
+//   ↑ / swipe up    = incertain (compte quand même comme un vote)
+//   ⌫ / bouton dédié = annule le dernier geste, tant que rien d'autre ne
+//     s'est passé depuis (pas de fenêtre fixe — voir campaign.js)
+// Le skip a disparu : un souci de contenu se règle via "Unsure", un souci
+// d'image (cassée, obstruée, illisible) se règle via "Comment" (report).
 
-import { UNDO_WINDOW_MS } from './config.js';
-import { S, $, show, hide, toast } from './store.js';
+import { S, $, show, hide, toast, getSupabase } from './store.js';
 import { cardImageUrl, preloadImage } from './image.js';
 import { fetchNextBatch, maybePrefetch, recordDecision, undoLastDecision, flushPendingNow } from './campaign.js';
 import { shouldShowInstallNudge, markInstallNudgeShown, triggerInstall, isIOS } from './pwa.js';
 import { checkMilestone, checkRankMaybe } from './hooks.js';
 
+const REPORT_MIN_INTERVAL_MS = 2000;
+
 let dragStartX = null, dragStartY = null, dragging = false;
-let undoTimer = null;
 let lastDecision = null; // 'confirm'|'reject'|'ambiguous', so doUndo() can un-bump the counter
+let lastReportAt = 0;
 
 export async function initSwipe() {
     $('#btn-confirm').addEventListener('click', () => decide('confirm'));
     $('#btn-reject').addEventListener('click', () => decide('reject'));
-    $('#btn-skip').addEventListener('click', skip);
-    $('#btn-ambiguous').addEventListener('click', () => show($('#ambiguous-form')));
-    $('#ambiguous-submit').addEventListener('click', submitAmbiguous);
-    $('#ambiguous-cancel').addEventListener('click', () => hide($('#ambiguous-form')));
+    $('#btn-ambiguous').addEventListener('click', () => decide('ambiguous'));
+    $('#btn-comment').addEventListener('click', openReportForm);
+    $('#report-send-skip').addEventListener('click', () => submitReport('skip'));
+    $('#report-send-stay').addEventListener('click', () => submitReport('stay'));
+    $('#report-cancel').addEventListener('click', closeReportForm);
     $('#btn-undo').addEventListener('click', doUndo);
     $('#install-nudge-accept').addEventListener('click', async () => {
         hide($('#install-nudge'));
@@ -44,10 +49,10 @@ export async function initSwipe() {
 }
 
 function onKeydown(e) {
-    if (!$('#ambiguous-form').hidden) return; // typing a comment — don't hijack keys
+    if (!$('#report-form').hidden) return; // typing a report — don't hijack keys
     if (e.key === 'ArrowRight') decide('confirm');
     else if (e.key === 'ArrowLeft') decide('reject');
-    else if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); skip(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); decide('ambiguous'); }
     else if (e.key === 'Backspace') doUndo();
 }
 
@@ -77,13 +82,14 @@ function showNextCard() {
     // covered by the map's own redraw flow) instead of the actual question
     // this pool exists to answer — "is there a PV installation here at all."
     $('#card-current').style.transform = '';
-    $('#card-current').classList.remove('fly-left', 'fly-right', 'fly-down');
+    $('#card-current').classList.remove('fly-left', 'fly-right', 'fly-up', 'fly-down');
 }
 
 function decide(decision) {
     const card = currentCard();
     if (!card) return;
-    animateAway(decision === 'confirm' ? 'fly-right' : 'fly-left');
+    const flyClass = decision === 'confirm' ? 'fly-right' : decision === 'reject' ? 'fly-left' : 'fly-up';
+    animateAway(flyClass);
     recordDecision(card, decision);
     bumpCount(decision);
     afterDecision();
@@ -115,28 +121,61 @@ function unbumpLastCount() {
     lastDecision = null;
 }
 
-function skip() {
-    const card = currentCard();
-    if (!card) return;
-    animateAway('fly-down');
-    // No insert — a skip is not a judgement (see campaign.js / README).
-    afterDecision();
+// ─── Report ("Comment") — a free-form note about the image itself, not a
+// vote. Goes to the same insert-only issue_reports table the map's report
+// feature uses (scripts/issue_reports_setup.sql), tagged target_type =
+// 'card' — needs the matching check-constraint/RLS migration run once in
+// Supabase (see that file's latest addition) before this will insert
+// successfully. Two ways out once a comment is written: "Send & skip"
+// dismisses the card with no vote (the old skip's role for an unusable
+// image), "Send & stay" keeps the same card up so the user can still vote
+// on it; "Cancel" sends nothing. ─────────────────────────────────────────
+
+function openReportForm() {
+    $('#report-comment').value = '';
+    show($('#report-form'));
 }
 
-function submitAmbiguous() {
-    const card = currentCard();
-    if (!card) return;
-    const comment = $('#ambiguous-comment').value.trim().slice(0, 500) || null;
-    $('#ambiguous-comment').value = '';
-    hide($('#ambiguous-form'));
-    animateAway('fly-left');
-    recordDecision(card, 'ambiguous', comment);
-    bumpCount('ambiguous');
-    afterDecision();
+function closeReportForm() {
+    hide($('#report-form'));
 }
 
-function afterDecision() {
-    showUndoButton();
+async function submitReport(mode) {
+    const card = currentCard();
+    if (!card) { closeReportForm(); return; }
+
+    const comment = $('#report-comment').value.trim().slice(0, 500);
+    if (!comment) { toast('Add a short description first.'); return; }
+
+    const now = Date.now();
+    if (now - lastReportAt < REPORT_MIN_INTERVAL_MS) { toast('Easy — one report every few seconds.'); return; }
+    lastReportAt = now;
+
+    const sb = getSupabase();
+    if (sb) {
+        const { error } = await sb.from('issue_reports').insert({
+            category: 'image_issue',
+            target_type: 'card',
+            target_id: card.detection_id,
+            target_label: `Verification card ${card.detection_id}`,
+            admin: null,
+            map_url: location.href,
+            comment,
+        });
+        if (error) console.error('issue report insert failed:', error);
+    }
+
+    closeReportForm();
+    if (mode === 'skip') {
+        animateAway('fly-down');
+        afterDecision({ skipUndo: true });
+    } else {
+        toast('Thanks — noted for review.');
+    }
+}
+
+function afterDecision({ skipUndo = false } = {}) {
+    if (!skipUndo) enableUndoButton();
     setTimeout(showNextCard, 180); // let the fly-away animation read before the next card pops in
 }
 
@@ -144,17 +183,18 @@ function animateAway(cls) {
     $('#card-current').classList.add(cls);
 }
 
-function showUndoButton() {
-    clearTimeout(undoTimer);
-    show($('#btn-undo'));
-    undoTimer = setTimeout(() => hide($('#btn-undo')), UNDO_WINDOW_MS);
+// ─── Undo ("Go back") — always visible, just enabled/disabled. No fixed
+// window: it stays enabled until either the next decision (which commits
+// this one — see campaign.js) or an explicit undo clears it. ─────────────
+
+function enableUndoButton() {
+    $('#btn-undo').disabled = false;
 }
 
 function doUndo() {
-    clearTimeout(undoTimer);
-    hide($('#btn-undo'));
     const card = undoLastDecision();
-    if (!card) return; // window already closed, nothing to undo
+    $('#btn-undo').disabled = true;
+    if (!card) return; // already flushed (another decision was made since), nothing to undo
     unbumpLastCount();
     S.queue.unshift(card);
     // put whatever's currently showing back in front of it, so the undone
@@ -182,7 +222,7 @@ function wireDrag(el) {
         const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
         const THRESHOLD = 80;
         if (Math.abs(dx) > THRESHOLD && Math.abs(dx) > Math.abs(dy)) decide(dx > 0 ? 'confirm' : 'reject');
-        else if (dy > THRESHOLD && Math.abs(dy) > Math.abs(dx)) skip();
+        else if (-dy > THRESHOLD && Math.abs(dy) > Math.abs(dx)) decide('ambiguous');
         else el.style.transform = ''; // snap back — not a decisive swipe
     });
 }

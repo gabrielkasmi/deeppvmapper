@@ -20,8 +20,8 @@ function isMilestone(total) {
 // answer. Every 5 is frequent enough to feel responsive without hammering
 // the DB.
 const RANK_CHECK_EVERY = 5;
-const RANK_WINDOWS = ['week', 'month', 'all'];
-const WINDOW_LABEL = { week: 'weekly', month: 'monthly', all: 'all-time' };
+const RANK_WINDOWS = ['day', 'week', 'all'];
+const WINDOW_LABEL = { day: 'daily', week: 'weekly', all: 'all-time' };
 
 function tierOf(rnk) {
     if (rnk == null) return 0;
@@ -121,8 +121,8 @@ export async function checkRankMaybe(total) {
 
     // Pick the single best newly-crossed tier across windows, if any — one
     // banner at a time, never stack three. Ties prefer all-time, then
-    // month, then week, as the more prestigious one — hence iterating
-    // `results` reversed (RANK_WINDOWS is week/month/all) before falling
+    // week, then day, as the more prestigious one — hence iterating
+    // `results` reversed (RANK_WINDOWS is day/week/all) before falling
     // back to strict `>` so an equal tier never displaces an earlier,
     // higher-priority pick.
     let best = null;

@@ -1,6 +1,6 @@
 // ─── Batch fetching + vote submission (with the short undo window) ────────
 
-import { CAMPAIGN_ID, BATCH_SIZE, PREFETCH_AT, UNDO_WINDOW_MS } from './config.js';
+import { CAMPAIGN_ID, BATCH_SIZE, PREFETCH_AT } from './config.js';
 import { S, getSupabase } from './store.js';
 import { cardImageUrl, preloadImage } from './image.js';
 
@@ -30,31 +30,29 @@ export function maybePrefetch() {
     if (S.queue.length <= PREFETCH_AT && !S.fetching) fetchNextBatch();
 }
 
-// ─── Submission, with a short optimistic delay before it's actually written ─
-// Gmail-"undo send" style: the decision isn't inserted until UNDO_WINDOW_MS
-// has passed with nothing else happening. Only one decision is ever
-// "pending" at a time — making a new one flushes (commits) the previous
-// one first, so the undo button only ever affects the most recent swipe.
-// Chosen over client-side batching of several votes: batching risks losing
-// everything if the tab closes before a flush, and breaks the insert-only/
-// immutable posture the rest of the schema already uses (annotations,
-// issue_reports — see game/README.md).
+// ─── Submission, undoable until the next decision ─────────────────────────
+// Gmail-"undo send" style, but no fixed timer anymore: the decision isn't
+// inserted until something else happens — either the next decision (which
+// flushes/commits this one first, so undo only ever affects the single
+// most recent swipe) or the page being hidden/closed (flushPendingNow, see
+// swipe.js). That's deliberately unbounded in time — "go back" stays live
+// for as long as you like, right up until you swipe again — while keeping
+// the same insert-only/immutable posture as the rest of the schema
+// (annotations, issue_reports — see game/README.md): once flushed, there's
+// no update/delete path, by design.
 
-let pending = null; // { detection_id, decision, comment, card, timer }
+let pending = null; // { detection_id, decision, comment, card }
 
 export function recordDecision(card, decision, comment = null) {
     flushPending();
-    pending = {
-        detection_id: card.detection_id, decision, comment, card,
-        timer: setTimeout(flushPending, UNDO_WINDOW_MS),
-    };
+    pending = { detection_id: card.detection_id, decision, comment, card };
 }
 
 /** Cancels the pending (not-yet-written) decision and hands the card back
- *  to be shown again. Returns the card, or null if the window already closed. */
+ *  to be shown again. Returns the card, or null if it was already flushed
+ *  (i.e. another decision has been made since). */
 export function undoLastDecision() {
     if (!pending) return null;
-    clearTimeout(pending.timer);
     const { card } = pending;
     pending = null;
     S.queue.unshift(card);
@@ -63,7 +61,6 @@ export function undoLastDecision() {
 
 function flushPending() {
     if (!pending) return;
-    clearTimeout(pending.timer);
     const { detection_id, decision, comment } = pending;
     pending = null;
     insertVerification(detection_id, decision, comment);

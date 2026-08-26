@@ -200,7 +200,7 @@ export async function openMenu(panel) {
     refreshDeptProgress();
 }
 
-// One line per window (week/month/all) — my_leaderboard_rank() sees every
+// One line per window (day/week/all) — my_leaderboard_rank() sees every
 // player, not just the top 100 leaderboard() returns, so this stays
 // accurate even for someone outside that range. Works identically whether
 // the account is anonymous or has an email (both are just `authenticated`
@@ -209,7 +209,7 @@ export async function openMenu(panel) {
 // switching tabs doesn't need a re-fetch.
 async function refreshMyRank() {
     const sb = getSupabase();
-    const targets = { week: '#menu-rank-week', month: '#menu-rank-month', all: '#menu-rank-all' };
+    const targets = { day: '#menu-rank-day', week: '#menu-rank-week', all: '#menu-rank-all' };
     await Promise.all(Object.entries(targets).map(async ([window, sel]) => {
         const { data, error } = await sb.rpc('my_leaderboard_rank', { p_window: window });
         const row = data?.[0];
@@ -231,7 +231,7 @@ async function refreshStats() {
     $('#menu-bd-ambiguous').textContent = data.ambiguous ?? 0;
 }
 
-const WINDOW_LABELS = { week: 'this week', month: 'this month', all: 'all time' };
+const WINDOW_LABELS = { day: 'today', week: 'this week', all: 'all time' };
 
 async function refreshLeaderboard() {
     $$('#menu-tabs button').forEach(b => b.classList.toggle('active', b.dataset.window === currentWindow));
