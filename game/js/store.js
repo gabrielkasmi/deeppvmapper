@@ -4,10 +4,27 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 let sbClient = null;
 
-/** Lazily-created, shared across every module — same pattern as the map's store.js. */
+/** Lazily-created, shared across every module — same pattern as the map's
+ *  store.js, EXCEPT for one deliberate difference: a custom auth.storageKey.
+ *
+ *  The main site (static/js/map/store.js) creates its Supabase client with
+ *  the SAME URL + anon key, no storageKey override — so supabase-js falls
+ *  back to its default, which is derived from the project ref alone, not
+ *  the page/path. localStorage is scoped per ORIGIN, not per path, so the
+ *  main site's client and this one were reading/writing the exact same key.
+ *  Any session this game creates (anonymous sign-in, or a real email
+ *  login) was leaking into the main map's client too — which then sent
+ *  every request as `authenticated` instead of `anon`, and broke the main
+ *  site's annotation submissions (`annotations`' insert policy is `to
+ *  anon` only, so an authenticated request has no matching policy and gets
+ *  rejected with 42501). A distinct storageKey here keeps this game's
+ *  sessions in their own bucket, so the main site's client goes back to
+ *  never seeing one. */
 export function getSupabase() {
     if (!sbClient && window.supabase)
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { storageKey: 'sb-pvcheck-auth-token' },
+        });
     return sbClient;
 }
 

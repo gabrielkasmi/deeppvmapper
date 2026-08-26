@@ -1,9 +1,9 @@
 // ─── Boot ──────────────────────────────────────────────────────────────────
 
 import { S, $, show, hide, getSupabase } from './store.js';
-import { ensureSession, claimPseudo, sendEmailCode, verifyEmailCode } from './auth.js';
+import { ensureSession, claimPseudo, login, refreshProfile } from './auth.js';
 import { initSwipe } from './swipe.js';
-import { initMenu, openMenu } from './menu.js';
+import { initMenu, openMenu, shareApp } from './menu.js';
 import { initHelp } from './help.js';
 
 const ADJECTIVES = ['Solar', 'Sunny', 'Bright', 'Rooftop', 'Golden', 'Amber', 'Swift', 'Keen', 'Sharp', 'Curious'];
@@ -118,29 +118,46 @@ function wireAuthScreen() {
         e.preventDefault();
         await openMenu('progress');
     });
+    $('#landing-share-card').addEventListener('click', shareApp);
 
-    $('#auth-email-link').addEventListener('click', () => show($('#email-form')));
+    // Login fully REPLACES the name/Play block (not shown alongside it) —
+    // toggle both ways so cancelling out of login goes back to a clean
+    // sign-up state instead of showing both at once.
+    $('#auth-login-link').addEventListener('click', () => {
+        hide($('#pseudo-form'));
+        hide($('#auth-login-link'));
+        show($('#login-panel'));
+    });
+    $('#login-cancel').addEventListener('click', () => {
+        hide($('#login-panel'));
+        show($('#pseudo-form'));
+        show($('#auth-login-link'));
+    });
 
-    $('#email-send').addEventListener('click', async () => {
+    const attemptLogin = async () => {
         const email = $('#email-input').value.trim();
-        if (!email) return;
-        const res = await sendEmailCode(email);
+        const password = $('#password-input').value;
         const err = $('#email-error');
-        if (!res.ok) { err.textContent = 'Could not send — check the address.'; show(err); return; }
+        if (!email || !password) { err.textContent = 'Enter your email and password.'; show(err); return; }
+        const res = await login(email, password);
+        if (!res.ok) { err.textContent = 'Incorrect email or password.'; show(err); return; }
         hide(err);
-        show($('#email-otp-step'));
-    });
-
-    $('#email-verify').addEventListener('click', async () => {
-        const email = $('#email-input').value.trim();
-        const token = $('#email-otp-input').value.trim();
-        const res = await verifyEmailCode(email, token);
-        const err = $('#email-error');
-        if (!res.ok) { err.textContent = 'Invalid or expired code.'; show(err); return; }
-        // Session is now permanent (email-linked) — still needs a pseudo if
-        // this wasn't already an anonymous session that had one.
-        if (S.pseudo) startGame();
-    });
+        // login() SWITCHES to whatever account that email belongs to —
+        // S.pseudo from the session we had a moment ago (usually anonymous)
+        // is for a different account now and has to be re-fetched, or a
+        // real returning-user login would silently do nothing here.
+        await refreshProfile();
+        hide($('#login-panel'));
+        if (S.pseudo) {
+            startGame();
+        } else {
+            // Existing account with no pseudo yet (edge case) — let them
+            // pick one instead of leaving the screen looking stuck.
+            $('#pseudo-input').focus();
+        }
+    };
+    $('#login-submit').addEventListener('click', attemptLogin);
+    $('#password-input').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
 }
 
 async function attemptPlay() {

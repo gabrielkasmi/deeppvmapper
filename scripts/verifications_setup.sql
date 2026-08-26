@@ -106,18 +106,51 @@ select
 from sized s
 on conflict (campaign_id, detection_id) do nothing;
 
+-- Without this, `d.id::text = cp.detection_id` below has nothing to use on
+-- the detections side (only the bare, untyped-cast id is indexed), so
+-- Postgres falls back to a much more expensive plan — this is what made
+-- the backfill below hit "canceling statement due to statement timeout"
+-- (57014) even run directly via psql as the postgres role, not just from
+-- the authenticated-role RPC. Confirmed via a direct count: 1,135,849 of
+-- 1,135,850 detections already have dpt set — the source data was never
+-- the problem, the join plan was.
+create index if not exists idx_detections_id_text on public.detections ((id::text));
+
 -- One-time backfill for rows inserted before the dpt column existed (i.e.
 -- anyone re-running this script rather than starting fresh — the insert
 -- above is on-conflict-do-nothing, so it never touches already-present
 -- rows). This is the one place the campaign_pool <-> detections join still
--- happens; it runs here, once, in whatever session executes this script
--- (not subject to the authenticated-role API timeout), rather than inside
--- an RPC every visitor calls.
-update public.campaign_pool cp
-set dpt = d.dpt
-from public.detections d
-where d.id::text = cp.detection_id
-  and cp.dpt is distinct from d.dpt;
+-- happens; it runs here, once, rather than inside an RPC every visitor
+-- calls.
+--
+-- Split into 10 separate statements rather than one big UPDATE (or a
+-- PL/pgSQL loop in a single DO block — statement_timeout bounds the WHOLE
+-- block as one unit in that case, a loop inside it does NOT get a fresh
+-- timeout per iteration). Each statement here is its own top-level command,
+-- so each gets its own fresh timeout window, and thanks to the `is distinct
+-- from` guard, if any one batch still times out, everything before it has
+-- already committed — just re-run the script and only the remaining
+-- batches do any work.
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 0;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 1;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 2;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 3;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 4;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 5;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 6;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 7;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 8;
+update public.campaign_pool cp set dpt = d.dpt from public.detections d
+where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 9;
 
 -- ─── Batching — waterfall through the pool 1% at a time ──────────────────
 -- Serving all ~655k installations at once meant votes spread paper-thin
@@ -190,8 +223,19 @@ create policy "authenticated can read own profile"
     on public.profiles for select
     to authenticated
     using (auth.uid() = id);
--- No update policy for v1 — pseudo is fixed once chosen (insert fails on
--- uniqueness conflict, client asks for a different one).
+
+-- A user can rename their OWN row only — the menu's pencil icon next to
+-- the name (shown once an account has an email, see editPseudo() in
+-- game/js/auth.js). The `pseudo` column's own unique/length check
+-- constraints do the actual validation; a rename to an already-taken name
+-- fails the same way the original insert would (Postgres unique_violation,
+-- 23505).
+drop policy if exists "authenticated can update own profile" on public.profiles;
+create policy "authenticated can update own profile"
+    on public.profiles for update
+    to authenticated
+    using (auth.uid() = id)
+    with check (auth.uid() = id);
 
 -- ─── verifications — the swipes themselves ────────────────────────────────
 -- Insert-only, immutable, same family as annotations/issue_reports. The
@@ -215,6 +259,19 @@ create table if not exists public.verifications (
     status        text not null default 'pending' check (status in ('pending', 'reviewed')),
     unique (user_id, campaign_id, detection_id)
 );
+
+-- Deleting an account must not delete these rows — campaign_pool.votes_
+-- received only has an AFTER INSERT trigger to bump it (see below), no
+-- compensating DELETE trigger to decrement it, so removing verification
+-- rows would silently leave that counter (and every RPC built on it)
+-- overcounted forever. NULL doesn't collide with the unique constraint
+-- above either (Postgres treats each NULL as distinct there), so any
+-- number of deleted-account rows can pile up on the same installation with
+-- no conflict. See delete_own_account() further down.
+alter table public.verifications alter column user_id drop not null;
+alter table public.verifications drop constraint if exists verifications_user_id_fkey;
+alter table public.verifications add constraint verifications_user_id_fkey
+    foreign key (user_id) references auth.users(id) on delete set null;
 
 alter table public.verifications enable row level security;
 
@@ -364,11 +421,40 @@ $$;
 
 grant execute on function public.my_verification_breakdown() to authenticated;
 
+-- Self-service account deletion, called by the menu's "Delete my account".
+-- profiles cascades automatically (on delete cascade, see its create table
+-- above); verifications keeps its rows (on delete set null, see above) —
+-- only the personal link is removed, not the vote itself. security definer
+-- so an ordinary authenticated session — which has no grants on the auth
+-- schema at all — can still reach auth.users to delete ONLY its own row
+-- (auth.uid(), never a parameter, so there's no way to pass someone else's
+-- id in). This is the standard community pattern for self-service delete
+-- on Supabase (no client-side supabase.auth.deleteUser() exists — that's
+-- an admin-API-only operation otherwise). If this errors with a permission
+-- issue on your project, the function's owner (whichever role runs this
+-- script) doesn't have delete rights on auth.users and it'll need granting
+-- separately — flag it and we'll sort it out.
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    delete from auth.users where id = auth.uid();
+end;
+$$;
+
+grant execute on function public.delete_own_account() to authenticated;
+
 -- p_window: 'week' (rolling 7 days) | 'month' (rolling 30 days) | 'all'
+-- Hard-capped at 100 server-side (least(p_limit, 100)) regardless of what a
+-- caller passes — the menu always asks for 100, but the cap lives here too
+-- so it can't quietly grow into an unbounded query from some other caller.
 drop function if exists public.leaderboard(text, int);
 create or replace function public.leaderboard(
     p_window text default 'all',
-    p_limit int default 20
+    p_limit int default 100
 ) returns table (pseudo text, total bigint)
 language sql
 stable
@@ -385,22 +471,88 @@ as $$
           end
     group by p.pseudo
     order by total desc
-    limit p_limit;
+    limit least(p_limit, 100);
 $$;
 
 grant execute on function public.leaderboard(text, int) to authenticated;
 
--- Progress scoped to the single active batch (see the "Batching" note above
--- campaign_pool.batch_no) — same real target as the scheduler (10 votes per
--- installation, unchanged), just measured against the ~6.5k installations
--- currently being worked on instead of all ~655k. That's what makes this
--- move at a readable pace: a real, honest number, just scoped to what's
--- actually in play right now instead of the whole season at once. Falls
--- back to the LAST batch (as 100%) if every batch is done — an edge case
--- this campaign won't realistically hit for a long time, but shouldn't
--- return nothing if it ever does. NOT gated on verifications.status=
--- 'reviewed' (moderation is offline/after the fact — see
--- verifications_summary below — and must not hold back this counter).
+-- leaderboard() only returns the top p_limit rows, so the menu can't sum a
+-- window total client-side without fetching every player — this is that
+-- total, same window semantics (week/month/all), shown above the ranked
+-- list itself.
+create or replace function public.leaderboard_total(p_window text default 'all')
+returns bigint
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    select count(*)
+    from public.verifications v
+    where case p_window
+              when 'week'  then v.created_at > now() - interval '7 days'
+              when 'month' then v.created_at > now() - interval '30 days'
+              else true
+          end;
+$$;
+
+grant execute on function public.leaderboard_total(text) to authenticated;
+
+-- The current user's own rank for a window — needed because leaderboard()
+-- only returns the top 100, so someone outside that range would otherwise
+-- have no way to see where they stand. Works the same for anonymous and
+-- email-linked accounts alike (both are `authenticated`, just distinguished
+-- by the is_anonymous JWT claim — irrelevant here, this only cares about
+-- auth.uid()). Returns zero rows if this user hasn't voted at all in the
+-- window (per_user only includes users with >= 1 vote) — the client shows
+-- "—" for that case rather than a rank.
+create or replace function public.my_leaderboard_rank(p_window text default 'all')
+returns table (rnk bigint, total_players bigint, my_total bigint)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    with per_user as (
+        select v.user_id, count(*) as total
+        from public.verifications v
+        where v.user_id is not null
+          and case p_window
+                  when 'week'  then v.created_at > now() - interval '7 days'
+                  when 'month' then v.created_at > now() - interval '30 days'
+                  else true
+              end
+        group by v.user_id
+    ),
+    ranked as (
+        select user_id, total, rank() over (order by total desc) as rnk
+        from per_user
+    )
+    select r.rnk, (select count(*) from per_user) as total_players, r.total
+    from ranked r
+    where r.user_id = auth.uid();
+$$;
+
+grant execute on function public.my_leaderboard_rank(text) to authenticated;
+
+-- Two different numbers here, on purpose (this got confusing when they
+-- shared a name, so they now have distinct keys):
+--   - `votes_cast_total` is the honest, unscoped, all-time count of votes
+--     cast across the whole campaign (every batch) — same number as
+--     verification_stats().count. This is what the headline "N validations
+--     done" figure in the menu shows: the real total, full stop.
+--   - `batch_votes_cast` / `batch_votes_target` / `pct` stay scoped to the
+--     single active batch (see the "Batching" note above
+--     campaign_pool.batch_no) — same real 10-votes-per-installation target
+--     the scheduler uses, just measured against the ~6.5k installations
+--     currently being worked on instead of all ~655k, so the progress BAR
+--     still moves at a readable pace instead of crawling against the full
+--     season. Falls back to the LAST batch (as 100%) if every batch is
+--     done — an edge case this campaign won't realistically hit for a long
+--     time, but shouldn't return nothing if it ever does.
+-- NOT gated on verifications.status='reviewed' (moderation is offline/
+-- after the fact — see verifications_summary below — and must not hold
+-- back either number).
 create or replace function public.season_completion(p_campaign_id text)
 returns jsonb
 language sql
@@ -413,20 +565,27 @@ as $$
             (select min(batch_no) from public.campaign_pool where campaign_id = p_campaign_id and votes_received < 10),
             (select max(batch_no) from public.campaign_pool where campaign_id = p_campaign_id)
         ) as batch_no
+    ),
+    totals as (
+        select coalesce(sum(votes_received), 0) as votes_cast_total
+        from public.campaign_pool
+        where campaign_id = p_campaign_id
     )
     select jsonb_build_object(
-        'batch_no',           ab.batch_no,
-        'batch_count',        (select count(distinct batch_no) from public.campaign_pool where campaign_id = p_campaign_id),
-        'total_installations', count(cp.*),
-        'votes_cast',          coalesce(sum(cp.votes_received), 0),
-        'votes_target',        count(cp.*) * 10,
-        'pct',                 least(100.0, round(100.0 * coalesce(sum(cp.votes_received), 0)
-                                       / greatest(count(cp.*) * 10, 1), 1))
+        'votes_cast_total',     t.votes_cast_total,
+        'batch_no',             ab.batch_no,
+        'batch_count',          (select count(distinct batch_no) from public.campaign_pool where campaign_id = p_campaign_id),
+        'batch_installations',  count(cp.*),
+        'batch_votes_cast',     coalesce(sum(cp.votes_received), 0),
+        'batch_votes_target',   count(cp.*) * 10,
+        'pct',                  least(100.0, round(100.0 * coalesce(sum(cp.votes_received), 0)
+                                        / greatest(count(cp.*) * 10, 1), 1))
     )
     from active_batch ab
+    cross join totals t
     left join public.campaign_pool cp
         on cp.campaign_id = p_campaign_id and cp.batch_no = ab.batch_no
-    group by ab.batch_no;
+    group by ab.batch_no, t.votes_cast_total;
 $$;
 
 grant execute on function public.season_completion(text) to authenticated;
@@ -540,3 +699,17 @@ create or replace view public.verifications_summary
     order by total desc;
 
 revoke all on public.verifications_summary from anon, authenticated;
+
+-- ─── spatial_ref_sys RLS advisory — deliberately NOT fixed here ───────────
+-- Supabase's linter flags public.spatial_ref_sys (a table auto-created by
+-- the PostGIS extension — the standard list of coordinate systems, e.g.
+-- EPSG:4326/2154, no user data at all) as "Critical" for missing RLS. This
+-- CANNOT be fixed with an ALTER/CREATE POLICY statement, by any role,
+-- including postgres — Supabase's own extension-provisioning owns this
+-- table under a system role, so any attempt fails with "must be owner of
+-- table spatial_ref_sys" (confirmed against this project — see chat). The
+-- only real fix is relocating the whole PostGIS extension out of `public`
+-- into its own schema, which is a separate, deliberate migration (it can
+-- affect every existing `geometry` column across the project) — not
+-- something to fold into this script. Until that's done, safe to leave
+-- this one specific advisory unresolved; the table holds nothing sensitive.

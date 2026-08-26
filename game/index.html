@@ -7,6 +7,9 @@
 <meta name="description" content="Check. Validate. Improve the map. Help verify solar panel installations detected across France, one swipe at a time." />
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#2c3e50" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PV Check" />
 <link rel="icon" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 <link rel="stylesheet" href="css/style.css" />
@@ -46,29 +49,52 @@
         </div>
         <button id="play-btn" class="btn" disabled>Play</button>
         <p id="pseudo-error" class="error" hidden></p>
-        <p class="hint">No personal data is stored — just this name.</p>
       </div>
 
-      <button id="auth-email-link" class="link">Keep my score across devices</button>
-      <div id="email-form" hidden>
-        <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email" />
-        <button id="email-send" class="btn">Send a code</button>
-        <div id="email-otp-step" hidden>
-          <input id="email-otp-input" maxlength="6" placeholder="6-digit code" inputmode="numeric" />
-          <button id="email-verify" class="btn">Verify</button>
+      <button id="auth-login-link" class="link">Already have an account? Log in</button>
+
+      <div class="landing-cta-actions">
+        <button id="landing-share-card" class="cta-card">
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <polyline points="16 6 12 2 8 6"></polyline>
+              <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>
+          </span>
+          <span class="cta-card-title">Share</span>
+        </button>
+        <a id="landing-discuss-card" class="cta-card" href="https://github.com/gabrielkasmi/deeppvmapper/discussions/17" target="_blank" rel="noopener">
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </span>
+          <span class="cta-card-title">Join the discussion</span>
+        </a>
+      </div>
+
+      <div id="login-panel" hidden>
+        <p class="login-panel-title">Log in</p>
+        <div id="email-form">
+          <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email" />
+          <input id="password-input" type="password" placeholder="Password" autocomplete="current-password" />
+          <button id="login-submit" class="btn">Log in</button>
+          <p id="email-error" class="error" hidden></p>
         </div>
-        <p id="email-error" class="error" hidden></p>
-      </div>
 
-      <button class="google-badge" disabled aria-label="Sign in with Google — coming soon">
-        <svg viewBox="0 0 18 18" width="18" height="18">
-          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
-          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
-          <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
-          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
-        </svg>
-        <span>Sign in with Google — coming soon</span>
-      </button>
+        <button class="google-badge" disabled aria-label="Sign in with Google — coming soon">
+          <svg viewBox="0 0 18 18" width="18" height="18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
+            <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
+          </svg>
+          <span>Sign in with Google — coming soon</span>
+        </button>
+
+        <button id="login-cancel" class="link">&larr; Back</button>
+      </div>
       <p id="auth-error" class="error"></p>
     </div>
 
@@ -165,7 +191,12 @@
         <span class="ctrl-label">Yes</span>
       </div>
     </div>
-    <button id="btn-undo" class="undo" hidden aria-label="Undo last swipe" title="Undo last swipe">↩</button>
+    <button id="btn-undo" class="undo" hidden aria-label="Undo last swipe" title="Undo last swipe">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 14 4 9 9 4"></polyline>
+        <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+      </svg>
+    </button>
 
     <p id="toast" hidden></p>
 
@@ -178,7 +209,7 @@
           <li><span class="key">←</span> swipe left, click <strong>✕</strong>, or left arrow — <strong>not a PV system</strong></li>
           <li><span class="key">↓</span> swipe down, click <strong>↓ Skip</strong>, or down arrow — <strong>come back to this one later</strong> (broken image, obstructed view…), doesn't count as a vote and isn't one of your counters below</li>
           <li><span class="key">?</span> click <strong>? Unsure</strong> — you have a hunch but you're not sure — <strong>ambiguous</strong>, with an optional comment, this DOES count as a vote</li>
-          <li><span class="key">↩</span> undoes your last action, while the button is still shown</li>
+          <li><span class="key key-icon"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg></span> undoes your last action, while the button is still shown</li>
         </ul>
         <button id="tutorial-close" class="btn">Got it, let's go</button>
       </div>
@@ -187,55 +218,139 @@
 
   <aside id="menu" hidden>
     <button id="menu-close" aria-label="Close">✕</button>
-    <p class="menu-pseudo">Name: <strong id="menu-pseudo"></strong></p>
-    <p>My verifications: <strong id="menu-mycount"></strong></p>
-    <p class="menu-breakdown">
-      <span class="bd bd-confirm">✓ <strong id="menu-bd-confirm">0</strong> yes</span>
-      <span class="bd bd-reject">✕ <strong id="menu-bd-reject">0</strong> no</span>
-      <span class="bd bd-ambiguous">? <strong id="menu-bd-ambiguous">0</strong> unsure</span>
-    </p>
 
-    <div id="menu-main-tabs">
-      <button data-panel="leaderboard" class="active">Leaderboard</button>
-      <button data-panel="progress">Progress</button>
+    <div id="menu-account">
+      <p class="menu-section-title">My account</p>
+      <p class="menu-pseudo">Name: <strong id="menu-pseudo"></strong>
+        <button id="menu-edit-pseudo" class="menu-edit-pseudo-btn" hidden aria-label="Edit name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
+      </p>
+      <div id="menu-pseudo-form" class="menu-inline-form" hidden>
+        <input id="menu-pseudo-input" maxlength="24" placeholder="New name" autocomplete="off" />
+        <div class="menu-inline-form-actions">
+          <button id="menu-pseudo-submit" class="btn">Save</button>
+          <button id="menu-pseudo-cancel" class="link">Cancel</button>
+        </div>
+        <p id="menu-pseudo-error" class="error" hidden></p>
+      </div>
+      <p class="menu-email-line" id="menu-email-line" hidden>Email: <strong id="menu-email"></strong></p>
+      <p class="menu-email-line" id="menu-member-since" hidden>Member since <strong id="menu-since-date"></strong></p>
+      <div class="menu-account-links">
+        <button id="menu-claim" class="menu-account-link">
+          <svg class="menu-account-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="m22 6-10 7L2 6"></path>
+          </svg>
+          <span>Connect email</span>
+        </button>
+        <button id="menu-change-password" class="menu-account-link" hidden>Change password</button>
+        <button id="menu-google" class="menu-account-link" disabled title="Coming soon">
+          <svg class="menu-account-link-icon" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
+            <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
+          </svg>
+          <span>Connect Google account</span>
+        </button>
+      </div>
+
+      <div id="menu-claim-form" class="menu-inline-form" hidden>
+        <input id="menu-claim-email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <input id="menu-claim-password" type="password" placeholder="Choose a password" autocomplete="new-password" />
+        <div class="menu-inline-form-actions">
+          <button id="menu-claim-submit" class="btn">Create account</button>
+          <button id="menu-claim-cancel" class="link">Cancel</button>
+        </div>
+        <p id="menu-claim-error" class="error" hidden></p>
+      </div>
+
+      <div id="menu-password-form" class="menu-inline-form" hidden>
+        <input id="menu-new-password" type="password" placeholder="New password" autocomplete="new-password" />
+        <div class="menu-inline-form-actions">
+          <button id="menu-password-submit" class="btn">Update password</button>
+          <button id="menu-password-cancel" class="link">Cancel</button>
+        </div>
+        <p id="menu-password-error" class="error" hidden></p>
+      </div>
+
+      <p class="menu-mycount-line">My verifications: <strong id="menu-mycount"></strong></p>
+      <p class="menu-breakdown">
+        <span class="bd bd-confirm">✓ <strong id="menu-bd-confirm">0</strong> yes</span>
+        <span class="bd bd-reject">✕ <strong id="menu-bd-reject">0</strong> no</span>
+        <span class="bd bd-ambiguous">? <strong id="menu-bd-ambiguous">0</strong> unsure</span>
+      </p>
+      <p class="menu-rank-line">
+        <span class="rank-pill">Week <strong id="menu-rank-week">—</strong></span>
+        <span class="rank-pill">Month <strong id="menu-rank-month">—</strong></span>
+        <span class="rank-pill">All time <strong id="menu-rank-all">—</strong></span>
+      </p>
+      <div class="menu-account-danger">
+        <button id="menu-signout" class="menu-signout-link">Logout</button>
+        <button id="menu-delete-account" class="menu-signout-link menu-delete-link" hidden>Delete my account</button>
+      </div>
     </div>
 
-    <div id="menu-panel-leaderboard">
-      <div id="menu-tabs">
-        <button data-window="week">Week</button>
-        <button data-window="month">Month</button>
-        <button data-window="all" class="active">All time</button>
-      </div>
-      <ol id="menu-leaderboard"></ol>
-    </div>
-
-    <div id="menu-panel-progress" hidden>
-      <div id="menu-completion">
-        <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
-        <div class="bar"><div id="menu-pct-bar"></div></div>
-        <p class="menu-completion-sub"><span id="menu-pct"></span> of batch <span id="menu-batch-no"></span> of <span id="menu-batch-count"></span> — <span id="menu-pct-detail"></span></p>
-        <p class="menu-completion-note">This is the current batch of Season 1 — about 6,500 installations to validate.</p>
+    <div id="menu-scroll">
+      <div id="menu-main-tabs">
+        <button data-panel="leaderboard" class="active">Leaderboard</button>
+        <button data-panel="progress">Progress</button>
       </div>
 
-      <p class="menu-dept-title">Where the community's votes have gone</p>
-      <div id="menu-dept-map"></div>
-      <div id="menu-dept-legend">
-        <span>Less activity</span>
-        <span id="menu-dept-legend-bar"></span>
-        <span>More activity</span>
+      <div id="menu-panel-leaderboard">
+        <div id="menu-tabs">
+          <button data-window="week">Week</button>
+          <button data-window="month">Month</button>
+          <button data-window="all" class="active">All time</button>
+        </div>
+        <p id="menu-leaderboard-total"></p>
+        <ol id="menu-leaderboard"></ol>
+      </div>
+
+      <div id="menu-panel-progress" hidden>
+        <div id="menu-completion">
+          <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
+          <div class="bar"><div id="menu-pct-bar"></div></div>
+          <p class="menu-completion-sub"><span id="menu-pct"></span> &middot; batch <span id="menu-batch-no"></span>/<span id="menu-batch-count"></span> &middot; <span id="menu-pct-detail"></span> votes</p>
+          <p class="menu-completion-note">Current batch: ~6,500 installations.</p>
+        </div>
+
+        <p class="menu-dept-title">Votes by département</p>
+        <div id="menu-dept-map"></div>
+        <div id="menu-dept-legend">
+          <span>Less</span>
+          <span id="menu-dept-legend-bar"></span>
+          <span>More</span>
+        </div>
       </div>
     </div>
 
     <div id="menu-cta">
-      <p class="menu-cta-line">Know someone who'd enjoy this? Spread the word.</p>
       <div class="menu-cta-actions">
-        <button id="menu-share" class="btn">Share PV Check</button>
-        <a id="menu-discuss" class="link" href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" rel="noopener">Join the discussion &rarr;</a>
+        <button id="menu-share" class="cta-card">
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <polyline points="16 6 12 2 8 6"></polyline>
+              <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>
+          </span>
+          <span class="cta-card-title">Share</span>
+        </button>
+        <a id="menu-discuss" class="cta-card" href="https://github.com/gabrielkasmi/deeppvmapper/discussions/17" target="_blank" rel="noopener">
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </span>
+          <span class="cta-card-title">Join the discussion</span>
+        </a>
       </div>
     </div>
-
-    <button id="menu-claim" class="btn">Secure my account (email)</button>
-    <button id="menu-signout" class="danger">Start over (clears local session)</button>
   </aside>
 
 </div>

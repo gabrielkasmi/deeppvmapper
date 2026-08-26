@@ -86,12 +86,22 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
 .hero-explore { margin: 0 0 6px; font-size: 0.88rem; }
 .hero-explore a {
     color: rgba(255, 255, 255, 0.85); text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    background: none; padding: 0; font: inherit; cursor: pointer;
     transition: color 0.2s ease, border-color 0.2s ease;
 }
 .hero-explore a:hover, .hero-explore a:focus-visible { color: #ffffff; border-bottom-color: rgba(255, 255, 255, 0.85); }
 
+.landing-cta-actions { display: flex; flex-direction: row; gap: 8px; width: 100%; max-width: 320px; margin: 4px 0; }
+
 .link { background: none; color: rgba(255,255,255,0.85); text-decoration: underline; padding: 6px; font-size: 0.9rem; }
+
+#login-panel {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: 100%; max-width: 320px; margin: 4px 0;
+}
+.login-panel-title { margin: 0; font-size: 0.95rem; font-weight: 700; color: #fff; }
+#login-cancel { margin-top: 2px; font-size: 0.82rem; opacity: 0.8; }
 
 .google-badge {
     display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -277,38 +287,99 @@ header button:hover { background: var(--border-2); }
     display: inline-block; width: 1.6em; text-align: center; margin-right: 6px;
     background: var(--surface-2); border-radius: 6px; font-weight: 700; color: var(--ink);
 }
+.tutorial-box .key-icon { display: inline-flex; align-items: center; justify-content: center; padding: 3px 0; }
 #tutorial-close { width: 100%; margin-top: 4px; text-align: center; display: block; }
 
 /* ─── Menu ─── */
 
+/* Three fixed zones so Share/Join-the-discussion never scroll out of view
+   on a short phone screen (iPhone 13 + Firefox was the reported case): a
+   shrink-to-fit account header, a flexible scrolling middle (the
+   leaderboard/progress "dropdown"), and a shrink-to-fit CTA bar pinned to
+   the bottom. dvh (with a vh fallback for older engines) accounts for
+   mobile browser chrome the way plain vh doesn't. */
 #menu {
-    position: fixed; inset: 0; background: var(--bg); z-index: 10;
-    padding: 20px; overflow-y: auto; color: var(--ink);
+    position: fixed; inset: 0; background: var(--bg); z-index: 10; color: var(--ink);
+    display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh;
 }
 #menu-close {
     position: absolute; top: 16px; right: 16px; background: var(--surface-2); color: var(--ink);
-    font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%;
+    font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; z-index: 1;
+}
+
+#menu-account { flex-shrink: 0; padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+.menu-section-title {
+    margin: 0 0 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--muted-2);
 }
 .menu-pseudo strong, #menu-mycount { color: var(--ink); }
+.menu-edit-pseudo-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; padding: 0; margin-left: 4px; vertical-align: -3px;
+    background: none; border: none; color: var(--muted);
+}
+.menu-edit-pseudo-btn:hover { color: var(--ink); }
+.menu-edit-pseudo-btn svg { width: 14px; height: 14px; }
+.menu-email-line { margin: 2px 0 0; font-size: 0.85rem; color: var(--muted); }
+.menu-email-line strong { color: var(--ink); }
+.menu-account-links { display: flex; gap: 8px; margin: 8px 0; }
+.menu-account-link {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px; font-size: 0.8rem; background: var(--surface-2); color: var(--ink);
+    border: 1px solid var(--border-2); border-radius: 6px;
+}
+.menu-account-link:hover:not(:disabled) { background: var(--border-2); }
+.menu-account-link:disabled { opacity: 0.45; }
+.menu-account-link-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.menu-inline-form { display: flex; flex-direction: column; gap: 6px; margin: 0 0 8px; }
+.menu-inline-form input { padding: 9px 10px; font-size: 0.88rem; border-radius: 6px; }
+.menu-inline-form-actions { display: flex; align-items: center; gap: 12px; }
+.menu-inline-form-actions .btn { padding: 8px 14px; font-size: 0.85rem; flex: 0 0 auto; }
+.menu-inline-form-actions .link { padding: 0; font-size: 0.8rem; }
+.menu-mycount-line { margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); }
 .menu-breakdown { display: flex; gap: 14px; margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; }
 .menu-breakdown strong { color: var(--ink); }
+.menu-rank-line { display: flex; gap: 8px; margin: 8px 0 0; flex-wrap: wrap; }
+.rank-pill {
+    font-size: 0.75rem; color: var(--muted); background: var(--surface-2);
+    border: 1px solid var(--border-2); border-radius: 20px; padding: 3px 10px;
+}
+.rank-pill strong { color: var(--ink); }
 .bd-confirm { color: var(--confirm); }
 .bd-reject { color: var(--reject); }
+.menu-account-danger { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+.menu-signout-link {
+    display: inline; margin: 0; padding: 0; background: none; border: none;
+    font-size: 0.74rem; color: var(--muted-2); text-decoration: underline;
+}
+.menu-signout-link:hover { color: var(--reject); }
+.menu-delete-link { color: rgba(231, 111, 81, 0.75); }
+.menu-delete-link:hover { color: var(--reject); }
+
+#menu-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px; }
+
 /* Top-level Leaderboard/Progress switcher — same visual language as the
    week/month/all-time sub-tabs below it, just a size step up. */
-#menu-main-tabs { display: flex; gap: 8px; margin: 18px 0 4px; }
+#menu-main-tabs { display: flex; gap: 8px; margin: 0 0 10px; }
 #menu-main-tabs button {
     flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--muted);
     padding: 10px; font-weight: 600; font-size: 0.9rem; border-radius: 8px;
 }
 #menu-main-tabs button.active { background: var(--slate); border-color: var(--slate); color: #fff; }
 
-#menu-panel-leaderboard, #menu-panel-progress { margin-top: 12px; }
-
 #menu-tabs { display: flex; gap: 8px; margin: 0 0 8px; }
 #menu-tabs button { flex: 1; background: var(--surface-2); color: var(--muted); padding: 8px; }
 #menu-tabs button.active { background: var(--slate); color: #fff; }
-#menu-leaderboard { list-style: none; padding: 0; margin: 0; }
+#menu-leaderboard-total {
+    margin: 0 0 10px; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+/* The "dropdown" — a shortened, internally-scrolling window instead of an
+   unbounded list (up to 20 rows was pushing everything below it, including
+   the CTA bar, off-screen on a phone). */
+#menu-leaderboard {
+    list-style: none; padding: 0; margin: 0; max-height: 38vh; overflow-y: auto;
+}
 #menu-leaderboard li {
     display: flex; align-items: center; gap: 10px; padding: 8px 4px;
     border-bottom: 1px solid var(--border);
@@ -327,7 +398,7 @@ header button:hover { background: var(--border-2); }
 #menu-completion p { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }
 #menu-completion p.menu-completion-note { font-size: 0.78rem; color: var(--muted-2); }
 
-.menu-dept-title { margin: 20px 0 8px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.menu-dept-title { margin: 16px 0 8px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
 #menu-dept-map {
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 10px; display: flex; justify-content: center;
@@ -344,22 +415,24 @@ header button:hover { background: var(--border-2); }
 }
 
 #menu-cta {
-    margin: 20px 0; padding: 16px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; text-align: center;
+    flex-shrink: 0; padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border); background: var(--surface);
 }
-.menu-cta-line { margin: 0 0 10px; font-size: 0.88rem; color: var(--muted); }
-.menu-cta-actions { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-#menu-share { max-width: 260px; }
-#menu-discuss { color: var(--ink); opacity: 0.8; }
-#menu-discuss:hover { opacity: 1; }
-
-#menu-claim, #menu-signout {
-    width: 100%; max-width: none; padding: 12px; margin-top: 12px; border: 1px solid var(--border-2);
-    background: var(--surface-2); color: var(--ink); border-radius: 6px;
+/* Side-by-side, small icon + title + description cards — same shape as
+   the main site's .hub-card/.contrib-card tiles (content/contribute.html),
+   just compact and dark-themed: this sits in the pinned bottom bar, no
+   room for the full-size version. */
+.menu-cta-actions { display: flex; flex-direction: row; gap: 8px; }
+.cta-card {
+    flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
+    gap: 3px; padding: 10px 6px; background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 10px; color: var(--ink); text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
 }
-#menu-claim:hover { background: var(--border-2); }
-#menu-signout.danger { background: rgba(231, 111, 81, 0.14); color: #ff9270; border-color: rgba(231, 111, 81, 0.4); }
-#menu-signout.danger:hover { background: rgba(231, 111, 81, 0.22); }
+.cta-card:hover { border-color: var(--slate); transform: translateY(-1px); }
+.cta-card-icon { width: 18px; height: 18px; color: #8ea9c4; }
+.cta-card-icon svg { width: 100%; height: 100%; }
+.cta-card-title { font-size: 0.8rem; font-weight: 600; }
 
 @media (min-width: 640px) {
     #controls { gap: 24px; }

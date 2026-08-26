@@ -92,7 +92,16 @@ export async function renderDeptMap(container, rows) {
     const bounds = computeBounds(features);
     const byDept = {};
     (rows || []).forEach(r => { byDept[r.dpt] = r; });
+    // rows can come back non-empty but with every vote_share_pct at 0 (e.g.
+    // if the voted-on installations' detections.dpt is unset) — that's
+    // visually identical to "no data" (every path lands on COLOR_EMPTY), so
+    // it needs its own flag rather than just checking rows.length.
+    const hasShare = (rows || []).some(r => (Number(r.vote_share_pct) || 0) > 0);
     const maxShare = Math.max(0.01, ...(rows || []).map(r => Number(r.vote_share_pct) || 0));
+
+    if (!hasShare) {
+        console.warn('season_progress_by_department returned no usable vote_share_pct', { rowCount: (rows || []).length, rows });
+    }
 
     const paths = features.map(f => {
         const row = byDept[f.properties.code];
@@ -106,8 +115,11 @@ export async function renderDeptMap(container, rows) {
         return `<path d="${d}" fill="${fill}" stroke="#12171d" stroke-width="0.6"><title>${title}</title></path>`;
     }).join('');
 
+    const note = hasShare ? '' :
+        '<p class="menu-dept-error">No département data yet for the votes cast so far — see the browser console for details.</p>';
+
     container.innerHTML =
         `<svg viewBox="0 0 ${bounds.width.toFixed(1)} ${bounds.height.toFixed(1)}" role="img" ` +
         `aria-label="Map of metropolitan France, départements colored by share of community verification votes cast so far">` +
-        paths + `</svg>`;
+        paths + `</svg>` + note;
 }
