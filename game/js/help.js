@@ -12,6 +12,7 @@ const SEEN_KEY = 'pvscroll_tutorial_seen';
 export function initHelp() {
     $('#help-open').addEventListener('click', () => show($('#tutorial')));
     wireInstallButton($('#header-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
+    $('#header-purpose-btn').addEventListener('click', () => show($('#purpose-panel')));
     $('#tutorial-close').addEventListener('click', dismiss);
 
     let seen = false;

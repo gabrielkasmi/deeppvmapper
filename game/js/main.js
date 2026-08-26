@@ -131,6 +131,14 @@ function wireAuthScreen() {
     $('#landing-share-card').addEventListener('click', shareApp);
     wireInstallButton($('#landing-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
 
+    // "What is the purpose of this game?" — same panel, two entry points
+    // (this landing link, and the header button wired in help.js), both
+    // work regardless of which screen is showing since #purpose-panel is
+    // a top-level element, not nested inside #game-screen (see its HTML
+    // comment for why that matters — same issue #toast had).
+    $('#landing-purpose-link').addEventListener('click', e => { e.preventDefault(); show($('#purpose-panel')); });
+    $('#purpose-close').addEventListener('click', () => hide($('#purpose-panel')));
+
     // Login fully REPLACES the name/Play block (not shown alongside it) —
     // toggle both ways so cancelling out of login goes back to a clean
     // sign-up state instead of showing both at once.

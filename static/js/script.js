@@ -61,6 +61,34 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(() => {});
     }
 
+    // Community contributions counter (hero stats): sum of the map's
+    // crowdsourced annotations table and PV Check's verifications table —
+    // two separate crowdsourcing efforts, one combined headline number.
+    // Plain REST calls (no supabase-js import on this page), same project
+    // credentials as static/js/map/config.js and game/js/config.js.
+    // Best-effort — leaves the "—" placeholder on any failure.
+    const communityCountEl = document.getElementById('community-count');
+    if (communityCountEl) {
+        const SUPABASE_URL = 'https://zelhliylrlktnasircwp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi';
+        const rpc = fn => fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+            method: 'POST',
+            headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: '{}'
+        }).then(r => r.ok ? r.json() : Promise.reject());
+
+        Promise.all([rpc('annotation_stats'), rpc('verification_stats')])
+            .then(([annotations, verifications]) => {
+                const total = (annotations?.count ?? 0) + (verifications?.count ?? 0);
+                communityCountEl.textContent = total.toLocaleString('en-US');
+            })
+            .catch(() => {});
+    }
+
     // Citation modal: the quote icon in the top nav opens a small popover
     // with the BibTeX entry (used instead of a full "Citation" page section).
     const citationTrigger = document.getElementById('citation-trigger');

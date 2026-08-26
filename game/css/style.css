@@ -83,14 +83,21 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
 .hero-stats strong { color: #ffffff; font-weight: 600; }
 .hero-stats .hero-stat-sep { color: rgba(255, 255, 255, 0.32); }
 
-.hero-explore { margin: 0 0 6px; font-size: 0.88rem; }
-.hero-explore a {
-    color: rgba(255, 255, 255, 0.85); text-decoration: none;
-    border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-    background: none; padding: 0; font: inherit; cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
+/* Same pill treatment as the main site's .quick-links (static/css/style.css)
+   — small rounded buttons on the dark banner, used instead of a text link
+   whenever a landing/tutorial row offers a handful of jump-off points. */
+.quick-links {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+    gap: 8px; margin: 0 0 6px;
 }
-.hero-explore a:hover, .hero-explore a:focus-visible { color: #ffffff; border-bottom-color: rgba(255, 255, 255, 0.85); }
+.quick-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.82rem; font-weight: 500; color: white;
+    background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px; padding: 7px 16px; text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease; cursor: pointer;
+}
+.quick-link:hover, .quick-link:focus-visible { background: rgba(255, 255, 255, 0.24); border-color: rgba(255, 255, 255, 0.45); }
 
 .landing-cta-actions { display: flex; flex-direction: row; gap: 8px; width: 100%; max-width: 320px; margin: 4px 0; }
 
@@ -144,6 +151,16 @@ input {
     background-color: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.15);
     color: rgba(255,255,255,0.5); cursor: not-allowed; transform: none;
 }
+
+/* Secondary variant — same shape/size as .btn (used e.g. for "Learn more"
+   sitting next to a primary "Got it"/close .btn), just visually lighter. */
+.btn-outline {
+    display: inline-block; padding: 12px 24px; background-color: transparent; color: var(--ink);
+    text-decoration: none; border-radius: 6px; font-weight: 500;
+    transition: all 0.3s ease; border: 1px solid var(--border-2); width: 100%; max-width: 320px;
+    text-align: center;
+}
+.btn-outline:hover { background-color: var(--surface-2); border-color: var(--muted-2); transform: translateY(-1px); }
 
 /* ─── Footer — copied from the main site, same class names ────────────────── */
 .footer { background-color: #2c3e50; color: white; text-align: center; padding: 20px 0; margin-top: auto; }
@@ -338,6 +355,20 @@ header button:hover { background: var(--border-2); }
 }
 .tutorial-box .key-icon { display: inline-flex; align-items: center; justify-content: center; padding: 3px 0; }
 #tutorial-close { width: 100%; margin-top: 4px; text-align: center; display: block; }
+
+/* ─── "What is the purpose of this game?" panel — same overlay mechanic,
+   reuses .tutorial-box, adds prose-specific rules (h3/p) it didn't need. ── */
+#purpose-panel {
+    position: fixed; inset: 0; background: rgba(6, 9, 12, 0.7); z-index: 30;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.purpose-intro { color: var(--muted); font-size: 0.92rem; margin: 4px 0 18px; }
+.tutorial-box h3 { margin: 18px 0 6px; font-size: 0.95rem; }
+.tutorial-box h3:first-of-type { margin-top: 0; }
+.tutorial-box p { color: var(--ink); font-size: 0.88rem; line-height: 1.5; margin: 0 0 4px; }
+.tutorial-box p a { color: inherit; }
+.purpose-learn-more { display: block; margin: 18px 0 12px; font-size: 0.88rem; text-align: center; }
+#purpose-close { width: 100%; margin-top: 4px; text-align: center; display: block; }
 
 /* ─── Menu ─── */
 

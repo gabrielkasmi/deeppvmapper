@@ -36,11 +36,11 @@
         <span class="hero-stat-sep">&middot;</span>
         <span>Last one <strong id="landing-last">—</strong></span>
       </p>
-      <p class="hero-explore">
-        <a href="#" id="landing-leaderboard-link">Leaderboard &rarr;</a>
-        <span class="hero-stat-sep">&middot;</span>
-        <a href="#" id="landing-progress-link">Progress &rarr;</a>
-      </p>
+      <div class="quick-links">
+        <a href="#" id="landing-leaderboard-link" class="quick-link">Leaderboard</a>
+        <a href="#" id="landing-progress-link" class="quick-link">Progress</a>
+        <a href="#" id="landing-purpose-link" class="quick-link">Purpose</a>
+      </div>
 
       <div id="pseudo-form">
         <div class="pseudo-row">
@@ -139,17 +139,26 @@
 
   <section id="game-screen" hidden>
     <header>
-      <button id="menu-open" aria-label="Menu">☰</button>
-      <span id="header-pseudo"></span>
       <div class="header-actions">
+        <button id="menu-open" aria-label="Menu">☰</button>
         <button id="header-install-btn" aria-label="Add to Home Screen" title="Add to Home Screen" hidden>
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="14" rx="2"></rect>
-        <line x1="8" y1="21" x2="16" y2="21"></line>
-        <line x1="12" y1="17" x2="12" y2="21"></line>
-        <line x1="12" y1="8" x2="12" y2="14"></line>
-        <line x1="9" y1="11" x2="15" y2="11"></line>
-      </svg>
+            <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+            <line x1="12" y1="8" x2="12" y2="14"></line>
+            <line x1="9" y1="11" x2="15" y2="11"></line>
+          </svg>
+        </button>
+      </div>
+      <span id="header-pseudo"></span>
+      <div class="header-actions">
+        <button id="header-purpose-btn" aria-label="What is the purpose of this game?" title="What is the purpose of this game?">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <line x1="12" y1="11" x2="12" y2="16"></line>
+            <line x1="12" y1="7.5" x2="12" y2="7.51"></line>
+          </svg>
         </button>
         <button id="help-open" aria-label="Help">?</button>
       </div>
@@ -402,6 +411,28 @@
   </aside>
 
   <p id="toast" hidden></p>
+
+  <!-- Top-level (not inside #game-screen) so it's reachable from the
+       landing screen too — see the #toast fix for why nesting this kind
+       of overlay inside a hidden ancestor silently breaks it. -->
+  <div id="purpose-panel" hidden>
+    <div class="tutorial-box">
+      <h2>What is the purpose of this game?</h2>
+      <p class="purpose-intro">PV Check is a crowdsourcing platform designed to improve <a href="../content/openpvmapper.html">OpenPVMapper</a>.</p>
+
+      <h3>How it works?</h3>
+      <p>Every yes / no / unsure you swipe is one vote on a single installation. Once an installation collects 10 independent votes, we compute a consensus score from all of them — that's what turns into a label: contains PV, no PV, or ambiguous. No single swipe decides anything on its own, it's the sum of everyone's votes that does. So if you're not sure, swipe unsure rather than guessing — and a quick comment on an ambiguous case helps even more.</p>
+
+      <h3>Feeding back into OpenPVMapper</h3>
+      <p>Every installation in <a href="../content/openpvmapper.html">OpenPVMapper</a> carries a tag showing where its label comes from. Today, one tag marks installations already verified through DeepPVMapper's manual annotation effort — see the <a href="../content/main-results.html">Registry Audit</a> page for how that works. Installations verified here, through crowdsourced consensus, will get their own tag in upcoming releases — raising the confidence level of the data for everyone. The first campaign focuses on the installations the model is currently least sure about.</p>
+
+      <h3>Building an open training dataset</h3>
+      <p>In the same spirit as the <a href="https://www.nature.com/articles/s41597-023-01951-4" target="_blank" rel="noopener">BDAPPV</a> annotation campaign, the goal is also to build an open dataset that can be used to retrain and improve the AI models that detect solar panels in the first place — not just label what's already there.</p>
+
+      <a href="../content/about.html" class="btn-outline">Learn more about DeepPVMapper</a>
+      <button id="purpose-close" class="btn">Got it</button>
+    </div>
+  </div>
 
 </div>
 
