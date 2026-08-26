@@ -191,6 +191,40 @@ header button:hover { background: var(--border-2); }
     padding: 16px; min-height: 0; position: relative;
 }
 
+/* ─── Gamification flourishes (js/hooks.js) — self-clearing pop-ups, no
+   dismiss control. pointer-events: none so they can never eat a swipe. ── */
+#hook-flash {
+    position: fixed; top: calc(96px + env(safe-area-inset-top, 0px)); left: 50%;
+    transform: translate(-50%, -8px) scale(0.75);
+    pointer-events: none; z-index: 16; opacity: 0;
+    font-weight: 700; font-size: 0.92rem; padding: 9px 18px; border-radius: 999px;
+    color: #06210f; white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+#hook-flash.milestone { background: linear-gradient(135deg, #6ee7b7, #34d399); }
+#hook-flash.streak { background: linear-gradient(135deg, #fbbf24, #f97316); color: #2a1400; }
+#hook-flash.show {
+    animation: hook-flash-in 0.35s ease-out forwards;
+    transition: opacity 0.25s ease;
+}
+@keyframes hook-flash-in {
+    0%   { opacity: 0; transform: translate(-50%, -8px) scale(0.75); }
+    60%  { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+#rank-banner {
+    position: fixed; top: calc(96px + env(safe-area-inset-top, 0px)); left: 16px; right: 16px;
+    max-width: 380px; margin: 0 auto;
+    pointer-events: none; z-index: 16; opacity: 0; transform: translateY(-10px);
+    background: var(--surface); border: 1px solid var(--border-2); border-radius: 12px;
+    padding: 10px 16px; font-size: 0.85rem; text-align: center; color: var(--ink);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#rank-banner strong { color: #34d399; }
+#rank-banner.show { opacity: 1; transform: translateY(0); }
+
 .card {
     width: min(400px, 90vw); aspect-ratio: 1 / 1;
     background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
@@ -238,6 +272,16 @@ header button:hover { background: var(--border-2); }
 }
 #ambiguous-submit { width: auto; padding: 10px 24px; }
 #ambiguous-cancel { background: none; color: var(--muted); }
+
+#install-nudge {
+    margin: 0 16px 10px; padding: 12px 14px; background: var(--surface);
+    border: 1px solid var(--border-2); border-radius: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.install-nudge-text { margin: 0; font-size: 0.85rem; color: var(--ink); }
+.install-nudge-actions { display: flex; gap: 10px; align-items: center; }
+.install-nudge-actions .btn { flex: 1; padding: 10px; font-size: 0.85rem; }
+.install-nudge-actions .link { padding: 6px 4px; font-size: 0.82rem; }
 
 #controls { display: flex; justify-content: center; align-items: flex-start; gap: 16px; padding: 12px 16px; }
 .ctrl-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }

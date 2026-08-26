@@ -535,6 +535,48 @@ $$;
 
 grant execute on function public.my_leaderboard_rank(text) to authenticated;
 
+-- Consecutive-day streak (including today), for the "welcome back" flourish
+-- shown once per day when the game screen opens — gaps-and-islands trick:
+-- ordering distinct active days DESC and subtracting a row number gives a
+-- constant value within any run of consecutive calendar days, so grouping
+-- on that constant isolates the run and count(*) is the streak length.
+-- Returns 0 if the most recent active day isn't today or yesterday (streak
+-- broken) — day boundaries are UTC (this project's DB timezone), so this
+-- is deliberately approximate near midnight rather than per-user-timezone
+-- exact; fine for a fun/optional feature, not worth the complexity here.
+drop function if exists public.my_streak();
+create or replace function public.my_streak()
+returns int
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    with days as (
+        select distinct (created_at at time zone 'utc')::date as d
+        from public.verifications
+        where user_id = auth.uid()
+    ),
+    numbered as (
+        select d, row_number() over (order by d desc) as rn
+        from days
+    ),
+    grouped as (
+        select d, d + rn::int as grp
+        from numbered
+    ),
+    latest_group as (
+        select grp from grouped order by d desc limit 1
+    )
+    select case
+        when (select max(d) from days) is null then 0
+        when (select max(d) from days) < (current_date - 1) then 0
+        else (select count(*)::int from grouped g, latest_group lg where g.grp = lg.grp)
+    end;
+$$;
+
+grant execute on function public.my_streak() to authenticated;
+
 -- Two different numbers here, on purpose (this got confusing when they
 -- shared a name, so they now have distinct keys):
 --   - `votes_cast_total` is the honest, unscoped, all-time count of votes

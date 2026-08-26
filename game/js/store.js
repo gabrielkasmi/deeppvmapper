@@ -40,6 +40,13 @@ export const S = {
     // my_verification_breakdown()). Skip is deliberately NOT tracked here:
     // it isn't a vote, so it shouldn't look like one of the three counters.
     counts: { confirm: 0, reject: 0, ambiguous: 0 },
+    // Gamification state (see js/hooks.js) — seeded once at boot from the
+    // DB (my_verification_breakdown / my_streak / my_leaderboard_rank),
+    // then lifetimeTotal is bumped locally per vote so milestone checks
+    // don't need a DB round trip on every single swipe.
+    lifetimeTotal: 0,
+    streak: 0,
+    rankCache: { week: null, month: null, all: null },
 };
 
 export const $ = sel => document.querySelector(sel);
@@ -48,11 +55,11 @@ export const show = el => { if (el) el.hidden = false; };
 export const hide = el => { if (el) el.hidden = true; };
 
 let toastTimer;
-export function toast(msg) {
+export function toast(msg, ms = 3000) {
     const el = $('#toast');
     if (!el) return;
     el.textContent = msg;
     show(el);
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => hide(el), 3000);
+    toastTimer = setTimeout(() => hide(el), ms);
 }

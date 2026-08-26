@@ -4,6 +4,7 @@ import { CAMPAIGN_ID } from './config.js';
 import { $, $$, show, hide, getSupabase, S, toast } from './store.js';
 import { editPseudo, linkEmailPassword, changePassword, signOut, deleteAccount } from './auth.js';
 import { renderDeptMap } from './deptmap.js';
+import { wireInstallButton } from './pwa.js';
 
 let currentWindow = 'all';
 let currentPanel = 'leaderboard';
@@ -19,6 +20,7 @@ export function initMenu() {
     $$('#menu-tabs button').forEach(btn =>
         btn.addEventListener('click', () => { currentWindow = btn.dataset.window; refreshLeaderboard(); }));
     $('#menu-share').addEventListener('click', shareApp);
+    wireInstallButton($('#menu-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
 
     // Rename — only reachable once an account has an email (the pencil
     // icon stays hidden for anonymous players, see refreshAccountState()).

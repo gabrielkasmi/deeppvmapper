@@ -9,6 +9,8 @@ import { UNDO_WINDOW_MS } from './config.js';
 import { S, $, show, hide, toast } from './store.js';
 import { cardImageUrl, preloadImage } from './image.js';
 import { fetchNextBatch, maybePrefetch, recordDecision, undoLastDecision, flushPendingNow } from './campaign.js';
+import { shouldShowInstallNudge, markInstallNudgeShown, triggerInstall, isIOS } from './pwa.js';
+import { checkMilestone, checkRankMaybe } from './hooks.js';
 
 let dragStartX = null, dragStartY = null, dragging = false;
 let undoTimer = null;
@@ -22,6 +24,12 @@ export async function initSwipe() {
     $('#ambiguous-submit').addEventListener('click', submitAmbiguous);
     $('#ambiguous-cancel').addEventListener('click', () => hide($('#ambiguous-form')));
     $('#btn-undo').addEventListener('click', doUndo);
+    $('#install-nudge-accept').addEventListener('click', async () => {
+        hide($('#install-nudge'));
+        const shown = await triggerInstall();
+        if (!shown && isIOS()) toast('Tap the Share icon, then "Add to Home Screen".', 4500);
+    });
+    $('#install-nudge-dismiss').addEventListener('click', () => hide($('#install-nudge')));
     $('#notify-submit').addEventListener('click', () =>
         toast('Coming soon — in the meantime, secure your account from the menu (☰).'));
 
@@ -86,6 +94,16 @@ function bumpCount(decision) {
     const el = $(`#sc-${decision}`);
     if (el) el.textContent = S.counts[decision];
     lastDecision = decision;
+
+    const total = S.counts.confirm + S.counts.reject + S.counts.ambiguous;
+    if (shouldShowInstallNudge(total)) {
+        markInstallNudgeShown();
+        show($('#install-nudge'));
+    }
+
+    S.lifetimeTotal++;
+    checkMilestone(S.lifetimeTotal);
+    checkRankMaybe(S.lifetimeTotal);
 }
 
 function unbumpLastCount() {
@@ -93,6 +111,7 @@ function unbumpLastCount() {
     S.counts[lastDecision] = Math.max(0, (S.counts[lastDecision] || 0) - 1);
     const el = $(`#sc-${lastDecision}`);
     if (el) el.textContent = S.counts[lastDecision];
+    S.lifetimeTotal = Math.max(0, S.lifetimeTotal - 1); // keep it matching the DB after an undo
     lastDecision = null;
 }
 

@@ -72,6 +72,18 @@
           </span>
           <span class="cta-card-title">Join the discussion</span>
         </a>
+        <button id="landing-install-btn" class="cta-card" hidden>
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+              <line x1="12" y1="8" x2="12" y2="14"></line>
+              <line x1="9" y1="11" x2="15" y2="11"></line>
+            </svg>
+          </span>
+          <span class="cta-card-title">Add to Home Screen</span>
+        </button>
       </div>
 
       <div id="login-panel" hidden>
@@ -138,6 +150,11 @@
       <span class="sc sc-ambiguous">? <strong id="sc-ambiguous">0</strong></span>
     </div>
 
+    <!-- Gamification flourishes (js/hooks.js) — self-clearing, no dismiss
+         control, pointer-events disabled so they never block a swipe. -->
+    <div id="hook-flash" hidden aria-live="polite"></div>
+    <div id="rank-banner" hidden aria-live="polite"></div>
+
     <div id="card-stack">
       <div id="card-loading" class="card loading">
         <div class="spinner"></div>
@@ -171,6 +188,14 @@
       <textarea id="ambiguous-comment" maxlength="500" placeholder="Why is it ambiguous? (optional)"></textarea>
       <button id="ambiguous-submit" class="btn">Submit</button>
       <button id="ambiguous-cancel">Cancel</button>
+    </div>
+
+    <div id="install-nudge" hidden>
+      <p class="install-nudge-text">Enjoying it? Add PV Check to your home screen for one-tap access.</p>
+      <div class="install-nudge-actions">
+        <button id="install-nudge-accept" class="btn">Add to Home Screen</button>
+        <button id="install-nudge-dismiss" class="link">Not now</button>
+      </div>
     </div>
 
     <div id="controls">
@@ -349,6 +374,18 @@
           </span>
           <span class="cta-card-title">Join the discussion</span>
         </a>
+        <button id="menu-install-btn" class="cta-card" hidden>
+          <span class="cta-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+              <line x1="12" y1="8" x2="12" y2="14"></line>
+              <line x1="9" y1="11" x2="15" y2="11"></line>
+            </svg>
+          </span>
+          <span class="cta-card-title">Add to Home Screen</span>
+        </button>
       </div>
     </div>
   </aside>

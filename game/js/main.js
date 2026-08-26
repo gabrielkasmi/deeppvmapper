@@ -1,10 +1,12 @@
 // ─── Boot ──────────────────────────────────────────────────────────────────
 
-import { S, $, show, hide, getSupabase } from './store.js';
+import { S, $, show, hide, getSupabase, toast } from './store.js';
 import { ensureSession, claimPseudo, login, refreshProfile } from './auth.js';
 import { initSwipe } from './swipe.js';
 import { initMenu, openMenu, shareApp } from './menu.js';
 import { initHelp } from './help.js';
+import { wireInstallButton } from './pwa.js';
+import { primeHooks, announceStreak } from './hooks.js';
 
 const ADJECTIVES = ['Solar', 'Sunny', 'Bright', 'Rooftop', 'Golden', 'Amber', 'Swift', 'Keen', 'Sharp', 'Curious'];
 const NOUNS = ['Panel', 'Scanner', 'Falcon', 'Otter', 'Fox', 'Hawk', 'Badger', 'Pixel', 'Ranger', 'Scout'];
@@ -32,6 +34,13 @@ async function boot() {
         return;
     }
 
+    // Awaited, not fire-and-forget like refreshLandingStats() below: it
+    // seeds S.lifetimeTotal/S.streak/S.rankCache (see js/hooks.js), and
+    // milestone/rank checks on the very first swipe need that baseline to
+    // already be correct — starting from 0 and racing a fetch would risk a
+    // false "10 verifications!" firing on an early vote.
+    await primeHooks().catch(err => console.error('primeHooks failed:', err));
+
     // Fire-and-forget, now that a session exists (verification_stats() is
     // granted to `authenticated`, which the anonymous session already is).
     refreshLandingStats();
@@ -45,6 +54,7 @@ function startGame() {
     $('#header-pseudo').textContent = S.pseudo;
     initHelp();
     initSwipe();
+    announceStreak();
 }
 
 async function refreshLandingStats() {
@@ -119,6 +129,7 @@ function wireAuthScreen() {
         await openMenu('progress');
     });
     $('#landing-share-card').addEventListener('click', shareApp);
+    wireInstallButton($('#landing-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
 
     // Login fully REPLACES the name/Play block (not shown alongside it) —
     // toggle both ways so cancelling out of login goes back to a clean
