@@ -113,6 +113,7 @@
     <footer class="footer">
       <div class="container">
         <a href="../content/about.html" class="footer-about-link">About</a>
+        <a href="../content/legal.html" class="footer-about-link">Legal</a>
         <div class="footer-contact">
           <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -391,9 +392,13 @@
       <div id="menu-claim-form" class="menu-inline-form" hidden>
         <input id="menu-claim-email" type="email" placeholder="you@example.com" autocomplete="email" />
         <input id="menu-claim-password" type="password" placeholder="Choose a password" autocomplete="new-password" />
+        <label id="menu-claim-consent-label" class="menu-consent-label">
+          <input id="menu-claim-consent" type="checkbox" />
+          <span>I acknowledge having read the <a href="../content/legal.html#privacy-policy" target="_blank">privacy notice</a>.</span>
+        </label>
         <div class="menu-inline-form-actions">
-          <button id="menu-claim-submit" class="btn">Create account</button>
-          <button id="menu-claim-cancel" class="link">Cancel</button>
+          <button id="menu-claim-submit" class="btn" disabled>Create account</button>
+          <button id="menu-claim-cancel" class="btn-outline">Cancel</button>
         </div>
         <p id="menu-claim-error" class="error" hidden></p>
       </div>

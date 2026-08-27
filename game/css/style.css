@@ -490,9 +490,24 @@ header button:hover { background: var(--border-2); }
 .menu-account-link-icon { width: 14px; height: 14px; flex-shrink: 0; }
 .menu-inline-form { display: flex; flex-direction: column; gap: 6px; margin: 0 0 8px; }
 .menu-inline-form input { padding: 9px 10px; font-size: 0.88rem; border-radius: 6px; }
-.menu-inline-form-actions { display: flex; align-items: center; gap: 12px; }
-.menu-inline-form-actions .btn { padding: 8px 14px; font-size: 0.85rem; flex: 0 0 auto; }
-.menu-inline-form-actions .link { padding: 0; font-size: 0.8rem; }
+.menu-inline-form-actions { display: flex; align-items: center; gap: 10px; }
+/* Narrower than the full-width default (.btn/.btn-outline are 100%-wide by
+   default, sized for standalone screens) — side by side here, "Create
+   account" kept as the filled/primary shape so it stays the visually
+   appealing choice, "Cancel" downgraded from a bare text .link to a real
+   (but outline, secondary) button so it doesn't look like an afterthought. */
+.menu-inline-form-actions .btn,
+.menu-inline-form-actions .btn-outline {
+    width: auto; max-width: none; flex: 0 0 auto; padding: 8px 16px; font-size: 0.85rem;
+}
+.menu-consent-label {
+    display: flex; align-items: flex-start; gap: 8px; margin: 2px 0 4px;
+    font-size: 0.8rem; line-height: 1.4; color: var(--muted); cursor: pointer;
+}
+.menu-consent-label input[type="checkbox"] {
+    flex-shrink: 0; width: 15px; height: 15px; margin-top: 1px; accent-color: var(--slate);
+}
+.menu-consent-label a { color: var(--ink); }
 .menu-mycount-line { margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); }
 .menu-breakdown { display: flex; gap: 14px; margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; }
 .menu-breakdown strong { color: var(--ink); }

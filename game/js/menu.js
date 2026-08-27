@@ -33,10 +33,23 @@ export function initMenu() {
     $('#menu-pseudo-submit').addEventListener('click', submitPseudoEdit);
     $('#menu-pseudo-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitPseudoEdit(); });
 
-    $('#menu-claim').addEventListener('click', () => { hide($('#menu-password-form')); show($('#menu-claim-form')); $('#menu-claim-email').focus(); });
+    $('#menu-claim').addEventListener('click', () => {
+        hide($('#menu-password-form'));
+        resetClaimForm();
+        show($('#menu-claim-form'));
+        $('#menu-claim-email').focus();
+    });
     $('#menu-claim-cancel').addEventListener('click', () => hide($('#menu-claim-form')));
     $('#menu-claim-submit').addEventListener('click', claimByEmail);
     $('#menu-claim-password').addEventListener('keydown', e => { if (e.key === 'Enter') claimByEmail(); });
+    // Gates "Create account" on the privacy-notice checkbox (see index.html)
+    // — the button starts disabled and only the checkbox flips it, so
+    // someone tabbing straight to Enter on the password field still has to
+    // have ticked it first (claimByEmail() re-checks it too, since Enter
+    // calls it directly and doesn't go through the button's disabled state).
+    $('#menu-claim-consent').addEventListener('change', e => {
+        $('#menu-claim-submit').disabled = !e.target.checked;
+    });
 
     $('#menu-change-password').addEventListener('click', () => { hide($('#menu-claim-form')); show($('#menu-password-form')); $('#menu-new-password').focus(); });
     $('#menu-password-cancel').addEventListener('click', () => hide($('#menu-password-form')));
@@ -88,12 +101,28 @@ async function submitPseudoEdit() {
 // module comment for the full LINK vs LOG IN distinction, and for the
 // Supabase "Confirm email" dashboard setting this depends on to apply
 // instantly instead of waiting on a confirmation email.
+function resetClaimForm() {
+    $('#menu-claim-email').value = '';
+    $('#menu-claim-password').value = '';
+    $('#menu-claim-consent').checked = false;
+    $('#menu-claim-submit').disabled = true;
+    hide($('#menu-claim-error'));
+}
+
 async function claimByEmail() {
     const email = $('#menu-claim-email').value.trim();
     const password = $('#menu-claim-password').value;
     const err = $('#menu-claim-error');
     if (!email || password.length < 6) {
         err.textContent = 'Enter an email and a password of at least 6 characters.';
+        show(err);
+        return;
+    }
+    // Belt-and-braces: the button is disabled until this is checked, but
+    // Enter on the password field calls claimByEmail() directly, bypassing
+    // that disabled state.
+    if (!$('#menu-claim-consent').checked) {
+        err.textContent = 'Please confirm you have read the privacy notice.';
         show(err);
         return;
     }
