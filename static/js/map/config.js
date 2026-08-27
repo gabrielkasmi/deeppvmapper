@@ -26,6 +26,12 @@ export const ZONE_RPC        = 'get_detections_in_zone';
 export const ADMIN_POINTS_RPC = 'get_detections_admin_points';
 export const ADMIN_ZONE_RPC   = 'get_detections_admin';
 
+// Département-level aggregate counts (dept_stats_rpcs.sql) — powers the
+// national overview shown before any zone is selected (overview.js). Same
+// pre-aggregated RPC the per-département static stats pages already use, so
+// this costs nothing extra to compute on the database side.
+export const DEPT_STATS_RPC = 'dept_capacity_stats';
+
 // "Show unreviewed version" export option (see scripts/supabase_annotations_overlay_setup.sql):
 // same shape as ZONE_RPC's output, but with public.annotations layered over
 // public.detections (merged annotations always applied, pending ones only
@@ -37,6 +43,11 @@ export const UNREVIEWED_COUNT_RPC  = 'count_unreviewed_annotations_in_zone';
 export const POINTS_MAX      = 200000;  // whole-selection light fetch
 export const SINGLE_FETCH_MAX = 50;     // tiny box around a click — just needs the one polygon
 export const ZONE_FETCH_MAX  = 300000;  // exhaustive GeoJSON export
+
+// Circle-marker radius range (px) for the département overview, scaled by
+// sqrt(n_systems / max) so area (not radius) tracks count roughly linearly.
+export const DEPT_OVERVIEW_MIN_RADIUS = 8;
+export const DEPT_OVERVIEW_MAX_RADIUS = 28;
 
 export const GEO_BASE   = '../static/data/geo';
 

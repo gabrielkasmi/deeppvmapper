@@ -3,6 +3,7 @@
 import { FRANCE_BOUNDS, MAX_ZOOM } from './config.js';
 import { S, logEvent } from './store.js';
 import { initMap } from './render.js';
+import { initDeptOverview } from './overview.js';
 import { initSelection } from './selection.js';
 import { initSearch } from './search.js';
 import { initFilterPanel } from './filters.js';
@@ -33,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initVersionInfo();   // independent of the map itself — fine to kick off in parallel
 
     initMap();
+    initDeptOverview();   // fire-and-forget: resolves async, hidden again instantly if a deep link lands first
     initSearch();
     initFilterPanel();
     initExport();

@@ -15,6 +15,7 @@ import { S, show, hide, centroid, featureKey, logEvent, pointInGeoJSON, getSupab
          fetchDetectionsInZoneWithAnnotations, selectionZoneFeature } from './store.js';
 import { applyFilters, updateFilterBounds, resetUnreviewedToggle, setUnreviewedCount } from './filters.js';
 import { refreshReportButtonState } from './report.js';
+import { showDeptOverview, hideDeptOverview } from './overview.js';
 
 let clusterLayer, singleLayer, unreviewedLayer;
 let singleFeatureId = null;   // id of the one installation currently shown as a polygon, or null
@@ -32,8 +33,10 @@ function unreviewedStyle(f) {
     return f.properties?.edit_action === 'delete' ? UNREVIEWED_DELETE_STYLE : UNREVIEWED_STYLE;
 }
 
-// ─── Init: base tiles, called once at boot. Nothing is rendered on the map
-// until a zone is selected — no ambient/national overview layer. ──────────────
+// ─── Init: base tiles, called once at boot. Detection clusters/polygons only
+// render once a zone is selected; before that, a small département-level
+// overview (overview.js) is shown instead — see loadSelection/
+// clearSelectionRender below for where it's hidden/re-shown. ─────────────────
 
 export function initMap() {
     const map = S.map;
@@ -63,8 +66,38 @@ export function initMap() {
     unreviewedLayer = L.geoJSON(null, { pane: 'unreviewedPane', style: unreviewedStyle, onEachFeature: bindUnreviewedEvents });
 
     // A click on blank map (not a marker, not the currently-shown polygon —
-    // both stop propagation) drops back to the cluster view.
-    map.on('click', revertToClusters);
+    // both stop propagation): inside the current selection, drops back to its
+    // cluster view; outside it (or with nothing selected), clears the whole
+    // selection instead — same as pressing the eraser — so wandering off the
+    // selected zone always lands back on the département overview.
+    map.on('click', handleMapClick);
+}
+
+function handleMapClick(e) {
+    if (isOutsideSelection(e.latlng)) { clearSelectionOutside(); return; }
+    revertToClusters();
+}
+
+/** Bbox test first (cheap, always applicable), then the exact admin/drawn
+ *  boundary when we have one (S.selectionGeometry) — a hand-drawn rectangle
+ *  has none because its bbox already IS the exact selection. */
+function isOutsideSelection(latlng) {
+    if (!S.selectionBounds) return false;
+    if (!S.selectionBounds.contains(latlng)) return true;
+    if (S.selectionGeometry) {
+        const fc = { type: 'FeatureCollection',
+            features: [{ type: 'Feature', properties: {}, geometry: S.selectionGeometry }] };
+        return !pointInGeoJSON(latlng.lng, latlng.lat, fc);
+    }
+    return false;
+}
+
+/** Dynamic import: selection.js imports loadSelection/clearSelectionRender
+ *  from this module — a static import back the other way would be circular.
+ *  Deferred to call time, same pattern as overview.js. */
+async function clearSelectionOutside() {
+    const { clearSelection } = await import('./selection.js');
+    clearSelection();
 }
 
 /** Plain segmented Map/Satellite toggle, mounted into our own corner stack
@@ -109,6 +142,7 @@ function scrollToMapSection() {
 /** Fetch a bbox's light points once (whole selection, any size) and render it.
  *  Called by selection.js on a confirmed draw/search. */
 export async function loadSelection(bounds, label) {
+    hideDeptOverview();
     scrollToMapSection();
     show('wfs-spinner');
     try {
@@ -166,6 +200,7 @@ export function clearSelectionRender() {
     hide('filter-panel');
     hide('filter-toggle-btn');
     hide('export-controls');
+    showDeptOverview();
 }
 
 // ─── "Show unreviewed community edits" overlay ─────────────────────────────────

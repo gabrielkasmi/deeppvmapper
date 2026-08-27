@@ -1,7 +1,8 @@
 // ─── Shared state + small utilities ──────────────────────────────────────────
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY, POINTS_RPC, DETECTIONS_RPC, ZONE_RPC, ZONE_FETCH_MAX,
-         ADMIN_POINTS_RPC, ADMIN_ZONE_RPC, ANNOTATIONS_ZONE_RPC, UNREVIEWED_COUNT_RPC } from './config.js';
+         ADMIN_POINTS_RPC, ADMIN_ZONE_RPC, ANNOTATIONS_ZONE_RPC, UNREVIEWED_COUNT_RPC,
+         DEPT_STATS_RPC } from './config.js';
 
 /** Fire-and-forget usage event (plain REST: no client lib, no failure surface). */
 export function logEvent(event, detail) {
@@ -148,6 +149,20 @@ export async function fetchDetectionsByAdmin(inseeCodes, deptCodes, limit = ZONE
     const { data, error } = await sb.rpc(ADMIN_ZONE_RPC, {
         insee_codes: inseeCodes || null, dept_codes: deptCodes || null, max_count: limit
     });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Département-level counts (n_systems per dept) — the national overview
+ * shown before any zone is selected (overview.js). Same pre-aggregated RPC
+ * the per-département static stats pages already use (dept_stats_rpcs.sql):
+ * ~96 rows, cheap enough to fetch on every load of this page.
+ */
+export async function fetchDeptStats() {
+    const sb = getSupabase();
+    if (!sb) return [];
+    const { data, error } = await sb.rpc(DEPT_STATS_RPC);
     if (error) throw error;
     return data || [];
 }

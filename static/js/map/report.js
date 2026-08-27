@@ -49,7 +49,9 @@ export function refreshReportButtonState() {
     if (!btn) return;
     const hasContext = !!(S.lastClickedDetection || S.selectionBounds);
     btn.disabled = !hasContext;
-    btn.title = hasContext ? 'Report an issue' : 'Select a zone or an installation on the map first';
+    // data-tip, not title — the topbar buttons use a custom-styled hover
+    // tooltip (see data.html's #me-topbar CSS) instead of the native one.
+    btn.dataset.tip = hasContext ? 'Report an issue' : 'Select a zone or an installation on the map first';
 }
 
 /** Prefers the installation currently shown (if any) over the broader zone
