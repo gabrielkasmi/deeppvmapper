@@ -1,8 +1,12 @@
 // ─── "Progress" tab map: a small choropleth of France, colored by each
-// département's share of ALL votes cast so far (not by completion % — see
-// the comment on season_progress_by_department() in
-// scripts/verifications_setup.sql for why those are two different
-// numbers). Hand-rolled SVG on purpose: 101 static polygons is small enough
+// département's share of the votes cast so far WITHIN THE ACTIVE BATCH
+// (not by completion % — see the comment on season_progress_by_department()
+// in scripts/verifications_setup.sql for why those are two different
+// numbers). This share re-normalizes as the batch fills in, so a
+// département can visibly gain and lose the "leading" color as other
+// départements catch up — that's intentional, it's relative progress
+// within the current batch, not a fixed target. Hand-rolled SVG on
+// purpose: 101 static polygons is small enough
 // that pulling in a mapping library (tiles, panning, a JS dependency) would
 // be solving a problem this doesn't have — same "right-sized tool" call as
 // using plain WMS GetMap instead of a tile layer for the swipe cards.
@@ -110,7 +114,7 @@ export async function renderDeptMap(container, rows) {
         const fill = lerpColor(t, COLOR_EMPTY, COLOR_MAX);
         const d = geometryToPath(f.geometry, bounds);
         const title = row
-            ? `${f.properties.code} — ${row.pct}% of the active batch (${Number(row.votes_cast).toLocaleString()} / ${Number(row.votes_target).toLocaleString()} votes) — ${row.vote_share_pct}% of all activity so far`
+            ? `${f.properties.code} — ${row.pct}% of the active batch (${Number(row.votes_cast).toLocaleString()} / ${Number(row.votes_target).toLocaleString()} votes) — ${row.vote_share_pct}% of the active batch's votes so far`
             : `${f.properties.code} — no votes yet`;
         return `<path d="${d}" fill="${fill}" stroke="#12171d" stroke-width="0.6"><title>${title}</title></path>`;
     }).join('');

@@ -47,3 +47,34 @@ create view public.issue_reports_pending as
     from public.issue_reports
     where status = 'pending'
     order by created_at;
+
+
+-- ─── PV Check's "Comment" button — same table, new source ─────────────────
+-- The swipe game's report bubble (game/js/swipe.js) reuses this exact
+-- table instead of a parallel one: same insert-only/moderate-offline
+-- posture, just a new target_type ('card', keyed by detection_id instead
+-- of a WFS feature id) and a new category dedicated to it, so triage can
+-- filter "image-quality reports from the game" separately from the map's
+-- three existing categories without reading every comment by hand.
+alter table public.issue_reports drop constraint if exists issue_reports_category_check;
+alter table public.issue_reports add constraint issue_reports_category_check
+    check (category in ('missing_attributes', 'utility_scale', 'other', 'image_issue'));
+
+alter table public.issue_reports drop constraint if exists issue_reports_target_type_check;
+alter table public.issue_reports add constraint issue_reports_target_type_check
+    check (target_type in ('installation', 'zone', 'card'));
+
+-- PV Check's anonymous sign-in (signInAnonymously()) grants the
+-- `authenticated` role, NOT `anon` — same distinction that caused the
+-- annotations RLS bug earlier (a stale authenticated-role session was
+-- rejected by an anon-only policy). The map is anon-only and stays that
+-- way; the game needs its own policy alongside it rather than a role swap.
+drop policy if exists "authenticated can insert issue reports" on public.issue_reports;
+create policy "authenticated can insert issue reports"
+    on public.issue_reports for insert
+    to authenticated
+    with check (
+        status = 'pending'
+        and coalesce(pg_column_size(admin), 0) < 2000
+        and coalesce(length(map_url), 0) < 2000
+    );

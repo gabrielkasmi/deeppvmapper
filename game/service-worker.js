@@ -5,7 +5,7 @@
 // app shell (HTML/CSS/JS) is cached so a repeat visit opens instantly; data
 // (Supabase, IGN images) always goes straight to the network.
 
-const CACHE = 'pv-scroll-shell-v12';
+const CACHE = 'pv-scroll-shell-v13';
 const SHELL = [
     './', './index.html', './css/style.css',
     './js/config.js', './js/store.js', './js/auth.js', './js/image.js',

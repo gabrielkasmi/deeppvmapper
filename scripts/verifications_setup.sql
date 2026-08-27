@@ -152,39 +152,96 @@ where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id %
 update public.campaign_pool cp set dpt = d.dpt from public.detections d
 where d.id::text = cp.detection_id and cp.dpt is distinct from d.dpt and cp.id % 10 = 9;
 
--- ─── Batching — waterfall through the pool 1% at a time ──────────────────
--- Serving all ~655k installations at once meant votes spread paper-thin
--- across the whole pool — nothing ever felt close to done, and the
--- national/département progress numbers stayed unreadably close to 0% for
--- weeks even with real activity. Splitting the pool into 100 fixed batches
--- (~6.5k installations each) and having get_verification_batch() only ever
--- serve from the lowest-numbered batch that isn't fully done yet (still
--- targeting the full 10 votes/installation within that batch — nothing
--- about the actual redundancy target changes) means batch 1 visibly closes
--- out before batch 2 opens, and every progress number below is scoped to
--- "how's the active batch doing" instead of "how's all 655k doing" — same
--- work, a denominator ~100x smaller and honest about what's actually being
--- worked on right now. (First cut of this used 10 batches of ~65k —
--- 6.5k moves the counter noticeably faster still, at the cost of a batch
--- closing out sooner and handing off to the next one more often.)
+-- ─── Batching — flat per-département sample, not an accident of id order ──
+-- Two problems with the original ntile(100)-over-id scheme: (1) batch_no
+-- tracked insertion order, which is geographically correlated (the source
+-- pipeline processed detections roughly département by département), so
+-- each ~6.5k batch landed almost entirely in a couple of départements by
+-- accident, not by design — the game's map looked lopsided as a result;
+-- (2) 6.5k installations (65k votes at the 10/installation target) was
+-- still a lot to visibly clear — batches took long enough that progress
+-- didn't feel real.
 --
--- batch_no is assigned by id order and recomputed every time this script
--- runs (no "already has one" guard) — deliberately, so changing the batch
--- COUNT (as just happened, 10 -> 100) or rerunning after the population
--- query adds more rows both just work. ntile() is deterministic for a
--- given row count, so rerunning with nothing new inserted is a no-op in
--- effect, just some write I/O.
+-- New scheme: for every département with rows in the pool, randomly draw
+-- N_PER_DEPT_PER_BATCH installations into batch 1, the next
+-- N_PER_DEPT_PER_BATCH from that département into batch 2, and so on —
+-- FLAT, not proportional to how many installations each département
+-- actually has. Proportional was the first instinct, but it would have
+-- just reproduced the same bias in a milder form (dense départements —
+-- often the ones with the heaviest OSM contribution history — still
+-- dominating every batch); flat is what actually guarantees every batch
+-- touches every département roughly equally, so the per-département
+-- progress map (season_progress_by_department() below) fills in
+-- everywhere instead of lighting up a handful of spots. At 96 départements
+-- × 5 installations = ~480 installations/batch × 10 votes = ~4,800 votes
+-- to clear one batch — small enough to visibly finish in days, not weeks.
+--
+-- This does NOT promise the full ~655k pool ever gets covered — batch_no
+-- is an ordering/pacing hint for get_verification_batch() below, a horizon
+-- rather than a guarantee. A future release folding in fresh ground truth
+-- handles whatever the game hasn't reached by hand, same as always.
+--
+-- votes_received is untouched by any of this (it's keyed on
+-- campaign_id + detection_id, never on batch_no) — an installation that
+-- already picked up votes under the old scheme keeps every one of them
+-- and lands in whatever new batch it's drawn into already partway to its
+-- target, for free.
 alter table public.campaign_pool add column if not exists batch_no int;
 
-with numbered as (
-    select id, ntile(100) over (partition by campaign_id order by id) as batch_no
-    from public.campaign_pool
-)
-update public.campaign_pool cp
-set batch_no = numbered.batch_no
-from numbered
-where cp.id = numbered.id
-  and cp.batch_no is distinct from numbered.batch_no;
+-- One-time reset to move every row off the old ntile-by-id assignment so
+-- the flat scheme below can take over. Deliberately NOT part of the
+-- idempotent fill-the-gaps logic that follows — run this once, now; do
+-- NOT rerun it later once the campaign is underway, it would reshuffle
+-- everyone's in-progress batches. (Only clears the label — votes_received
+-- and every other column are untouched.)
+-- update public.campaign_pool set batch_no = null where campaign_id = 'season-1';
+
+-- Idempotent from here on: only rows still missing a batch_no get one, so
+-- rerunning this — after the reset above, or later after the population
+-- query appends new rows — is always safe; already-assigned rows, and
+-- whatever progress is attached to them, are left exactly alone.
+--
+-- Split into two steps, same reasoning as the dpt backfill above: a single
+-- UPDATE touching all ~655k rows at once hit "canceling statement due to
+-- statement timeout" (57014) the first time this ran. Step 1 only reads
+-- (a window function + a sort — cheap, no writes to campaign_pool) and
+-- materializes the result in a temp table; step 2 does the actual writes,
+-- split into 20 separate top-level UPDATEs so each gets its own fresh
+-- timeout window, same `id % N` trick as the dpt backfill. The temp table
+-- is connection-scoped (psql -f runs the whole file in one session) so it
+-- needs no manual cleanup.
+drop table if exists batch_assignment;
+create temporary table batch_assignment as
+select id, ceil(row_number() over (partition by dpt order by random())::numeric / 5)::int as batch_no
+from public.campaign_pool
+where campaign_id = 'season-1'
+  and batch_no is null
+  and dpt is not null; -- the handful of rows without a département (see the
+                       -- dpt backfill note above) never enter a batch —
+                       -- negligible, a few rows out of ~1.1M
+
+create index on batch_assignment (id);
+
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 0;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 1;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 2;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 3;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 4;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 5;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 6;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 7;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 8;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 9;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 10;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 11;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 12;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 13;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 14;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 15;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 16;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 17;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 18;
+update public.campaign_pool cp set batch_no = ba.batch_no from batch_assignment ba where cp.id = ba.id and cp.id % 20 = 19;
 
 create index if not exists idx_campaign_pool_campaign_batch_votes
     on public.campaign_pool (campaign_id, batch_no, votes_received);
@@ -341,23 +398,79 @@ stable
 security definer
 set search_path = public
 as $$
+    -- Three-tier fallback, in priority order, each tier cheaply scoped —
+    -- never a bare scan of the ~655k pool, which is exactly the cost the
+    -- batch_no scheme exists to avoid:
+    --   0. the active batch itself — same as before this was added, and
+    --      what nearly every call resolves from.
+    --   1. an installation already started ANYWHERE in the pool
+    --      (1-9 votes so far) — reached only once a caller has voted on
+    --      everything left for them in the active batch. Prioritizes
+    --      finishing near-complete installations over opening brand new
+    --      ones.
+    --   2. untouched installations from the nearest batch(es) past the
+    --      active one — last resort, for a caller who's outrun both tiers
+    --      above.
+    -- Player progress and batch bookkeeping are deliberately independent:
+    -- a vote cast here always counts toward its own installation's 10-vote
+    -- target and the campaign total, whichever tier it came from — it
+    -- just doesn't move the active batch's %, which only ever counts its
+    -- own batch_no's installations (see season_completion() below).
     with active_batch as (
         select min(batch_no) as batch_no
         from public.campaign_pool
         where campaign_id = p_campaign_id and votes_received < 10
+    ),
+    tier0 as (
+        select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
+        from public.campaign_pool cp, active_batch ab
+        where cp.campaign_id = p_campaign_id
+          and cp.batch_no = ab.batch_no
+          and cp.votes_received < 10
+          and not exists (
+              select 1 from public.verifications v
+              where v.user_id = auth.uid()
+                and v.campaign_id = p_campaign_id
+                and v.detection_id = cp.detection_id
+          )
+        order by cp.votes_received asc, random()
+        limit p_limit
+    ),
+    tier1 as (
+        select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
+        from public.campaign_pool cp, active_batch ab
+        where cp.campaign_id = p_campaign_id
+          and cp.batch_no <> ab.batch_no
+          and cp.votes_received > 0 and cp.votes_received < 10
+          and not exists (
+              select 1 from public.verifications v
+              where v.user_id = auth.uid()
+                and v.campaign_id = p_campaign_id
+                and v.detection_id = cp.detection_id
+          )
+        order by cp.votes_received asc, random()
+        limit p_limit
+    ),
+    tier2 as (
+        select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
+        from public.campaign_pool cp, active_batch ab
+        where cp.campaign_id = p_campaign_id
+          and cp.batch_no > ab.batch_no
+          and cp.votes_received = 0
+          and not exists (
+              select 1 from public.verifications v
+              where v.user_id = auth.uid()
+                and v.campaign_id = p_campaign_id
+                and v.detection_id = cp.detection_id
+          )
+        order by cp.batch_no asc, random()
+        limit p_limit
     )
-    select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
-    from public.campaign_pool cp, active_batch ab
-    where cp.campaign_id = p_campaign_id
-      and cp.batch_no = ab.batch_no
-      and cp.votes_received < 10
-      and not exists (
-          select 1 from public.verifications v
-          where v.user_id = auth.uid()
-            and v.campaign_id = p_campaign_id
-            and v.detection_id = cp.detection_id
-      )
-    order by cp.votes_received asc, random()
+    select * from tier0
+    union all
+    select * from tier1
+    union all
+    select * from tier2
     limit p_limit;
 $$;
 
@@ -465,8 +578,8 @@ as $$
     from public.verifications v
     join public.profiles p on p.id = v.user_id
     where case p_window
-              when 'week'  then v.created_at > now() - interval '7 days'
-              when 'month' then v.created_at > now() - interval '30 days'
+              when 'day'  then v.created_at >= date_trunc('day', now() at time zone 'utc') at time zone 'utc'  -- UTC calendar day, not rolling 24h
+              when 'week' then v.created_at > now() - interval '7 days' -- rolling, unlike 'day'
               else true
           end
     group by p.pseudo
@@ -478,7 +591,7 @@ grant execute on function public.leaderboard(text, int) to authenticated;
 
 -- leaderboard() only returns the top p_limit rows, so the menu can't sum a
 -- window total client-side without fetching every player — this is that
--- total, same window semantics (week/month/all), shown above the ranked
+-- total, same window semantics (day/week/all), shown above the ranked
 -- list itself.
 create or replace function public.leaderboard_total(p_window text default 'all')
 returns bigint
@@ -490,8 +603,8 @@ as $$
     select count(*)
     from public.verifications v
     where case p_window
-              when 'week'  then v.created_at > now() - interval '7 days'
-              when 'month' then v.created_at > now() - interval '30 days'
+              when 'day'  then v.created_at >= date_trunc('day', now() at time zone 'utc') at time zone 'utc'  -- UTC calendar day, not rolling 24h
+              when 'week' then v.created_at > now() - interval '7 days' -- rolling, unlike 'day'
               else true
           end;
 $$;
@@ -518,8 +631,8 @@ as $$
         from public.verifications v
         where v.user_id is not null
           and case p_window
-                  when 'week'  then v.created_at > now() - interval '7 days'
-                  when 'month' then v.created_at > now() - interval '30 days'
+                  when 'day'  then v.created_at >= date_trunc('day', now() at time zone 'utc') at time zone 'utc'  -- UTC calendar day, not rolling 24h
+                  when 'week' then v.created_at > now() - interval '7 days' -- rolling, unlike 'day'
                   else true
               end
         group by v.user_id
@@ -586,8 +699,8 @@ grant execute on function public.my_streak() to authenticated;
 --   - `batch_votes_cast` / `batch_votes_target` / `pct` stay scoped to the
 --     single active batch (see the "Batching" note above
 --     campaign_pool.batch_no) — same real 10-votes-per-installation target
---     the scheduler uses, just measured against the ~6.5k installations
---     currently being worked on instead of all ~655k, so the progress BAR
+--     the scheduler uses, just measured against the few hundred
+--     installations in the active batch instead of all ~655k, so the progress BAR
 --     still moves at a readable pace instead of crawling against the full
 --     season. Falls back to the LAST batch (as 100%) if every batch is
 --     done — an edge case this campaign won't realistically hit for a long
@@ -634,33 +747,37 @@ grant execute on function public.season_completion(text) to authenticated;
 
 -- Per-département breakdown for the menu's "Progress" tab (rendered as a
 -- choropleth map client-side, see game/js/deptmap.js). Two different
--- numbers, two different scopes, on purpose:
+-- numbers, both scoped to the active batch on purpose (as of the flat
+-- per-département batching above, every batch already touches every
+-- département — scoping the map to all-time was only ever a workaround
+-- for the old ~6.5k geographically-clustered batches leaving most of the
+-- map empty; that workaround is gone now that it's no longer needed):
 --   - `pct`/`votes_cast`/`votes_target` are this département's completion
---     WITHIN THE ACTIVE BATCH ONLY — same scope and same real 10-vote
---     target as season_completion() above, just broken out per département
---     instead of collapsed to one national number.
---   - `vote_share_pct` is this département's share of ALL votes cast so
---     far ACROSS EVERY BATCH (sums to ~100 across départements) —
---     deliberately NOT scoped to the active batch. The map colors by this
---     one: scoping the map to the active batch too would leave most
---     départements looking empty at any given moment (only ~6.5k of 655k
---     installations are even in play), which flattens the map instead of
---     showing where the community's total effort has actually gone.
+--     WITHIN THE ACTIVE BATCH — same scope and same real 10-vote target as
+--     season_completion() above, just broken out per département instead
+--     of collapsed to one national number.
+--   - `vote_share_pct` is this département's share of the votes cast SO
+--     FAR WITHIN THE ACTIVE BATCH (sums to ~100 across départements,
+--     recomputed against whatever total has been cast so far — e.g. 10
+--     votes in split 1/2/7 shows as 10/20/70%, and the same split at 11
+--     votes in shows as ~9/18/64%). The map colors by this one, so it
+--     visibly fills in across the whole country as the current batch
+--     progresses, instead of tracking lifetime activity.
 -- View-only either way: this does NOT feed anything back into
 -- get_verification_batch(), which stays a single global least-covered-
--- first-within-the-active-batch queue — see game/README.md "Saison 2+" for
--- why a per-département opt-in/filter is deliberately not built: it would
--- let popular départements get over-voted while remote ones get skipped,
--- exactly the sampling bias the batched-but-still-global queue avoids.
+-- first-within-the-active-batch queue (plus the tier1/tier2 fallback) —
+-- see game/README.md "Saison 2+" for why a per-département opt-in/filter
+-- is deliberately not built: it would let popular départements get
+-- over-voted while remote ones get skipped, exactly the sampling bias the
+-- batched-but-still-global queue avoids.
 --
 -- No join to detections here at all — dpt is denormalized onto
--- campaign_pool (see the note above campaign_pool.dpt), so this is a single
--- grouped scan of campaign_pool alone, backed by
--- idx_campaign_pool_campaign_batch_dpt. An earlier version of this function
--- joined campaign_pool to detections (first two joins, then one) to read
--- dpt at call time, and even the single-join version reliably hit
--- Supabase's `authenticated`-role statement timeout (57014) — the join
--- itself was the cost, not how many times it happened.
+-- campaign_pool (see the note above campaign_pool.dpt), and this now only
+-- ever scans the active batch's few hundred rows (via
+-- idx_campaign_pool_campaign_batch_dpt), not the whole pool — cheaper than
+-- the previous all-time version, which grouped every batch to compute
+-- vote_share_pct and had already needed care to dodge Supabase's
+-- `authenticated`-role statement timeout (57014).
 drop function if exists public.season_progress_by_department(text);
 create or replace function public.season_progress_by_department(p_campaign_id text default 'season-1')
 returns table (
@@ -682,40 +799,25 @@ as $$
             (select max(batch_no) from public.campaign_pool where campaign_id = p_campaign_id)
         ) as batch_no
     ),
-    per_dept_batch_raw as (
+    per_dept_active as (
         select
             cp.dpt,
-            cp.batch_no,
             count(*)                            as n_installations,
             coalesce(sum(cp.votes_received), 0) as votes_cast
-        from public.campaign_pool cp
+        from public.campaign_pool cp, active_batch ab
         where cp.campaign_id = p_campaign_id
           and cp.dpt is not null
-        group by cp.dpt, cp.batch_no
-    ),
-    per_dept_active as (
-        select r.dpt, r.n_installations, r.votes_cast
-        from per_dept_batch_raw r, active_batch ab
-        where r.batch_no = ab.batch_no
-    ),
-    per_dept_all as (
-        select dpt, sum(votes_cast) as votes_cast_all
-        from per_dept_batch_raw
-        group by dpt
-    ),
-    totals_all as (
-        select greatest(sum(votes_cast_all), 1) as total_votes from per_dept_all
+          and cp.batch_no = ab.batch_no
+        group by cp.dpt
     )
     select
         pda.dpt,
         pda.n_installations,
         pda.votes_cast,
-        pda.n_installations * 10                                          as votes_target,
+        pda.n_installations * 10 as votes_target,
         least(100.0, round(100.0 * pda.votes_cast / greatest(pda.n_installations * 10, 1), 1)) as pct,
-        round(100.0 * coalesce(pall.votes_cast_all, 0) / t.total_votes, 2) as vote_share_pct
+        round(100.0 * pda.votes_cast / greatest(sum(pda.votes_cast) over (), 1), 2) as vote_share_pct
     from per_dept_active pda
-    left join per_dept_all pall on pall.dpt = pda.dpt
-    cross join totals_all t
     order by pct desc, votes_cast desc;
 $$;
 
