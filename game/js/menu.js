@@ -267,11 +267,13 @@ async function refreshLeaderboard() {
 //   - data.votes_cast_total is the headline — the honest, unscoped, all-time
 //     count of every vote cast this season. That's the number people
 //     actually want to see ("N validations done"), not a fragment of it.
-//   - data.pct / data.batch_votes_cast / data.batch_votes_target stay scoped
-//     to the single active batch (~6.5k installations) so the progress BAR
+//   - data.pct stays scoped to the single active batch so the progress BAR
 //     still moves at a readable pace instead of crawling against the full
 //     ~655k season — the batching only changes serving order/display
-//     pacing, never the real per-installation vote target.
+//     pacing, never the real per-installation vote target. The batch
+//     bookkeeping itself (batch_no/batch_count/batch_votes_cast/
+//     batch_votes_target) isn't shown here anymore — it's plumbing, not
+//     something a player needs to see to understand "how close are we."
 async function refreshCompletion() {
     const sb = getSupabase();
     const { data, error } = await sb.rpc('season_completion', { p_campaign_id: CAMPAIGN_ID });
@@ -279,9 +281,6 @@ async function refreshCompletion() {
     $('#menu-votes-cast').textContent = data.votes_cast_total.toLocaleString();
     $('#menu-pct').textContent = `${data.pct}%`;
     $('#menu-pct-bar').style.width = `${data.pct}%`;
-    $('#menu-batch-no').textContent = data.batch_no;
-    $('#menu-batch-count').textContent = data.batch_count;
-    $('#menu-pct-detail').textContent = `${data.batch_votes_cast.toLocaleString()}/${data.batch_votes_target.toLocaleString()}`;
 }
 
 // Feeds the Progress tab's choropleth (game/js/deptmap.js) — colored by

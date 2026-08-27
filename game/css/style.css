@@ -265,7 +265,8 @@ header button:hover { background: var(--border-2); }
 #card-image { width: 100%; height: 100%; object-fit: cover; display: block; background: var(--border); }
 #card-marker {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    color: #ffffff; opacity: 0.9;
+    width: 34%; aspect-ratio: 1 / 1;
+    border: 0.75px solid #ffffff; border-radius: 3px; opacity: 0.9;
     filter: drop-shadow(0 0 2px rgba(0,0,0,0.85));
     pointer-events: none;
 }
@@ -314,7 +315,6 @@ header button:hover { background: var(--border-2); }
 .ctrl.confirm { background: var(--confirm); color: var(--confirm-ink); }
 .ctrl.ambiguous {
     background: var(--surface-2); color: var(--ink); border: 1px solid var(--border-2);
-    width: 48px; height: 48px; align-self: center; margin-top: 6px;
 }
 .ctrl.ambiguous:hover { background: var(--border-2); }
 
@@ -481,7 +481,6 @@ header button:hover { background: var(--border-2); }
 #menu-completion .bar { background: var(--surface-2); border-radius: 8px; height: 10px; overflow: hidden; }
 #menu-pct-bar { background: var(--confirm); height: 100%; width: 0; transition: width 0.3s; }
 #menu-completion p { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }
-#menu-completion p.menu-completion-note { font-size: 0.78rem; color: var(--muted-2); }
 
 .menu-dept-title { margin: 16px 0 8px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
 #menu-dept-map {

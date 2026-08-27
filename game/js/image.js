@@ -33,8 +33,8 @@ export function cardImageUrl(lat, lng, gsd) {
 // contour overlay) — dropped deliberately. Showing the detection's exact
 // outline invited people to judge "is this shape drawn correctly" instead
 // of the actual question this pool exists to answer, "is there a PV
-// installation here at all." The card now just shows a fixed crosshair at
-// dead center (see index.html #card-marker) — always correct since the
+// installation here at all." The card now just shows a fixed square marker
+// at dead center (see index.html #card-marker) — always correct since the
 // image is already framed on the centroid, no per-card computation needed.
 
 /** Prefetches an image (browser HTTP cache does the rest) and resolves once

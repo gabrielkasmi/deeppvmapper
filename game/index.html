@@ -191,15 +191,7 @@
       <div id="card-current" class="card" hidden>
         <div class="card-image-wrap">
           <img id="card-image" alt="" />
-          <div id="card-marker" aria-hidden="true">
-            <svg viewBox="0 0 64 64" width="34" height="34">
-              <circle cx="32" cy="32" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/>
-              <line x1="32" y1="2" x2="32" y2="16" stroke="currentColor" stroke-width="1.5"/>
-              <line x1="32" y1="48" x2="32" y2="62" stroke="currentColor" stroke-width="1.5"/>
-              <line x1="2" y1="32" x2="16" y2="32" stroke="currentColor" stroke-width="1.5"/>
-              <line x1="48" y1="32" x2="62" y2="32" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-          </div>
+          <div id="card-marker" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -255,7 +247,7 @@
       <div class="tutorial-box">
         <h2>How to play</h2>
         <ul>
-          <li>The <span class="key">✛</span> marker shows where to look — the question is "is there a solar installation here", not whether an outline is drawn perfectly.</li>
+          <li>The <span class="key">▢</span> square shows where to look — the question is "is there a solar installation here", not whether an outline is drawn perfectly.</li>
           <li><span class="key">→</span> swipe right, click <strong>✓</strong>, or right arrow — <strong>it's a solar panel</strong></li>
           <li><span class="key">←</span> swipe left, click <strong>✕</strong>, or left arrow — <strong>not a PV system</strong></li>
           <li><span class="key">↑</span> swipe up, click <strong>? Unsure</strong>, or up arrow — you have a hunch but you're not sure — <strong>ambiguous</strong>, this still counts as a vote</li>
@@ -366,8 +358,7 @@
         <div id="menu-completion">
           <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
           <div class="bar"><div id="menu-pct-bar"></div></div>
-          <p class="menu-completion-sub"><span id="menu-pct"></span> &middot; batch <span id="menu-batch-no"></span>/<span id="menu-batch-count"></span> &middot; <span id="menu-pct-detail"></span> votes</p>
-          <p class="menu-completion-note">Current batch: ~6,500 installations.</p>
+          <p class="menu-completion-sub"><span id="menu-pct"></span></p>
         </div>
 
         <p class="menu-dept-title">Votes by département</p>

@@ -76,7 +76,7 @@ function showNextCard() {
     img.src = url;
     img.alt = '';
     // Card is always framed on the centroid — the marker (see index.html)
-    // is a fixed, static crosshair at dead center, no per-card geometry
+    // is a fixed, static square at dead center, no per-card geometry
     // needed. Deliberately NOT drawing the detection polygon here: an
     // outline invites "is this shape right" (a geometry question, already
     // covered by the map's own redraw flow) instead of the actual question
