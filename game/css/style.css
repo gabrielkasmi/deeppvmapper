@@ -350,16 +350,87 @@ header button:hover { background: var(--border-2); }
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; max-width: 420px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.5); max-height: 86vh; overflow-y: auto;
 }
-.tutorial-box h2 { margin-top: 0; }
-.tutorial-box ul { list-style: none; padding: 0; margin: 0 0 16px; text-align: left; }
-.tutorial-box li { padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--ink); font-size: 0.92rem; }
-.tutorial-box li:last-child { border-bottom: none; }
+.tutorial-box h2 { margin-top: 0; text-align: center; }
 .tutorial-box .key {
-    display: inline-block; width: 1.6em; text-align: center; margin-right: 6px;
+    display: inline-block; min-width: 1.6em; padding: 0 4px; text-align: center; margin: 0 2px;
     background: var(--surface-2); border-radius: 6px; font-weight: 700; color: var(--ink);
 }
-.tutorial-box .key-icon { display: inline-flex; align-items: center; justify-content: center; padding: 3px 0; }
-#tutorial-close { width: 100%; margin-top: 4px; text-align: center; display: block; }
+
+/* ─── Tutorial frames — one illustrated step at a time, auto-advancing
+   (see help.js). Each frame is either a mini replay of the actual card
+   (image + marker + a looping swipe dot) for the three vote gestures, or
+   a tap demo (pulsing ring around the real icon/glyph) for the utility
+   buttons and header icons, which stay too small/fragile to spotlight
+   live behind the modal — a self-contained illustration is what actually
+   holds still across screen sizes. ── */
+#tutorial-frames { position: relative; min-height: 250px; }
+.tutorial-frame { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.tutorial-frame[hidden] { display: none; }
+
+.tutorial-scene { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; }
+.tutorial-card {
+    position: relative; width: 140px; height: 140px; border-radius: 10px;
+    overflow: hidden; border: 1px solid var(--border-2);
+}
+.tutorial-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tutorial-marker {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 34%; aspect-ratio: 1 / 1;
+    border: 0.75px solid #ffffff; border-radius: 3px; opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.85));
+}
+
+.tutorial-swipe {
+    position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--ink); opacity: 0; pointer-events: none;
+}
+.tutorial-swipe-right { animation: tutorial-swipe-right 1.8s ease-in-out infinite; }
+.tutorial-swipe-left  { animation: tutorial-swipe-left 1.8s ease-in-out infinite; }
+.tutorial-swipe-up    { animation: tutorial-swipe-up 1.8s ease-in-out infinite; }
+
+@keyframes tutorial-swipe-right {
+    0%   { transform: translate(-50%, -50%); opacity: 0; }
+    15%  { opacity: 0.85; }
+    70%  { transform: translate(40px, -50%); opacity: 0.85; }
+    100% { transform: translate(40px, -50%); opacity: 0; }
+}
+@keyframes tutorial-swipe-left {
+    0%   { transform: translate(-50%, -50%); opacity: 0; }
+    15%  { opacity: 0.85; }
+    70%  { transform: translate(-140%, -50%); opacity: 0.85; }
+    100% { transform: translate(-140%, -50%); opacity: 0; }
+}
+@keyframes tutorial-swipe-up {
+    0%   { transform: translate(-50%, -50%); opacity: 0; }
+    15%  { opacity: 0.85; }
+    70%  { transform: translate(-50%, -140%); opacity: 0.85; }
+    100% { transform: translate(-50%, -140%); opacity: 0; }
+}
+
+.tutorial-scene-icon { width: 72px; height: 72px; }
+.tutorial-tap-demo {
+    position: relative; width: 56px; height: 56px; border-radius: 50%;
+    background: var(--surface-2); border: 1px solid var(--border-2); color: var(--ink);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 600;
+}
+.tutorial-tap-ring {
+    position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ink); opacity: 0;
+    animation: tutorial-tap-pulse 1.8s ease-out infinite;
+}
+@keyframes tutorial-tap-pulse {
+    0%   { transform: scale(0.8); opacity: 0; }
+    30%  { opacity: 0.5; }
+    100% { transform: scale(1.35); opacity: 0; }
+}
+
+.tutorial-caption { text-align: center; min-height: 42px; }
+
+#tutorial-dots { display: flex; justify-content: center; gap: 6px; margin: 2px 0 14px; }
+.tutorial-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); transition: background 0.2s ease, transform 0.2s ease; }
+.tutorial-dot.active { background: var(--ink); transform: scale(1.3); }
+
+#tutorial-nav { display: flex; }
+#tutorial-nav .btn, #tutorial-nav .btn-outline { width: 100%; text-align: center; display: block; }
 
 /* ─── "What is the purpose of this game?" panel — same overlay mechanic,
    reuses .tutorial-box, adds prose-specific rules (h3/p) it didn't need. ── */

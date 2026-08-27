@@ -246,15 +246,101 @@
     <div id="tutorial" hidden>
       <div class="tutorial-box">
         <h2>How to play</h2>
-        <ul>
-          <li>The <span class="key">▢</span> square shows where to look — the question is "is there a solar installation here", not whether an outline is drawn perfectly.</li>
-          <li><span class="key">→</span> swipe right, click <strong>✓</strong>, or right arrow — <strong>it's a solar panel</strong></li>
-          <li><span class="key">←</span> swipe left, click <strong>✕</strong>, or left arrow — <strong>not a PV system</strong></li>
-          <li><span class="key">↑</span> swipe up, click <strong>? Unsure</strong>, or up arrow — you have a hunch but you're not sure — <strong>ambiguous</strong>, this still counts as a vote</li>
-          <li><span class="key key-icon"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span> a problem with the image itself (broken, obstructed, unclear)? Tap <strong>Comment</strong> to report it — doesn't count as a vote</li>
-          <li><span class="key key-icon"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg></span> made a mistake? <strong>Go back</strong> stays available until your next swipe</li>
-        </ul>
-        <button id="tutorial-close" class="btn">Got it, let's go</button>
+
+        <div id="tutorial-frames">
+          <div class="tutorial-frame" data-frame="0">
+            <div class="tutorial-scene">
+              <div class="tutorial-card">
+                <img src="images/tutorial/positive.webp" alt="" />
+                <div class="tutorial-marker"></div>
+              </div>
+              <div class="tutorial-swipe tutorial-swipe-right" aria-hidden="true"></div>
+            </div>
+            <p class="tutorial-caption">Panel in the square? <strong>Swipe right</strong> — or tap <span class="key">&#10003;</span>.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="1">
+            <div class="tutorial-scene">
+              <div class="tutorial-card">
+                <img src="images/tutorial/negative.webp" alt="" />
+                <div class="tutorial-marker"></div>
+              </div>
+              <div class="tutorial-swipe tutorial-swipe-left" aria-hidden="true"></div>
+            </div>
+            <p class="tutorial-caption">No panel? <strong>Swipe left</strong> — or tap <span class="key">&#10005;</span>.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="2">
+            <div class="tutorial-scene">
+              <div class="tutorial-card">
+                <img src="images/tutorial/ambiguous.webp" alt="" />
+                <div class="tutorial-marker"></div>
+              </div>
+              <div class="tutorial-swipe tutorial-swipe-up" aria-hidden="true"></div>
+            </div>
+            <p class="tutorial-caption">Don't know? <strong>Swipe up</strong> — or tap <strong>? Unsure</strong>. This still counts as a vote.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="3">
+            <div class="tutorial-scene tutorial-scene-icon">
+              <div class="tutorial-tap-demo">
+                <span class="tutorial-tap-ring" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 14 4 9 9 4"></polyline>
+                  <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                </svg>
+              </div>
+            </div>
+            <p class="tutorial-caption">Made a mistake? Tap <strong>Go back</strong> to undo your last swipe.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="4">
+            <div class="tutorial-scene tutorial-scene-icon">
+              <div class="tutorial-tap-demo">
+                <span class="tutorial-tap-ring" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+              </div>
+            </div>
+            <p class="tutorial-caption">Problem with the image itself? Tap <strong>Comment</strong> to report it — doesn't count as a vote.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="5">
+            <div class="tutorial-scene tutorial-scene-icon">
+              <div class="tutorial-tap-demo">
+                <span class="tutorial-tap-ring" aria-hidden="true"></span>
+                <span class="tutorial-tap-glyph">&#9776;</span>
+              </div>
+            </div>
+            <p class="tutorial-caption">Your <strong>leaderboard</strong> and <strong>account</strong> are here, top left.</p>
+          </div>
+
+          <div class="tutorial-frame" data-frame="6">
+            <div class="tutorial-scene tutorial-scene-icon">
+              <div class="tutorial-tap-demo">
+                <span class="tutorial-tap-ring" aria-hidden="true"></span>
+                <span class="tutorial-tap-glyph">?</span>
+              </div>
+            </div>
+            <p class="tutorial-caption">Find this tutorial again anytime, top right.</p>
+          </div>
+        </div>
+
+        <div id="tutorial-dots" aria-hidden="true">
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+        </div>
+
+        <div id="tutorial-nav">
+          <button id="tutorial-next" class="btn-outline">Next</button>
+          <button id="tutorial-close" class="btn" hidden>Got it, let's go</button>
+        </div>
       </div>
     </div>
   </section>
