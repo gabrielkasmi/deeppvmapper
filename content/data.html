@@ -85,6 +85,23 @@
         }
         .me-icon-action:hover { background: #f8f9fa; }
 
+        /* Custom hover tooltip for the topbar buttons (draw/clear/report) —
+           attr(data-tip) instead of the native title tooltip, so it can carry
+           the site's own card styling instead of the browser's default. Opens
+           to the right: the buttons sit at the map's left edge, so there's
+           always room there and never on the left. report-issue-btn's tip
+           text is kept in sync with its disabled state by report.js. */
+        #me-topbar .me-icon-action[data-tip] { position: relative; }
+        #me-topbar .me-icon-action[data-tip]:hover::after,
+        #me-topbar .me-icon-action[data-tip]:focus-visible::after {
+            content: attr(data-tip);
+            position: absolute; top: 50%; left: calc(100% + 8px); transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.97); border: 1px solid #dee2e6;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12); color: #2c3e50; font-size: 11px;
+            white-space: nowrap; padding: 5px 10px; border-radius: 6px;
+            pointer-events: none; z-index: 950;
+        }
+
         /* Same solid pill as the site's .btn — opaque, so it reads over any
            basemap, and consistent with the rest of the site instead of a
            separate visual language. */
@@ -487,10 +504,10 @@
             <div id="map"></div>
 
             <div id="me-topbar">
-                <button id="draw-zone-btn" class="me-icon-action" title="Draw a zone" aria-label="Draw a zone">
+                <button id="draw-zone-btn" class="me-icon-action" data-tip="Draw an area to explore" aria-label="Draw a zone">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </button>
-                <button id="clear-zone-btn" class="me-icon-action" title="Clear zone" aria-label="Clear zone" style="display:none">
+                <button id="clear-zone-btn" class="me-icon-action" data-tip="Clear the current selection" aria-label="Clear zone" style="display:none">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
                 </button>
                 <!-- Always present (discoverable), disabled until a zone or an
@@ -499,7 +516,7 @@
                      installations, use the pencil/eraser above instead
                      (annotate.js); this one is for everything else (attributes,
                      misclassified utility-scale plants, general feedback). -->
-                <button id="report-issue-btn" class="me-icon-action" type="button" disabled title="Select a zone or an installation on the map first" aria-label="Report an issue">
+                <button id="report-issue-btn" class="me-icon-action" type="button" disabled data-tip="Select a zone or an installation on the map first" aria-label="Report an issue">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
                 </button>
             </div>
