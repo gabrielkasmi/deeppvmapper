@@ -146,6 +146,31 @@
         .layer-toggle button:hover:not(.is-active) { background: #f8f9fa; color: #2c3e50; }
 
         #wfs-spinner { position: absolute; bottom: 12px; right: 12px; z-index: 900; border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+        /* Shared small spinning ring — same look/animation as #export-toast's
+           own .et-spinner, just under a name that isn't export-specific.
+           Reuses @keyframes et-spin (declared once, below, for export-toast).
+           display:inline-block (not flex) so it lines up with adjacent text
+           regardless of the parent's own display — show()/hide() (store.js)
+           always toggle plain 'block'/'none', not 'flex'. */
+        .me-spin {
+            display: inline-block; vertical-align: middle; margin-right: 6px;
+            width: 13px; height: 13px; border-radius: 50%;
+            border: 2px solid #e9ecef; border-top-color: #34495e;
+            animation: et-spin 0.8s linear infinite;
+        }
+
+        /* Centered loading indicator, used for anything that leaves the map
+           looking idle for a moment: the initial département overview fetch
+           (overview.js) and loading a drawn/searched/department selection
+           (render.js's loadSelection) — both meaningfully longer waits than
+           the tiny per-click fetch #wfs-spinner covers, and easy to miss
+           tucked in a corner while the camera itself is also moving
+           (flyToBounds). Centered so it can't be missed regardless of where
+           on the map the action started. */
+        #center-spinner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 850;
+            border-radius: 10px; padding: 12px 18px; font-size: 13px; color: #495057; text-align: center;
+        }
 
         #filter-panel {
             position: absolute; top: 56px; right: 12px; z-index: 900; border-radius: 10px;
@@ -526,7 +551,12 @@
                 <button id="cancel-zone-btn">Cancel</button>
             </div>
 
-            <div id="wfs-spinner" class="me-glass" style="display:none">Loading&hellip;</div>
+            <div id="wfs-spinner" class="me-glass" style="display:none"><span class="me-spin"></span>Loading&hellip;</div>
+
+            <!-- Centered loading indicator — shown by overview.js (initial
+                 département overview fetch) and render.js (loading a
+                 selection). Hidden again once whichever fetch settles. -->
+            <div id="center-spinner" class="me-glass"><span class="me-spin"></span>Loading&hellip;</div>
 
             <div class="map-corner-stack">
                 <div id="layer-toggle-mount"></div>

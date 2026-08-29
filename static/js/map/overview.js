@@ -26,7 +26,7 @@
 // hideDeptOverview()).
 
 import { DEPT_OVERVIEW_MIN_RADIUS, DEPT_OVERVIEW_MAX_RADIUS } from './config.js';
-import { S, fmtInt, centroid, logEvent, fetchDeptStats } from './store.js';
+import { S, show, hide, fmtInt, centroid, logEvent, fetchDeptStats } from './store.js';
 import { loadDepartements, resolveDepartementByCode } from './geo.js';
 
 let overviewLayer = null;
@@ -36,6 +36,7 @@ export async function initDeptOverview() {
     overviewLayer = L.markerClusterGroup({
         maxClusterRadius: 60, spiderfyOnMaxZoom: false, showCoverageOnHover: false, chunkedLoading: true
     });
+    show('center-spinner');
     try {
         const [depts, stats] = await Promise.all([loadDepartements(), fetchDeptStats()]);
         const statsByDept = new Map(stats.map(r => [r.dpt, {
@@ -66,7 +67,8 @@ export async function initDeptOverview() {
         ready = true;
     } catch (e) {
         console.error('Département overview failed to load:', e);
-        return;
+    } finally {
+        hide('center-spinner');
     }
 
     // Only show it if nothing has claimed a selection in the meantime — a

@@ -144,7 +144,10 @@ function scrollToMapSection() {
 export async function loadSelection(bounds, label) {
     hideDeptOverview();
     scrollToMapSection();
-    show('wfs-spinner');
+    // Centered, not the small corner #wfs-spinner (that one's for the quick
+    // per-marker click fetch) — this one can take a moment, easy to miss in
+    // a corner while the camera is also mid-flight (flyToBounds).
+    show('center-spinner');
     try {
         let features;
         if (S.selectionAdmin) {
@@ -174,7 +177,7 @@ export async function loadSelection(bounds, label) {
         console.error('Selection fetch error:', e);
         logEvent('detections_error', `selection: ${e.message || e}`);
     } finally {
-        hide('wfs-spinner');
+        hide('center-spinner');
     }
 }
 
