@@ -441,6 +441,10 @@ let detectionPopup = null;   // the one open "baseline" popup, if any
 function showDetectionInfo(f, latlng) {
     const p = f.properties;
     const fmt = (v, d) => (v != null && !isNaN(v)) ? parseFloat(v).toFixed(d) : '—';
+    // 5 decimals ≈ 1 m — plenty to pin a rooftop (well past IGN's own
+    // ~20cm/px orthophoto resolution) and short enough to stay on one line
+    // in the popup.
+    const coords = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
     const content = `
         <div class="di-popup">
             <h4>Rooftop PV System</h4>
@@ -448,6 +452,13 @@ function showDetectionInfo(f, latlng) {
                 <tr><td>Surface</td><td><strong>${fmt(p.surface, 1)} m²</strong></td></tr>
                 <tr><td>Capacity</td><td><strong>${fmt(p.kwp, 2)} kWp</strong></td></tr>
                 <tr><td>First seen</td><td><strong>${p.first_seen || '—'}</strong></td></tr>
+                <tr><td>Coordinates</td><td><strong>${coords}</strong>
+                    <button type="button" class="fp-icon-btn" style="margin-left:4px;vertical-align:middle"
+                            title="Copy coordinates" aria-label="Copy coordinates"
+                            onclick="window.copyInstallationCoords(${latlng.lat}, ${latlng.lng}, this)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                </td></tr>
             </table>
             <div class="di-actions">
                 <button type="button" class="di-action-btn" onclick="window.annotDelete && window.annotDelete()">False positive</button>
@@ -462,6 +473,30 @@ function showDetectionInfo(f, latlng) {
     // "False positive" / "Redraw" call into annotate.js (window.annotDelete /
     // window.annotModify), which reads S.lastClickedDetection — already set
     // by the caller (selectSingleFeature / bindSingleEvents) before this runs.
+    // "Copy coordinates" is self-contained (window.copyInstallationCoords,
+    // defined below) — no other module needs to know about it.
+}
+
+/** Copy the clicked installation's lat/lng to the clipboard — wired via
+ *  inline onclick from the popup above (same pattern as window.voteUnreviewed
+ *  further up: the popup content is a plain HTML string, not a DOM node
+ *  built with real listeners, so a window-global is the simplest hook). */
+window.copyInstallationCoords = async function (lat, lng, btnEl) {
+    const text = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;   // keep in sync with showDetectionInfo's display
+    try {
+        await navigator.clipboard.writeText(text);
+        flashCopyDone(btnEl);
+    } catch (e) {
+        console.error('Clipboard write failed:', e);
+    }
+};
+
+function flashCopyDone(btnEl) {
+    if (!btnEl) return;
+    const original = btnEl.innerHTML;
+    btnEl.innerHTML = '✓';
+    btnEl.disabled = true;
+    setTimeout(() => { btnEl.innerHTML = original; btnEl.disabled = false; }, 1200);
 }
 
 function hideDetectionInfo() {
