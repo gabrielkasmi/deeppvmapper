@@ -1,8 +1,8 @@
-# DeepPVMapper Public Data Contract
+# OpenPVMapper Public Data Contract
 
-**Contract version:** 1.0
+**Contract version:** 0.1
 
-**Registry:** DeepPVMapper PV Detection Registry
+**Registry:** OpenPVMapper PV Detection Registry
 
 **Access:** Public, read-only
 
@@ -10,7 +10,7 @@
 
 **Coordinate reference system:** WGS 84 (EPSG:4326)
 
----
+**Geographical coverage:** Metropolitan France (Mainland and Corsica)
 
 ## 1. Scope
 
@@ -28,11 +28,9 @@ The public interface provides:
 
 This document defines the public data contract: available resources, field definitions, data types, spatial and temporal semantics, recommended filtering, data-quality characteristics, and licensing terms.
 
----
+## 2. Access
 
-# 2. Access
-
-## 2.1 Base URL
+### 2.1 Base URL
 
 ```text
 https://zelhliylrlktnasircwp.supabase.co
@@ -42,26 +40,28 @@ The API follows the [PostgREST](https://postgrest.org/en/stable/references/api/t
 
 ## 2.2 Authentication
 
-Public requests use the project's publishable API key through the following headers:
-
-```http
-apikey: <PUBLISHABLE_KEY>
-Authorization: Bearer <PUBLISHABLE_KEY>
-```
+The public API is accessible using the project's **Supabase publishable API key**.
 
 No account or user registration is required.
+
+Public requests should include the following headers:
+
+```http
+apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi
+Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi
+```
+
+The publishable key is intended for public client-side use and does not grant access to private project resources. Access to public resources is controlled by the API's server-side access policies.
 
 Example:
 
 ```bash
 curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/detections?select=id,surface,kwp,dpt&limit=5" \
-  -H "apikey: <PUBLISHABLE_KEY>" \
-  -H "Authorization: Bearer <PUBLISHABLE_KEY>"
+  -H "apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
+  -H "Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi"
 ```
 
----
-
-# 3. Resources
+## 3. Resources
 
 The API exposes four query resources.
 
@@ -72,45 +72,42 @@ The API exposes four query resources.
 | `get_detections_in_zone` | `POST` | Query detections within an arbitrary GeoJSON geometry |
 | `dept_*_stats`           | `POST` | Retrieve département-level aggregates                 |
 
----
 
-# 4. Detection Registry
+## 4. Detection Registry
 
-## `GET /rest/v1/detections`
+### `GET /rest/v1/detections`
 
 Returns records from the DeepPVMapper detection registry.
 
 The endpoint supports standard PostgREST filtering, column selection, ordering, and pagination.
 
-### Example
+#### Example
 
 Retrieve detections in département 33 with an estimated capacity above 9 kWp:
 
 ```bash
 curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/detections?dpt=eq.33&kwp=gt.9&select=id,geom,surface,kwp,first_seen" \
-  -H "apikey: <PUBLISHABLE_KEY>" \
-  -H "Authorization: Bearer <PUBLISHABLE_KEY>"
+  -H "apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
+  -H "Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi"
 ```
 
-### Query recommendations
+#### Query recommendations
 
 Use explicit column selection and pagination for large queries.
 
 For spatial extraction, prefer the spatial resources described below, which return geometries directly as GeoJSON.
 
----
+## 5. Spatial Resources
 
-# 5. Spatial Resources
+### 5.1 Bounding-box query
 
-## 5.1 Bounding-box query
-
-### `POST /rest/v1/rpc/get_detections_bbox`
+#### `POST /rest/v1/rpc/get_detections_bbox`
 
 Returns detections intersecting a geographic bounding box.
 
 This resource is intended primarily for map and viewport queries.
 
-### Parameters
+#### Parameters
 
 | Parameter   | Type    | Required | Description                           |
 | ----------- | ------- | -------: | ------------------------------------- |
@@ -122,12 +119,12 @@ This resource is intended primarily for map and viewport queries.
 
 Default `max_count`: **2,000**.
 
-### Example
+#### Example
 
 ```bash
 curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/rpc/get_detections_bbox" \
-  -H "apikey: <PUBLISHABLE_KEY>" \
-  -H "Authorization: Bearer <PUBLISHABLE_KEY>" \
+  -H "apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
+  -H "Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
   -H "Content-Type: application/json" \
   -d '{
     "min_lon": -0.6,
@@ -138,7 +135,7 @@ curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/rpc/get_detections_bbox" 
   }'
 ```
 
-### Response
+#### Response
 
 Returns a GeoJSON `Feature` array.
 
@@ -162,9 +159,9 @@ The response contains a reduced attribute set intended for spatial visualization
 
 ---
 
-## 5.2 Geographic-zone query
+### 5.2 Geographic-zone query
 
-### `POST /rest/v1/rpc/get_detections_in_zone`
+#### `POST /rest/v1/rpc/get_detections_in_zone`
 
 Returns detections contained within a supplied GeoJSON geometry.
 
@@ -179,12 +176,12 @@ Unlike the bounding-box resource, the query uses the supplied geometry for exact
 
 Default `max_count`: **300,000**.
 
-### Example
+#### Example
 
 ```bash
 curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/rpc/get_detections_in_zone" \
-  -H "apikey: <PUBLISHABLE_KEY>" \
-  -H "Authorization: Bearer <PUBLISHABLE_KEY>" \
+  -H "apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
+  -H "Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
   -H "Content-Type: application/json" \
   -d '{
     "zone_geometry": {
@@ -204,9 +201,7 @@ The response is a GeoJSON `Feature` array.
 
 This resource can be used with administrative boundaries or arbitrary study-area geometries.
 
----
-
-# 6. Aggregate Resources
+## 6. Aggregate Resources
 
 Pre-computed aggregate resources are provided for département-level analysis.
 
@@ -218,7 +213,7 @@ Pre-computed aggregate resources are provided for département-level analysis.
 
 Each resource returns approximately 94–96 département-level records.
 
-## `dept_capacity_stats`
+### `dept_capacity_stats`
 
 Returns:
 
@@ -234,13 +229,11 @@ Example:
 ```bash
 curl "https://zelhliylrlktnasircwp.supabase.co/rest/v1/rpc/dept_capacity_stats" \
   -X POST \
-  -H "apikey: <PUBLISHABLE_KEY>" \
-  -H "Authorization: Bearer <PUBLISHABLE_KEY>"
+  -H "apikey: sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi" \
+  -H "Authorization: Bearer sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi"
 ```
 
----
-
-# 7. Detection Schema
+## 7. Detection Schema
 
 Each detection record follows the schema below.
 
@@ -265,9 +258,8 @@ Each detection record follows the schema below.
 
 The `id` field identifies an individual registry record and should be included when referencing a specific detection in a data-quality report.
 
----
 
-# 8. Geometry
+## 8. Geometry
 
 Detection geometries are provided in **WGS 84 / EPSG:4326**.
 
@@ -275,11 +267,9 @@ The geometry represents the footprint of the detected PV array rather than neces
 
 Depending on the detection, `geom` may be a polygon or multipolygon.
 
----
+## 9. Data Semantics
 
-# 9. Data Semantics
-
-## 9.1 Model-derived attributes
+### 9.1 Model-derived attributes
 
 The following attributes are model-derived estimates:
 
@@ -291,9 +281,9 @@ The following attributes are model-derived estimates:
 
 These values should be treated as estimates rather than surveyed measurements, declared installations, or ground-truth observations.
 
-Methodological details and reported error characteristics are available in the [Registry Audit](https://deeppvmapper.fr/content/main-results.html).
+Methodological details and reported error characteristics are available in the [Pipeline documentation](https://deeppvmapper.fr/content/pipeline.html).
 
-## 9.2 Temporal attributes
+### 9.2 Temporal attributes
 
 `first_seen` is the earliest imagery vintage in which an installation was detected.
 
@@ -305,15 +295,13 @@ These fields describe **observed presence in the available imagery**. They do no
 
 It can be used as an additional confidence or persistence signal.
 
-## 9.3 False-positive flag
+### 9.3 False-positive flag
 
 `false_positive` indicates that a detection has been flagged as a false positive.
 
 A null value indicates that no false-positive status is recorded. It should not be interpreted as a confirmed true-positive classification.
 
----
-
-# 10. Recommended Filtering
+## 10. Recommended Filtering
 
 For applications requiring a good balance between **precision and spatial coverage**, we recommend using:
 
@@ -329,9 +317,7 @@ This threshold is intended as an operating point providing a useful balance betw
 
 The appropriate threshold may depend on the intended application. Users performing high-precision analyses may choose a more restrictive threshold, while recall-oriented applications may retain a broader set of detections.
 
----
-
-# 11. Source Encoding
+## 11. Source Encoding
 
 The `sources` field contains one or more comma-separated source identifiers.
 
@@ -359,9 +345,7 @@ indicates a DeepPVMapper detection, while:
 
 indicates a detection associated with both DeepPVMapper and FRPV.
 
----
-
-# 12. Data Quality and Completeness
+## 12. Data Quality and Completeness
 
 The registry is provided **as-is** and should be considered a **PV detection dataset rather than a complete inventory of photovoltaic installations**.
 
@@ -376,15 +360,13 @@ As a consequence:
 
 The reported recall depends on the evaluation dataset, imagery coverage, and evaluation protocol. Refer to the [Registry Audit](https://deeppvmapper.fr/content/main-results.html) for methodological details.
 
----
-
-# 13. Data Quality & Disclaimer
+## 13. Data Quality & Disclaimer
 
 DeepPVMapper is an **open research and collaborative data project** providing publicly accessible PV detection data and tools.
 
 The registry is provided as an open-data and research resource. It is **not a certified, exhaustive, or authoritative inventory of photovoltaic installations**, and no guarantee is made that the registry accurately or completely represents the photovoltaic installations existing at any given location or date.
 
-## 13.1 Data provided "as is"
+### 13.1 Data provided "as is"
 
 The data and API are provided **"as is" and "as available"**, without warranties or representations regarding:
 
@@ -399,7 +381,7 @@ The data and API are provided **"as is" and "as available"**, without warranties
 
 The information contained in the registry may include missing detections, false positives, inaccurate estimated attributes, outdated observations, classification errors, or other data-quality issues.
 
-## 13.2 User responsibility
+### 13.2 User responsibility
 
 Users are responsible for independently assessing and validating the suitability of the data for their intended use.
 
@@ -407,13 +389,13 @@ In particular, users should independently verify data whenever accuracy, complet
 
 This applies in particular to commercial, regulatory, financial, operational, planning, or other consequential uses.
 
-## 13.3 No liability for downstream use
+### 13.3 No liability for downstream use
 
 To the maximum extent permitted by applicable law, **DeepPVMapper, its contributors, and the project maintainers shall not be held responsible for decisions, losses, damages, costs, or other consequences arising from the use of, reliance on, or inability to use the registry or API**, including consequences resulting from incomplete, inaccurate, outdated, or missing data.
 
 Users remain responsible for their own analyses, applications, products, services, and decisions based on the data.
 
-## 13.4 No service-level commitment
+### 13.4 No service-level commitment
 
 The public API is provided on a best-effort basis.
 
@@ -421,7 +403,7 @@ No guarantee is made regarding uninterrupted availability, response times, reten
 
 For applications requiring stable, reproducible, or large-scale access, users should rely on the versioned bulk releases whenever possible.
 
-## 13.5 Commercial use
+### 13.5 Commercial use
 
 Commercial use of the data is permitted under the applicable **CC BY 4.0** license.
 
@@ -429,15 +411,13 @@ Commercial use does not imply that DeepPVMapper provides data validation, certif
 
 Users incorporating DeepPVMapper data into commercial products or services remain responsible for determining whether the data is sufficiently accurate and complete for their intended purpose.
 
----
-
-# 14. Reporting Issues & Discussions
+## 14. Reporting Issues & Discussions
 
 DeepPVMapper welcomes public feedback, questions, and contributions concerning the API and registry.
 
 ### GitHub Issues
 
-Use a GitHub Issue for **concrete problems or actionable reports**, including:
+Use [GitHub Issues](https://github.com/gabrielkasmi/deeppvmapper/issues) for **concrete problems or actionable reports**, including:
 
 * API errors or broken endpoints;
 * incorrect response formats;
@@ -451,7 +431,7 @@ When reporting an issue concerning a specific detection, include its `id` whenev
 
 ### GitHub Discussions
 
-Use the **DeepPVMapper API & Data Discussion** for:
+Use the [**🔌 API & Data Discussion**](https://github.com/gabrielkasmi/deeppvmapper/discussions/19) for:
 
 * questions about using the API;
 * questions about the meaning or interpretation of the data;
@@ -462,9 +442,7 @@ Use the **DeepPVMapper API & Data Discussion** for:
 
 Public feedback may be reviewed and, where appropriate, incorporated into subsequent registry updates and contract revisions.
 
----
-
-# 15. Live API vs. Bulk Releases
+## 15. Live API vs. Bulk Releases
 
 The live API provides access to the current registry.
 
@@ -480,11 +458,9 @@ For country-scale processing, offline analysis, or repeated access to the comple
 
 Bulk releases contain the core detection schema defined by this contract.
 
----
+## 16. Versioning
 
-# 16. Versioning
-
-**Current contract version:** `1.0`
+**Current contract version:** `0.1`
 
 The data contract version identifies the public schema and API interface.
 
@@ -502,9 +478,7 @@ Changes to individual detection records, newly incorporated imagery, model updat
 
 Bulk dataset releases are versioned independently and should be cited using their corresponding release or DOI.
 
----
-
-# 17. Usage
+## 17. Usage
 
 The API operates on shared project infrastructure.
 
@@ -518,11 +492,9 @@ For large-scale processing:
 
 The API is intended for programmatic access to the live registry. Bulk releases should be preferred when the complete dataset is required for offline or large-scale processing.
 
----
+## 18. License
 
-# 18. License
-
-## Data
+### Data
 
 The DeepPVMapper detection registry is released under **CC BY 4.0**.
 
@@ -532,7 +504,7 @@ There is no share-alike requirement.
 
 The versioned [Zenodo record](https://zenodo.org/records/19188878) provides the corresponding dataset release and recommended academic citation.
 
-### Attribution
+#### Attribution
 
 > DeepPVMapper — Gabriel Kasmi
 
@@ -540,19 +512,20 @@ with a link to:
 
 https://deeppvmapper.fr
 
-## Code
+### Code
 
 The DeepPVMapper codebase, including the API and map application, is released under the **MIT License**. See the repository [LICENSE](https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE).
 
----
 
-# 19. Contact
+## 19. Contact
 
 For general contact:
 
 **Gabriel Kasmi**
 [gabriel.kasmi@deeppvmapper.fr](mailto:gabriel.kasmi@deeppvmapper.fr)
 
-For API questions, data-usage questions, and broader discussion of the public data interface, use the [**DeepPVMapper API & Data Discussion**](https://github.com/gabrielkasmi/deeppvmapper/discussions/19) on GitHub.
+For API questions, data-usage questions, and broader discussion of the public data interface, use **DeepPVMapper Discussions** on GitHub.
 
-For concrete bugs, API failures, data-quality reports, or reproducible technical issues, please [**raise a GitHub Issue**](https://github.com/gabrielkasmi/deeppvmapper/issues).
+For concrete bugs, API failures, data-quality reports, or reproducible technical issues, please raise a GitHub Issue.
+
+For research or collaboration inquiries, please use the contact information provided in the main DeepPVMapper repository.
