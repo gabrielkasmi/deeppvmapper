@@ -1,12 +1,22 @@
 // ─── Batch fetching + vote submission (with the short undo window) ────────
 
 import { CAMPAIGN_ID, BATCH_SIZE, PREFETCH_AT } from './config.js';
-import { S, getSupabase } from './store.js';
+import { S, getSupabase, markSeen } from './store.js';
 import { cardImageUrl, preloadImage } from './image.js';
 
 /** Fetches the next batch (least-covered items first, server-side) and
  *  appends it to S.queue. Fires the image preloads immediately so they're
- *  usually already cached by the time each card is actually shown. */
+ *  usually already cached by the time each card is actually shown.
+ *
+ *  Sends S.seenIds along as p_exclude_ids so the server also excludes
+ *  whatever this tab has already queued/shown — not just what's already
+ *  written to `verifications`. That's needed because a decision here isn't
+ *  written until the *next* decision or the tab hiding (see the `pending`
+ *  slot below): without this, a card judged just before a prefetch fires
+ *  could come straight back around before its own vote lands in the DB.
+ *  The client-side filter right after the RPC call is the same guard
+ *  belt-and-braces, for the rare case a card slips through anyway (e.g. two
+ *  overlapping fetches drawing from the same small active batch). */
 export async function fetchNextBatch() {
     if (S.fetching) return [];
     S.fetching = true;
@@ -14,10 +24,15 @@ export async function fetchNextBatch() {
         const sb = getSupabase();
         const { data, error } = await sb.rpc('get_verification_batch', {
             p_campaign_id: CAMPAIGN_ID, p_limit: BATCH_SIZE,
+            p_exclude_ids: Array.from(S.seenIds),
         });
         if (error) { console.error('fetchNextBatch failed:', error); return []; }
-        const cards = data || [];
-        cards.forEach(c => preloadImage(cardImageUrl(c.lat, c.lng, c.gsd)));
+        const queuedIds = new Set(S.queue.map(c => c.detection_id));
+        const cards = (data || []).filter(c => !queuedIds.has(c.detection_id) && !S.seenIds.has(c.detection_id));
+        cards.forEach(c => {
+            preloadImage(cardImageUrl(c.lat, c.lng, c.gsd));
+            markSeen(c.detection_id);
+        });
         S.queue.push(...cards);
         return cards;
     } finally {

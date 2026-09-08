@@ -376,6 +376,22 @@ create trigger trg_bump_votes_received
 -- no per-user session state to maintain server-side beyond what's already
 -- in `verifications` — the only new thing is which slice of the pool a
 -- request is allowed to draw from.
+--
+-- p_exclude_ids: a client-supplied top-up to the `verifications` exclusion
+-- above, not a replacement for it. `verifications` only reflects a vote
+-- once it's actually been written — but a decision here can sit "pending"
+-- in the browser for a while before that write happens (see the undo
+-- window in game/js/campaign.js: nothing is inserted until the *next*
+-- decision or the tab hiding/closing). If a prefetch lands in that window,
+-- `verifications` alone doesn't yet know about the card the user just
+-- judged, and it can come back around in the very next batch. The client
+-- tracks every detection_id it has already shown this session and passes
+-- it back here every call, closing that window without changing when the
+-- write itself happens — same insert-only/undo semantics as before.
+-- Trusting a client-supplied exclusion list is fine here: at worst a
+-- confused/malicious client excludes too much (fewer choices offered to
+-- itself) or too little (a repeat slips through, no worse than today) —
+-- it can't be used to see or affect anyone else's data.
 
 -- `returns table(...)` functions use implicit OUT parameters, and Postgres
 -- refuses `create or replace` if the OUT row type changes (even just adding
@@ -383,9 +399,11 @@ create trigger trg_bump_votes_received
 -- an explicit drop first. Rather than remember that only when it bites,
 -- every table-returning function here is dropped first, every time.
 drop function if exists public.get_verification_batch(text, int);
+drop function if exists public.get_verification_batch(text, int, text[]);
 create or replace function public.get_verification_batch(
     p_campaign_id text,
-    p_limit int default 12
+    p_limit int default 12,
+    p_exclude_ids text[] default '{}'
 ) returns table (
     detection_id text,
     lat double precision,
@@ -427,6 +445,7 @@ as $$
         where cp.campaign_id = p_campaign_id
           and cp.batch_no = ab.batch_no
           and cp.votes_received < 10
+          and not (cp.detection_id = any(p_exclude_ids))
           and not exists (
               select 1 from public.verifications v
               where v.user_id = auth.uid()
@@ -442,6 +461,7 @@ as $$
         where cp.campaign_id = p_campaign_id
           and cp.batch_no <> ab.batch_no
           and cp.votes_received > 0 and cp.votes_received < 10
+          and not (cp.detection_id = any(p_exclude_ids))
           and not exists (
               select 1 from public.verifications v
               where v.user_id = auth.uid()
@@ -457,6 +477,7 @@ as $$
         where cp.campaign_id = p_campaign_id
           and cp.batch_no > ab.batch_no
           and cp.votes_received = 0
+          and not (cp.detection_id = any(p_exclude_ids))
           and not exists (
               select 1 from public.verifications v
               where v.user_id = auth.uid()
@@ -474,7 +495,7 @@ as $$
     limit p_limit;
 $$;
 
-grant execute on function public.get_verification_batch(text, int) to authenticated;
+grant execute on function public.get_verification_batch(text, int, text[]) to authenticated;
 
 -- ─── Menu RPCs — mes stats / leaderboard / % complétion ───────────────────
 

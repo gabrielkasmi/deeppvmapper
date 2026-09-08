@@ -34,6 +34,15 @@ export const S = {
     queue: [],           // prefetched cards not yet shown
     currentCard: null,   // the card on screen right now
     fetching: false,     // guards against a duplicate prefetch in flight
+    // detection_ids already queued/shown this tab session, most-recent
+    // last — sent back to get_verification_batch as p_exclude_ids so a
+    // card doesn't resurface in the very next prefetch just because its
+    // vote is still sitting in campaign.js's `pending` slot and hasn't
+    // been written to `verifications` yet. See markSeen() below for the
+    // insertion/eviction policy. Purely a client-side top-up: the server
+    // is still the source of truth via `verifications`, this only closes
+    // the timing gap before a vote lands there.
+    seenIds: new Set(),
     // This session's running tally, shown live in the game header — resets
     // on reload (it's just "how am I doing right now", not the source of
     // truth; the menu's lifetime breakdown comes from the DB instead via
@@ -48,6 +57,23 @@ export const S = {
     streak: 0,
     rankCache: { week: null, month: null, all: null },
 };
+
+// Cap on S.seenIds — bounds the p_exclude_ids payload sent on every fetch
+// instead of letting it grow for the whole length of a long session. 500
+// is comfortably above BATCH_SIZE/PREFETCH_AT (see config.js), so nothing
+// still "in flight" (queued or just decided) ever ages out.
+const MAX_SEEN_IDS = 500;
+
+/** Records a detection_id as already served this session (queued or shown)
+ *  so it isn't handed out again — see the comment on S.seenIds. Evicts the
+ *  oldest entry first (Set preserves insertion order) once over the cap. */
+export function markSeen(detectionId) {
+    S.seenIds.delete(detectionId); // re-insert at the end == mark as freshest
+    S.seenIds.add(detectionId);
+    while (S.seenIds.size > MAX_SEEN_IDS) {
+        S.seenIds.delete(S.seenIds.values().next().value);
+    }
+}
 
 export const $ = sel => document.querySelector(sel);
 export const $$ = sel => Array.from(document.querySelectorAll(sel));
