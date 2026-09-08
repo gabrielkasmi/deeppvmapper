@@ -1134,6 +1134,45 @@ a.hub-card:hover {
    textarea + button that hands off to a mailto: link client-side (see
    static/js/script.js) rather than a database insert, since these are
    static pages with no backend wiring of their own. */
+/* Institutional note — a collectivit&eacute;/EPCI-facing callout on
+   d&eacute;partement/r&eacute;gion pages, distinct from report-issue-card
+   (same white-card family, but a left accent in the chart brand purple so
+   it doesn't read as another "report a problem" box). See
+   build_institutional_note() in scripts/build_department_pages.py. */
+.institutional-note-card {
+    max-width: 560px;
+    margin: 40px auto 0;
+    text-align: left;
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-left: 3px solid #7248b8;
+    border-radius: 10px;
+    padding: 22px 26px;
+}
+
+.institutional-note-card h3 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.institutional-note-card p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.institutional-note-card p:last-child {
+    margin-bottom: 0;
+}
+
+.institutional-note-card a {
+    color: #7248b8;
+    font-weight: 600;
+}
+
 .report-issue-card {
     max-width: 560px;
     margin: 40px auto 0;

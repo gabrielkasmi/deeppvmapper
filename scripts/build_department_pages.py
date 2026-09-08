@@ -1423,13 +1423,13 @@ TEMPLATE = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{nom} ({code}) &middot; DeepPVMapper Data</title>
 
-    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper in {nom} ({code}): {n_fmt} systems, {mwp_fmt} MWp estimated installed capacity. Explore on the map or download the data.">
+    <meta name="description" content="Open-data registry of rooftop PV systems in {nom} ({code}): {n_fmt} systems, {mwp_fmt} MWp estimated capacity. Free GeoJSON/CSV download for PCAET &amp; territorial energy planning, or explore on the map.">
     <meta name="keywords" content="{keywords}">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/data/{code}.html">
     <meta property="og:title" content="{nom} ({code}) &middot; DeepPVMapper Data">
-    <meta property="og:description" content="{n_fmt} rooftop PV systems detected in {nom}, {mwp_fmt} MWp estimated installed capacity.">
+    <meta property="og:description" content="{n_fmt} rooftop PV systems detected in {nom}, {mwp_fmt} MWp estimated installed capacity. Open data, free to download.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
     <link rel="canonical" href="https://deeppvmapper.fr/content/data/{code}.html">
 
@@ -1575,6 +1575,8 @@ TEMPLATE = """<!DOCTYPE html>
 
             {city_request_note}
 
+            {institutional_note}
+
             {report_cta}
 
             <div class="dept-back-links">
@@ -1655,6 +1657,42 @@ def build_report_cta(target_label):
         'data-target-label="{label}">Report an issue</button>\n'
         "            </div>"
     ).format(label=target_label)
+
+
+CONTACT_EMAIL = "gabriel.kasmi@deeppvmapper.fr"
+
+
+def build_institutional_note(nom, doc_href, scope="departement"):
+    """A standalone card (same visual family as report-issue-card, styled
+    in static/css/style.css) addressed to a collectivit&eacute;/EPCI/bureau
+    d'&eacute;tudes rather than a homeowner shopping for an installer —
+    French, and deliberately its own boxed unit rather than a sentence
+    folded into the (English) intro prose, so it reads as a distinct
+    notice rather than a stray aside. scope picks the wording that matches
+    what the page actually covers: a d&eacute;partement is PCAET-sized, a
+    r&eacute;gion is SRADDET-sized.
+    ---
+    This exists because "panneaux solaires {ville}"-style consumer queries
+    are dominated by installer ads and local packs (see the discussion
+    that led here) — a collectivit&eacute; doing a PCAET/SRADDET diagnostic
+    searches differently, and the page's own visible copy is what actually
+    moves the needle for that query cluster, not the <meta keywords> tag
+    (Google has ignored that one since 2009)."""
+    if scope == "region":
+        doc_kind = "un SRADDET, un PCAET ou un &eacute;tat des lieux du potentiel photovolta&iuml;que"
+    else:
+        doc_kind = "un PCAET ou un &eacute;tat des lieux du potentiel photovolta&iuml;que"
+    return (
+        '<div class="institutional-note-card">\n'
+        '                <h3>Vous &ecirc;tes une collectivit&eacute; ou un bureau d&rsquo;&eacute;tudes&nbsp;?</h3>\n'
+        f'                <p>Ces donn&eacute;es sur {nom} sont publi&eacute;es en open data et directement '
+        f'exploitables pour {doc_kind} &mdash; export gratuit en GeoJSON et CSV, compatible QGIS, sans '
+        'inscription ni cl&eacute; d&rsquo;API.</p>\n'
+        f'                <p><a href="{doc_href}">Voir la documentation technique</a> &mdash; ou, pour toute '
+        f'question sur la m&eacute;thodologie ou un format sp&eacute;cifique, '
+        f'<a href="mailto:{CONTACT_EMAIL}">contactez Gabriel</a>.</p>\n'
+        '            </div>'
+    )
 
 
 def build_city_request_note(dept_nom, code):
@@ -1749,15 +1787,25 @@ def build_dept_ranking_list(depts):
 
 
 def build_keywords(nom, code, region_nom, cities):
-    """French + English keyword mix for the per-département SEO meta tag —
-    the département/région name in both languages' common phrasing, plus a
-    handful of its largest cities as long-tail terms."""
+    """French + English keyword mix for the per-département SEO meta tag.
+    Institutional/open-data terms lead — the primary discoverability target
+    is a collectivité or bureau d'études doing a PCAET/territorial energy
+    diagnostic, not a homeowner shopping for an installer (that query is
+    dominated by installer ads/local packs — see the "panneaux solaires
+    {ville}" case discussed when this was tuned). The consumer-style terms
+    stay, further down, as harmless long-tail coverage."""
     city_names = ", ".join(c["nom"] for c in cities[:8])
     terms = [
+        f"open data photovoltaïque {nom}", f"cadastre solaire {nom}",
+        f"open source solar mapping {nom}", f"rooftop PV dataset {nom}",
+        f"PCAET {nom}", f"diagnostic PCAET photovoltaïque {nom}",
+        f"données ouvertes énergie solaire {code}", f"potentiel solaire {nom}",
+        f"cartographie panneaux photovoltaïques {nom}",
+        f"registre installations photovoltaïques {code}",
         f"panneaux photovoltaïques {nom}", f"panneaux solaires {nom}",
-        f"installations solaires {nom}", f"cadastre solaire {nom}",
-        f"énergie solaire {code}", f"photovoltaïque {region_nom}",
-        f"rooftop solar {nom}", f"solar panels {nom} France",
+        f"installations solaires {nom}", f"énergie solaire {code}",
+        f"photovoltaïque {region_nom}",
+        f"rooftop solar {nom}", f"open data solar {nom} France",
         f"PV installations {code}", f"photovoltaic map {nom}",
         f"solar energy {region_nom}", "DeepPVMapper",
     ]
@@ -1767,16 +1815,21 @@ def build_keywords(nom, code, region_nom, cities):
 
 
 def build_region_keywords(nom, dept_names, cities):
-    """Same French + English mix as build_keywords, scaled up to a région:
-    its member départements' names plus its largest cities as long-tail
-    terms — this is the page most likely to catch a broad "solar in
-    {region}" style query."""
+    """Same institutional-first mix as build_keywords, scaled up to a
+    région — this is the page most likely to catch a broad "SRADDET
+    photovoltaïque {région}"-style planning-document query, on top of the
+    département-level PCAET one."""
     city_names = ", ".join(c["nom"] for c in cities[:10])
     dept_list = ", ".join(dept_names[:15])
     terms = [
+        f"open data photovoltaïque {nom}", f"SRADDET photovoltaïque {nom}",
+        f"open source solar mapping {nom}", f"rooftop PV dataset {nom}",
+        f"PCAET {nom}", f"données ouvertes énergie solaire {nom}",
+        f"cartographie panneaux photovoltaïques {nom}",
+        f"potentiel solaire {nom}",
         f"panneaux photovoltaïques {nom}", f"panneaux solaires {nom}",
         f"installations solaires {nom}", f"énergie solaire {nom}",
-        f"rooftop solar {nom}", f"solar panels {nom} France",
+        f"rooftop solar {nom}", f"open data solar {nom} France",
         f"PV installations {nom}", f"photovoltaic map {nom}",
         f"solar energy {nom}", "DeepPVMapper",
     ]
@@ -1788,12 +1841,16 @@ def build_region_keywords(nom, dept_names, cities):
 
 
 def build_city_keywords(nom, dept_nom, region_nom):
-    """French + English keyword mix for a per-city SEO meta tag — the exact
-    shape of query this whole feature exists for ("panneaux solaires
-    bordeaux"), plus its département/région for broader long-tail terms."""
+    """French + English keyword mix for a per-city SEO meta tag. PCAET
+    itself is filed at EPCI/département/région scale, not per-commune, so
+    it isn't repeated at every one of the ~2 400 city pages — but "cadastre
+    solaire"/"open data" still catch a technicien instructing a single
+    commune-level dossier, alongside the original consumer-style terms."""
     terms = [
+        f"cadastre solaire {nom}", f"open data photovoltaïque {nom}",
+        f"open source solar mapping {nom}",
         f"panneaux solaires {nom}", f"panneaux photovoltaïques {nom}",
-        f"installations solaires {nom}", f"cadastre solaire {nom}",
+        f"installations solaires {nom}",
         f"rooftop solar {nom}", f"solar panels {nom} France",
         f"photovoltaic {nom}", f"solar energy {nom}",
         f"PV installations {dept_nom}", f"panneaux solaires {dept_nom}",
@@ -1809,13 +1866,13 @@ CITY_TEMPLATE = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{nom} ({dept_nom}) &middot; DeepPVMapper Data</title>
 
-    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper in {nom} ({dept_nom}): {n_fmt} systems, {cap_fmt} {cap_unit} estimated installed capacity. Explore on the map or download the data.">
+    <meta name="description" content="Open-data registry of rooftop PV systems in {nom} ({dept_nom}): {n_fmt} systems, {cap_fmt} {cap_unit} estimated capacity. Free GeoJSON/CSV download, or explore on the map.">
     <meta name="keywords" content="{keywords}">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/cities/{insee}.html">
     <meta property="og:title" content="{nom} ({dept_nom}) &middot; DeepPVMapper Data">
-    <meta property="og:description" content="{n_fmt} rooftop PV systems detected in {nom}, {cap_fmt} {cap_unit} estimated installed capacity.">
+    <meta property="og:description" content="{n_fmt} rooftop PV systems detected in {nom}, {cap_fmt} {cap_unit} estimated installed capacity. Open data, free to download.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
     <link rel="canonical" href="https://deeppvmapper.fr/content/cities/{insee}.html">
 
@@ -2072,13 +2129,13 @@ REGION_TEMPLATE = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{nom} &middot; DeepPVMapper Data</title>
 
-    <meta name="description" content="Rooftop PV systems detected by DeepPVMapper across {nom}: {n_fmt} systems, {mwp_fmt} MWp estimated installed capacity over {n_depts} d&eacute;partements. Explore on the map or download the data.">
+    <meta name="description" content="Open-data registry of rooftop PV systems across {nom}: {n_fmt} systems, {mwp_fmt} MWp over {n_depts} d&eacute;partements. Free GeoJSON/CSV download for PCAET, SRADDET &amp; territorial energy planning.">
     <meta name="keywords" content="{keywords}">
     <meta name="author" content="Gabriel Kasmi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deeppvmapper.fr/content/regions/{slug}.html">
     <meta property="og:title" content="{nom} &middot; DeepPVMapper Data">
-    <meta property="og:description" content="{n_fmt} rooftop PV systems detected across {nom}, {mwp_fmt} MWp estimated installed capacity.">
+    <meta property="og:description" content="{n_fmt} rooftop PV systems detected across {nom}, {mwp_fmt} MWp estimated installed capacity. Open data, free to download.">
     <meta property="og:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
     <link rel="canonical" href="https://deeppvmapper.fr/content/regions/{slug}.html">
 
@@ -2248,6 +2305,8 @@ REGION_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </div>
 
+            {institutional_note}
+
             {report_cta}
 
             <p style="text-align: center; margin-top: 40px;">
@@ -2381,6 +2440,7 @@ def build_region_page(region, depts_geo=()):
         composition_card=composition_card, stacked_card=stacked_card,
         map_section=map_section,
         dept_ranking=dept_ranking, cities_ranking=cities_ranking,
+        institutional_note=build_institutional_note(nom, "../data-documentation.html", scope="region"),
         report_cta=build_report_cta(nom),
     )
 
@@ -2597,6 +2657,7 @@ def main():
             hexbin_section=hexbin_section,
             cities_section=cities_section,
             city_request_note=build_city_request_note(nom, code),
+            institutional_note=build_institutional_note(nom, "../data-documentation.html", scope="departement"),
             report_cta=build_report_cta(f"{nom} ({code})"),
         )
         dept_path = os.path.join(OUT_DIR, f"{code}.html")
@@ -2771,6 +2832,16 @@ def build_sitemap(dept_index, region_index=(), city_index=()):
     if os.path.exists(os.path.join(ROOT, "index.html")):
         urls.append((f"{SITE_BASE}/index.html", "weekly", "1.0"))
 
+    # game/index.html isn't under content/ (separate PWA module — see
+    # game/README.md) so the walk below never sees it; it was missing from
+    # the sitemap entirely until this was added by hand and then folded
+    # back in here so a future run of this script doesn't silently drop it
+    # again. weekly/0.8: actively iterated during the season-1 test phase,
+    # priority-wise between the two "living data" content pages (0.9) and
+    # the static content-top pages (0.7).
+    if os.path.exists(os.path.join(ROOT, "game", "index.html")):
+        urls.append((f"{SITE_BASE}/game/index.html", "weekly", "0.8"))
+
     content_dir = os.path.join(ROOT, "content")
     for fn in sorted(os.listdir(content_dir)):
         path = os.path.join(content_dir, fn)
@@ -2787,8 +2858,23 @@ def build_sitemap(dept_index, region_index=(), city_index=()):
     for r in region_index:
         urls.append((f"{SITE_BASE}/content/regions/{r['slug']}.html", "monthly", "0.7"))
 
-    for c in city_index:
-        urls.append((f"{SITE_BASE}/content/cities/{c['insee']}.html", "monthly", "0.5"))
+    if city_index:
+        city_insees = [c["insee"] for c in city_index]
+    else:
+        # Supabase-only runs (no --local) skip rebuilding per-city pages
+        # entirely (see main() — no commune-level RPC exists yet), which
+        # left city_index empty and this loop would silently drop every
+        # already-published content/cities/*.html URL from the sitemap on
+        # a plain run. Fall back to what's actually on disk so a run
+        # without --local can't regress the ~2,400 city pages that a
+        # previous --local run already published.
+        city_dir = os.path.join(ROOT, "content", "cities")
+        city_insees = sorted(
+            fn[:-len(".html")] for fn in os.listdir(city_dir) if fn.endswith(".html")
+        ) if os.path.isdir(city_dir) else []
+
+    for insee in city_insees:
+        urls.append((f"{SITE_BASE}/content/cities/{insee}.html", "monthly", "0.5"))
 
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',

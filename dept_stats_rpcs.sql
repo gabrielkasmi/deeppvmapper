@@ -6,6 +6,20 @@
 --
 -- Run this once in the Supabase SQL editor. Safe to re-run (CREATE OR REPLACE).
 
+-- `detections` had grown to ~1.14M rows with no index backing the `dpt`
+-- filter/group-by every one of these three RPCs does — fine while the
+-- table was small, but dept_capacity_stats() (the simplest of the three,
+-- no unnest) started hitting 57014 "canceling statement due to statement
+-- timeout" on its own, the same failure dept_source_stats() below already
+-- worked around with its own `set statement_timeout` for the heavier
+-- unnest query. Two independent fixes, both worth having: this partial
+-- index (matches every RPC's exact WHERE clause, so a plan can use an
+-- index-only scan instead of a full seq scan) attacks the actual cost;
+-- the timeout bump on all three functions is a safety margin on top of
+-- that, not a substitute for it.
+create index if not exists idx_detections_dpt_active on public.detections (dpt)
+    where dpt is not null and coalesce(false_positive, false) = false;
+
 -- 1) Headline numbers per département: count, total capacity, rank by capacity.
 create or replace function dept_capacity_stats()
 returns table (
@@ -16,6 +30,7 @@ returns table (
 )
 language sql
 stable
+set statement_timeout to '120000'
 as $$
     select
         dpt,
@@ -44,6 +59,7 @@ returns table (
 )
 language sql
 stable
+set statement_timeout to '120000'
 as $$
     select
         dpt,
