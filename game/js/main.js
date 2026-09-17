@@ -1,6 +1,7 @@
 // ─── Boot ──────────────────────────────────────────────────────────────────
 
 import { S, $, show, hide, getSupabase, toast } from './store.js';
+import { CAMPAIGN_ID } from './config.js';
 import { ensureSession, claimPseudo, login, refreshProfile } from './auth.js';
 import { initSwipe } from './swipe.js';
 import { initMenu, openMenu, shareApp } from './menu.js';
@@ -10,6 +11,16 @@ import { primeHooks, announceStreak } from './hooks.js';
 
 const ADJECTIVES = ['Solar', 'Sunny', 'Bright', 'Rooftop', 'Golden', 'Amber', 'Swift', 'Keen', 'Sharp', 'Curious'];
 const NOUNS = ['Panel', 'Scanner', 'Falcon', 'Otter', 'Fox', 'Hawk', 'Badger', 'Pixel', 'Ranger', 'Scout'];
+
+// How often the landing screen's PV Check badge re-fetches
+// season_completion() while it's actually on screen (see startGame() /
+// refreshLandingStats() below) — installations_done is season-wide and
+// bumps the instant any installation crosses its 10th vote, batch or no
+// batch, so polling here is genuinely "live", just on a timer rather than
+// a push. 30s balances feeling current against hammering the RPC from
+// every idle tab sitting on the landing screen.
+const PVCHECK_BADGE_POLL_MS = 30000;
+let pvcheckBadgePollTimer = null;
 
 async function boot() {
     if ('serviceWorker' in navigator) {
@@ -52,6 +63,10 @@ function startGame() {
     hide($('#auth-screen'));
     show($('#game-screen'));
     $('#header-pseudo').textContent = S.pseudo;
+    if (pvcheckBadgePollTimer) {
+        clearInterval(pvcheckBadgePollTimer);
+        pvcheckBadgePollTimer = null;
+    }
     initHelp();
     initSwipe();
     announceStreak();
@@ -68,11 +83,44 @@ async function refreshLandingStats() {
         // PostgREST 404 / PGRST202), or the `grant execute ... to anon,
         // authenticated` line is missing/stale (permission denied — 42501).
         console.error('verification_stats RPC failed:', error);
+    } else if (data) {
+        $('#landing-count').textContent = (data.count ?? 0).toLocaleString();
+        $('#landing-last').textContent = data.last_at ? timeAgo(new Date(data.last_at)) : 'never yet — be the first';
+    }
+
+    refreshPvCheckBadge(sb);
+
+    // Keep it live while the landing screen is actually on screen — see
+    // startGame() above for where this gets cleared (no point polling once
+    // #auth-screen, and the badge with it, is hidden behind the swipe UI).
+    // Skips the fetch (but keeps the timer running) while the tab itself is
+    // backgrounded, so an idle tab doesn't keep hitting the RPC forever.
+    if (!pvcheckBadgePollTimer) {
+        pvcheckBadgePollTimer = setInterval(() => {
+            if (document.visibilityState === 'visible') refreshPvCheckBadge(sb);
+        }, PVCHECK_BADGE_POLL_MS);
+    }
+}
+
+// "Thank you" badge next to the PV Check h1 — just the season-wide
+// installations-validated count, no batch mention (the batch mechanics are
+// plumbing for pacing, not something a casual visitor needs to parse; the
+// full "already N batches done, now on batch M" framing still lives in the
+// menu's Progress/Leaderboard panels — see game/js/menu.js
+// batchStatusText() — for anyone who opens that). Kept as its own function
+// (rather than folded into refreshLandingStats() above) so a
+// season_completion() failure can't also blank out the verification_stats()
+// numbers, or vice versa.
+async function refreshPvCheckBadge(sb) {
+    const badge = $('#pvcheck-badge');
+    if (!badge) return;
+    const { data, error } = await sb.rpc('season_completion', { p_campaign_id: CAMPAIGN_ID });
+    if (error || !data || data.installations_done == null) {
+        if (error) console.error('season_completion RPC failed:', error);
         return;
     }
-    if (!data) return;
-    $('#landing-count').textContent = (data.count ?? 0).toLocaleString();
-    $('#landing-last').textContent = data.last_at ? timeAgo(new Date(data.last_at)) : 'never yet — be the first';
+    $('#pvcheck-badge-count').textContent = data.installations_done.toLocaleString();
+    badge.hidden = false; // reveal only once there's real data to show
 }
 
 function timeAgo(date) {
@@ -138,6 +186,30 @@ function wireAuthScreen() {
     // comment for why that matters — same issue #toast had).
     $('#landing-purpose-link').addEventListener('click', e => { e.preventDefault(); show($('#purpose-panel')); });
     $('#purpose-close').addEventListener('click', () => hide($('#purpose-panel')));
+
+    // "Thank you" badge next to the PV Check h1 — see refreshLandingStats()
+    // below for what fills it in and why the popover text is worded the
+    // way it is.
+    const pvcheckBadge = $('#pvcheck-badge');
+    if (pvcheckBadge) {
+        pvcheckBadge.addEventListener('click', e => {
+            e.stopPropagation();
+            const isOpen = pvcheckBadge.classList.toggle('is-open');
+            pvcheckBadge.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+        document.addEventListener('click', e => {
+            if (!pvcheckBadge.contains(e.target)) {
+                pvcheckBadge.classList.remove('is-open');
+                pvcheckBadge.setAttribute('aria-expanded', 'false');
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                pvcheckBadge.classList.remove('is-open');
+                pvcheckBadge.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
 
     // Login fully REPLACES the name/Play block (not shown alongside it) —
     // toggle both ways so cancelling out of login goes back to a clean

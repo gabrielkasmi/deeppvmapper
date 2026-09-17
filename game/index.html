@@ -28,7 +28,33 @@
     </div>
 
     <div class="game-hero">
-      <h1>PV Check</h1>
+      <h1>
+        PV Check
+        <!-- "Thank you" badge — a small starburst/seal shape (inspired by
+             promo-code badge iconography, not a copy of any specific one),
+             deliberately more playful than a plain checkmark to feel like a
+             small celebration rather than a status icon. Hidden until
+             refreshLandingStats() in main.js populates it; season_completion()
+             numbers here are framed the same way as the menu's Progress/
+             Leaderboard panels (see game/js/menu.js) — what's been done and
+             which batch is next, never "of ~5,600 batches" or "of ~2.7M
+             installations". -->
+        <button type="button" id="pvcheck-badge" class="pvcheck-badge" aria-haspopup="true" aria-expanded="false" aria-label="Season progress" hidden>
+          <svg viewBox="0 0 100 100" class="pvcheck-badge-icon" aria-hidden="true">
+            <defs>
+              <linearGradient id="pvcheck-badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffe08a"/>
+                <stop offset="100%" stop-color="#f5a623"/>
+              </linearGradient>
+            </defs>
+            <polygon points="50.0,4.0 60.5,17.7 77.0,12.8 77.5,30.0 93.7,35.8 84.0,50.0 93.7,64.2 77.5,70.0 77.0,87.2 60.5,82.3 50.0,96.0 39.5,82.3 23.0,87.2 22.5,70.0 6.3,64.2 16.0,50.0 6.3,35.8 22.5,30.0 23.0,12.8 39.5,17.7" fill="url(#pvcheck-badge-gradient)"></polygon>
+            <path d="M32 52 L44 64 L69 36" fill="none" stroke="#2a1a02" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span class="pvcheck-badge-popover" id="pvcheck-badge-popover">
+            <strong id="pvcheck-badge-count">&mdash;</strong> installations validated! Thank you &#128591;
+          </span>
+        </button>
+      </h1>
       <p class="pitch">Check. Validate. Improve the map.</p>
 
       <p class="hero-stats" id="landing-stats">
@@ -436,6 +462,12 @@
       </div>
 
       <div id="menu-panel-leaderboard">
+        <!-- Same forward-motion framing as the Progress panel's batch line
+             (see menu.js refreshCompletion) — "already N completed, now on
+             batch M", never "of ~5,600". Filled by the same
+             season_completion() call openMenu() already makes, so it's
+             ready whichever tab opens first. -->
+        <p id="menu-leaderboard-batch-status" class="menu-leaderboard-batch-status"></p>
         <div id="menu-tabs">
           <button data-window="day">Day</button>
           <button data-window="week">Week</button>
@@ -448,8 +480,16 @@
       <div id="menu-panel-progress" hidden>
         <div id="menu-completion">
           <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
+          <!-- Season-wide, monotonic — never resets, unlike the batch bar
+               below. Deliberately doesn't mention how many batches remain
+               (~5,600 and counting) or the season's full installation
+               count (~2.7M) — both are real, but framed as "X of Y" they
+               read as "this will never finish" rather than "here's what's
+               been done". Framed instead as forward motion: what's been
+               validated, then which batch is next. -->
+          <p class="menu-completion-installations"><strong id="menu-installations-done">—</strong> installations validated &mdash; now on batch <strong id="menu-batch-no">—</strong></p>
           <div class="bar"><div id="menu-pct-bar"></div></div>
-          <p class="menu-completion-sub"><span id="menu-pct"></span></p>
+          <p class="menu-completion-sub"><span id="menu-pct"></span> of this batch done</p>
         </div>
 
         <p class="menu-dept-title">Votes by département</p>

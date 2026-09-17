@@ -76,6 +76,75 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
 .game-hero h1 { margin: 0; font-size: 2.1rem; font-weight: 300; letter-spacing: -0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.25); }
 .pitch { color: rgba(255,255,255,0.9); margin: 0 0 6px; max-width: 32em; }
 
+/* "Thank you" badge next to the PV Check h1 — a small starburst/seal icon
+   button (see the comment on its markup in index.html), tilted slightly
+   like a stamp for a bit of energy instead of sitting flat with the text.
+   The popover it reveals never states the season's full installation/batch
+   count — same reasoning as the menu's Progress/Leaderboard panels. */
+.pvcheck-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: 4px;
+    padding: 0;
+    vertical-align: middle;
+    position: relative;
+    top: -4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transform: rotate(-8deg);
+    transition: transform 0.2s ease;
+}
+
+.pvcheck-badge:hover,
+.pvcheck-badge:focus-visible,
+.pvcheck-badge.is-open {
+    transform: rotate(-8deg) scale(1.08);
+}
+
+.pvcheck-badge-icon {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.pvcheck-badge-popover {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    margin-left: -120px; /* half of width — centers without stacking with
+                            the counter-rotation below in one transform */
+    transform: rotate(8deg); /* undoes the button's -8deg tilt so the card
+                                 itself still reads level */
+    transform-origin: top center;
+    width: 240px;
+    max-width: 78vw;
+    background-color: #ffffff;
+    color: #1c232c;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    padding: 16px 18px;
+    border-radius: 10px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    z-index: 20;
+    cursor: default;
+}
+
+.pvcheck-badge.is-open .pvcheck-badge-popover {
+    display: block;
+}
+
+.pvcheck-badge-popover strong {
+    color: #1e7d3c;
+    font-size: 1.1rem;
+}
+
 .hero-stats {
     display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
     gap: 6px 12px; margin: 0; font-size: 0.88rem; color: rgba(255, 255, 255, 0.72);
@@ -559,11 +628,22 @@ header button:hover { background: var(--border-2); }
 #menu-leaderboard .rank { width: 2em; color: var(--muted); }
 #menu-leaderboard .pseudo { flex: 1; }
 #menu-leaderboard li.empty { color: var(--muted); border: none; }
+.menu-leaderboard-batch-status {
+    font-size: 0.82rem; color: var(--muted); margin: 0 0 10px; text-align: center;
+}
 
 #menu-completion .menu-completion-headline {
     margin: 0 0 8px; font-size: 1.6rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums;
 }
 #menu-completion .menu-completion-headline strong { color: var(--confirm); }
+/* Season-wide installations-validated line — sits between the headline and
+   the per-batch bar, slightly more prominent than the plain muted <p>
+   default below (it's the number meant to reassure people the batch bar
+   resetting isn't a bug). */
+#menu-completion .menu-completion-installations {
+    margin: 0 0 10px; font-size: 0.95rem; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+#menu-completion .menu-completion-installations strong { color: var(--confirm); }
 #menu-completion .bar { background: var(--surface-2); border-radius: 8px; height: 10px; overflow: hidden; }
 #menu-pct-bar { background: var(--confirm); height: 100%; width: 0; transition: width 0.3s; }
 #menu-completion p { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }

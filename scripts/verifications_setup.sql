@@ -743,25 +743,37 @@ as $$
         ) as batch_no
     ),
     totals as (
-        select coalesce(sum(votes_received), 0) as votes_cast_total
+        select
+            coalesce(sum(votes_received), 0)                       as votes_cast_total,
+            count(*)                                                as installations_total,
+            count(*) filter (where votes_received >= 10)            as installations_done
         from public.campaign_pool
         where campaign_id = p_campaign_id
     )
     select jsonb_build_object(
-        'votes_cast_total',     t.votes_cast_total,
-        'batch_no',             ab.batch_no,
-        'batch_count',          (select count(distinct batch_no) from public.campaign_pool where campaign_id = p_campaign_id),
-        'batch_installations',  count(cp.*),
-        'batch_votes_cast',     coalesce(sum(cp.votes_received), 0),
-        'batch_votes_target',   count(cp.*) * 10,
-        'pct',                  least(100.0, round(100.0 * coalesce(sum(cp.votes_received), 0)
-                                        / greatest(count(cp.*) * 10, 1), 1))
+        'votes_cast_total',      t.votes_cast_total,
+        -- installations_done/installations_total are SEASON-WIDE (every
+        -- batch, not just the active one) and only ever go up — added so
+        -- the front-end has a number to show that doesn't reset to
+        -- something small-looking every time a batch closes and `pct`
+        -- (below) drops back near 0% for the next one. See the front-end
+        -- comment in game/js/menu.js (refreshCompletion) for why both
+        -- numbers are shown together.
+        'installations_done',    t.installations_done,
+        'installations_total',   t.installations_total,
+        'batch_no',              ab.batch_no,
+        'batch_count',           (select count(distinct batch_no) from public.campaign_pool where campaign_id = p_campaign_id),
+        'batch_installations',   count(cp.*),
+        'batch_votes_cast',      coalesce(sum(cp.votes_received), 0),
+        'batch_votes_target',    count(cp.*) * 10,
+        'pct',                   least(100.0, round(100.0 * coalesce(sum(cp.votes_received), 0)
+                                         / greatest(count(cp.*) * 10, 1), 1))
     )
     from active_batch ab
     cross join totals t
     left join public.campaign_pool cp
         on cp.campaign_id = p_campaign_id and cp.batch_no = ab.batch_no
-    group by ab.batch_no, t.votes_cast_total;
+    group by ab.batch_no, t.votes_cast_total, t.installations_total, t.installations_done;
 $$;
 
 grant execute on function public.season_completion(text) to authenticated;

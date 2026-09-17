@@ -291,25 +291,49 @@ async function refreshLeaderboard() {
     });
 }
 
-// season_completion() splits into two deliberately different numbers (see
+// season_completion() splits into a few deliberately different numbers (see
 // the comment above it in scripts/verifications_setup.sql):
 //   - data.votes_cast_total is the headline — the honest, unscoped, all-time
 //     count of every vote cast this season. That's the number people
 //     actually want to see ("N validations done"), not a fragment of it.
+//   - data.installations_done is ALSO season-wide (every batch) and only
+//     ever goes up. Shown next to the batch number rather than data.pct,
+//     for the same reason votes_cast_total is shown: when a batch closes,
+//     data.pct (below) snaps back down near 0% for the next batch, and
+//     without a number nearby that keeps climbing regardless, that reads
+//     as a bug ("we were at 99%, now we're at 1.5%?!") rather than what it
+//     actually is (one batch done, the next just started).
+//   - data.batch_count and data.installations_total exist in the payload
+//     but are deliberately NOT shown — "batch 2 of 5,588" or "X of ~2.7M
+//     installations" is technically honest but reads as "this will never
+//     finish" rather than "here's what's been done". data.batch_no alone
+//     ("now on batch 2") frames the same fact as forward motion instead.
 //   - data.pct stays scoped to the single active batch so the progress BAR
 //     still moves at a readable pace instead of crawling against the full
-//     ~655k season — the batching only changes serving order/display
-//     pacing, never the real per-installation vote target. The batch
-//     bookkeeping itself (batch_no/batch_count/batch_votes_cast/
-//     batch_votes_target) isn't shown here anymore — it's plumbing, not
-//     something a player needs to see to understand "how close are we."
+//     season — the batching only changes serving order/display pacing,
+//     never the real per-installation (10-vote) target.
+// Shared by the Progress panel's batch line and the Leaderboard panel's
+// status line (see their respective markup in index.html) — same
+// forward-motion framing in both places: what's done, then what's next,
+// never "batch N of ~5,600".
+function batchStatusText(batchNo) {
+    if (batchNo == null) return '';
+    const completed = batchNo - 1;
+    if (completed <= 0) return `Now working through batch ${batchNo.toLocaleString()}.`;
+    return `Already ${completed.toLocaleString()} batch${completed === 1 ? '' : 'es'} completed — now on batch ${batchNo.toLocaleString()}.`;
+}
+
 async function refreshCompletion() {
     const sb = getSupabase();
     const { data, error } = await sb.rpc('season_completion', { p_campaign_id: CAMPAIGN_ID });
     if (error || !data) return;
     $('#menu-votes-cast').textContent = data.votes_cast_total.toLocaleString();
+    if (data.installations_done != null) $('#menu-installations-done').textContent = data.installations_done.toLocaleString();
+    if (data.batch_no != null) $('#menu-batch-no').textContent = data.batch_no.toLocaleString();
     $('#menu-pct').textContent = `${data.pct}%`;
     $('#menu-pct-bar').style.width = `${data.pct}%`;
+    const leaderboardStatusEl = $('#menu-leaderboard-batch-status');
+    if (leaderboardStatusEl) leaderboardStatusEl.textContent = batchStatusText(data.batch_no);
 }
 
 // Feeds the Progress tab's choropleth (game/js/deptmap.js) — colored by
