@@ -62,11 +62,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Community contributions counter (hero stats): sum of the map's
-    // crowdsourced annotations table and PV Check's verifications table —
-    // two separate crowdsourcing efforts, one combined headline number.
-    // Plain REST calls (no supabase-js import on this page), same project
-    // credentials as static/js/map/config.js and game/js/config.js.
-    // Best-effort — leaves the "—" placeholder on any failure.
+    // crowdsourced annotations table, PV Check's verifications table, and
+    // MapRoulette's reviewed tasks — three separate crowdsourcing efforts,
+    // one combined headline number.
+    // Supabase: plain REST calls (no supabase-js import on this page), same
+    // project credentials as static/js/map/config.js and game/js/config.js.
+    // MapRoulette: same project/endpoint/filtering as loadMapperChallenges()
+    // below (extendedFind?ps=DeepPVMapper, kept to live, non-deleted,
+    // non-archived challenges under project 64195 — see the comment there
+    // for why this endpoint and filter are used), summed as completed tasks
+    // (total - tasksRemaining) across all matching challenges.
+    // Best-effort — each source falls back to 0 on failure rather than
+    // blocking the other two, and the whole counter leaves the "—"
+    // placeholder only if every source fails.
     const communityCountEl = document.getElementById('community-count');
     if (communityCountEl) {
         const SUPABASE_URL = 'https://zelhliylrlktnasircwp.supabase.co';
@@ -79,11 +87,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json'
             },
             body: '{}'
-        }).then(r => r.ok ? r.json() : Promise.reject());
+        }).then(r => r.ok ? r.json() : Promise.reject())
+          .then(data => data?.count ?? 0)
+          .catch(() => 0);
 
-        Promise.all([rpc('annotation_stats'), rpc('verification_stats')])
-            .then(([annotations, verifications]) => {
-                const total = (annotations?.count ?? 0) + (verifications?.count ?? 0);
+        const MAPROULETTE_PROJECT_ID = 64195; // DeepPVMapper, see loadMapperChallenges() below
+        const mapRouletteReviewed = fetch('https://maproulette.org/api/v2/challenges/extendedFind?ps=DeepPVMapper&limit=50')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => (Array.isArray(data) ? data : [])
+                .filter(c => c.parent && c.parent.id === MAPROULETTE_PROJECT_ID && c.enabled && !c.deleted && !c.isArchived)
+                .reduce((sum, c) => {
+                    const m = c.completionMetrics || {};
+                    const total = m.total || 0;
+                    const remaining = m.tasksRemaining != null ? m.tasksRemaining : total;
+                    return sum + Math.max(0, total - remaining);
+                }, 0))
+            .catch(() => 0);
+
+        Promise.all([rpc('annotation_stats'), rpc('verification_stats'), mapRouletteReviewed])
+            .then(([annotations, verifications, mapRoulette]) => {
+                const total = annotations + verifications + mapRoulette;
                 communityCountEl.textContent = total.toLocaleString('en-US');
             })
             .catch(() => {});

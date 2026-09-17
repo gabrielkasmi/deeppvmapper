@@ -82,6 +82,35 @@ img {
     color: #ffffff;
 }
 
+/* Home icon in place of the "DeepPVMapper" wordmark. A plain link on every
+   inner page (back to the landing page); a non-interactive, slightly dimmed
+   span on the landing page itself, since it's already "home" there. */
+.topnav-logo--home {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.topnav-logo--home:hover,
+.topnav-logo--home:focus-visible {
+    opacity: 1;
+}
+
+.topnav-logo--home svg {
+    width: 20px;
+    height: 20px;
+}
+
+.topnav-logo--current {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.topnav-logo--current:hover {
+    opacity: 0.75;
+}
+
 .topnav-links {
     justify-self: center;
     display: flex;

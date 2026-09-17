@@ -246,6 +246,27 @@
             color: #34495e;
             margin-top: 10px;
         }
+
+        /* Small live-count badge on the PV Check card icon (Contribute page
+           grid), so the tally is visible before the card is even opened.
+           Hidden until the fetch below resolves. */
+        .persona-icon--pvcheck {
+            position: relative;
+        }
+        .icon-badge {
+            position: absolute;
+            top: -6px;
+            right: -12px;
+            background-color: #34495e;
+            color: #ffffff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            line-height: 1;
+            padding: 3px 6px;
+            border-radius: 999px;
+            border: 2px solid #ffffff;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="has-back-to-top">
@@ -254,7 +275,7 @@
         <div class="header-background"></div>
         <nav class="topnav topnav--overlay">
             <div class="container topnav-inner">
-                <a href="../index.html" class="topnav-logo">DeepPVMapper</a>
+                <a href="../index.html" class="topnav-logo topnav-logo--home" aria-label="DeepPVMapper — Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
                                                                 <div class="topnav-links">
                                                                     <a href="about.html" class="topnav-link">About</a>
                                                                     <a href="data.html" class="topnav-link">Data</a>
@@ -280,7 +301,6 @@
             </div>
         </nav>
         <div class="container">
-            <a href="../index.html" class="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
             <h1 class="title">Get Involved</h1>
         </div>
     </header>
@@ -297,11 +317,12 @@
 
                 <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-pvswipe">
                     <span class="contrib-status contrib-status--featured">Featured</span>
-                    <div class="persona-icon">
+                    <div class="persona-icon persona-icon--pvcheck">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="7" width="13" height="17" rx="2" transform="rotate(-8 9.5 15.5)"></rect>
                             <rect x="8" y="3" width="13" height="17" rx="2"></rect>
                         </svg>
+                        <span id="pvcheck-icon-badge" class="icon-badge" hidden></span>
                     </div>
                     <span class="contrib-tag">Quick &amp; casual</span>
                     <h3>PV Check</h3>
@@ -500,6 +521,7 @@
                 confirm or reject them, no map navigation involved &mdash; think Tinder for rooftop solar panels.
                 It runs as its own small app, <a href="../game/" target="_blank">PV Check</a>, right in your browser.
             </p>
+            <p id="pvcheck-contrib-count" class="mapper-contrib-count"></p>
             <p style="text-align: center; margin-top: 24px;">
                 <a href="../game/" target="_blank" class="btn">Open PV Check &rarr;</a>
             </p>
@@ -582,22 +604,28 @@
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../static/js/map/config.js';
 
+        async function fetchRpcCount(fn) {
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+                method: 'POST',
+                headers: {
+                    apikey: SUPABASE_ANON_KEY,
+                    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: '{}'
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            return data?.count ?? 0;
+        }
+
         async function loadContributionCount() {
             const el = document.getElementById('mapper-contrib-count');
-            if (!el || !SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+            if (!el) return;
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/annotation_stats`, {
-                    method: 'POST',
-                    headers: {
-                        apikey: SUPABASE_ANON_KEY,
-                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: '{}'
-                });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                const count = data?.count ?? 0;
+                const count = await fetchRpcCount('annotation_stats');
+                if (count == null) return;
                 el.textContent = `Already ${count.toLocaleString('fr-FR')} contribution${count === 1 ? '' : 's'}!`;
             } catch (e) {
                 // Silent by design — a failed fetch just leaves the line blank
@@ -605,7 +633,32 @@
                 console.error('Contribution count fetch failed:', e);
             }
         }
+
+        // PV Check's own tally (verifications table only — not the map's
+        // annotations) shown two places: the counter line inside its modal,
+        // and a small badge on its card icon so the number is visible even
+        // before the card is opened.
+        async function loadPvCheckCount() {
+            const textEl = document.getElementById('pvcheck-contrib-count');
+            const badgeEl = document.getElementById('pvcheck-icon-badge');
+            try {
+                const count = await fetchRpcCount('verification_stats');
+                if (count == null) return;
+                if (textEl) {
+                    textEl.textContent = `Already ${count.toLocaleString('fr-FR')} contribution${count === 1 ? '' : 's'}!`;
+                }
+                if (badgeEl) {
+                    badgeEl.textContent = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(count);
+                    badgeEl.hidden = false;
+                }
+            } catch (e) {
+                // Silent by design, same as the Mapper counter above.
+                console.error('PV Check contribution count fetch failed:', e);
+            }
+        }
+
         loadContributionCount();
+        loadPvCheckCount();
     </script>
 </body>
 </html>
