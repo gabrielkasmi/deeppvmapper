@@ -1,0 +1,39 @@
+name: Bluesky progress bot
+
+on:
+  schedule:
+    # 20:00 UTC ≈ end of day in France (22:00 CEST / 21:00 CET) — cron
+    # doesn't shift for daylight saving, so this drifts by an hour twice a
+    # year; close enough for "end of day", adjust if it starts to bother you.
+    - cron: '0 20 * * *'
+  # Lets you trigger a run manually from the Actions tab (e.g. right after
+  # editing the script) without waiting for the schedule.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log intended posts, do not actually post or write to Supabase)'
+        type: boolean
+        default: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run bot
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BLUESKY_IDENTIFIER: ${{ secrets.BLUESKY_IDENTIFIER }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/bluesky-bot/post-updates.mjs --dry-run
+          else
+            node scripts/bluesky-bot/post-updates.mjs
+          fi
