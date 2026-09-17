@@ -2,10 +2,12 @@ name: Bluesky progress bot
 
 on:
   schedule:
-    # 20:00 UTC ≈ end of day in France (22:00 CEST / 21:00 CET) — cron
-    # doesn't shift for daylight saving, so this drifts by an hour twice a
-    # year; close enough for "end of day", adjust if it starts to bother you.
-    - cron: '0 20 * * *'
+    # 07:00 UTC ≈ 9:00 AM in France (09:00 CEST / 08:00 CET) — cron doesn't
+    # shift for daylight saving, so this drifts to 8:00 local in winter;
+    # close enough for a "morning" post, adjust if it starts to bother you.
+    # Picked as the best-engagement window (late-morning tends to
+    # outperform evening on Bluesky for European audiences).
+    - cron: '0 7 * * *'
   # Lets you trigger a run manually from the Actions tab (e.g. right after
   # editing the script) without waiting for the schedule.
   workflow_dispatch:
