@@ -729,6 +729,20 @@ grant execute on function public.my_streak() to authenticated;
 -- NOT gated on verifications.status='reviewed' (moderation is offline/
 -- after the fact — see verifications_summary below — and must not hold
 -- back either number).
+-- PERFORMANCE NOTE (added after the Bluesky bot's service_role call hit a
+-- statement timeout): the original version above did 4+ separate full
+-- scans over campaign_pool (season totals, two active-batch subqueries,
+-- a count(distinct batch_no)). As the table grew (~655k rows) that got
+-- slow enough to occasionally time out. This version does the season-wide
+-- totals, batch_count, and the active-batch number in ONE full pass (via
+-- FILTER clauses), then a single indexed lookup for the active batch's
+-- own numbers. Two supporting indexes make both passes index-friendly.
+create index if not exists idx_campaign_pool_campaign_votes
+    on public.campaign_pool (campaign_id, votes_received);
+
+create index if not exists idx_campaign_pool_campaign_batch
+    on public.campaign_pool (campaign_id, batch_no);
+
 create or replace function public.season_completion(p_campaign_id text)
 returns jsonb
 language sql
@@ -736,21 +750,31 @@ stable
 security definer
 set search_path = public
 as $$
-    with active_batch as (
-        select coalesce(
-            (select min(batch_no) from public.campaign_pool where campaign_id = p_campaign_id and votes_received < 10),
-            (select max(batch_no) from public.campaign_pool where campaign_id = p_campaign_id)
-        ) as batch_no
-    ),
-    totals as (
+    with totals as (
+        -- Single full pass over campaign_pool for this campaign: season
+        -- totals, batch_count, and the active batch number are all
+        -- computed here via FILTER, instead of 4 separate scans.
         select
-            coalesce(sum(votes_received), 0)                       as votes_cast_total,
-            count(*)                                                as installations_total,
-            count(*) filter (where votes_received >= 10)            as installations_done
+            coalesce(sum(votes_received), 0)                          as votes_cast_total,
+            count(*)                                                   as installations_total,
+            count(*) filter (where votes_received >= 10)               as installations_done,
+            count(distinct batch_no)                                   as batch_count,
+            min(batch_no) filter (where votes_received < 10)           as first_open_batch,
+            max(batch_no)                                              as last_batch
         from public.campaign_pool
         where campaign_id = p_campaign_id
+    ),
+    active_batch as (
+        -- Falls back to the LAST batch (as 100%) if every batch is done —
+        -- an edge case this campaign won't realistically hit for a long
+        -- time, but shouldn't return nothing if it ever does.
+        select coalesce(t.first_open_batch, t.last_batch) as batch_no
+        from totals t
     )
     select jsonb_build_object(
+        -- votes_cast_total is the honest, unscoped, all-time count of
+        -- votes cast across the whole campaign (every batch) — same
+        -- number as verification_stats().count.
         'votes_cast_total',      t.votes_cast_total,
         -- installations_done/installations_total are SEASON-WIDE (every
         -- batch, not just the active one) and only ever go up — added so
@@ -762,7 +786,12 @@ as $$
         'installations_done',    t.installations_done,
         'installations_total',   t.installations_total,
         'batch_no',              ab.batch_no,
-        'batch_count',           (select count(distinct batch_no) from public.campaign_pool where campaign_id = p_campaign_id),
+        'batch_count',           t.batch_count,
+        -- batch_votes_cast / batch_votes_target / pct stay scoped to the
+        -- single active batch, same real 10-votes-per-installation target
+        -- the scheduler uses, just measured against the few hundred
+        -- installations in the active batch instead of all ~655k, so the
+        -- progress bar still moves at a readable pace.
         'batch_installations',   count(cp.*),
         'batch_votes_cast',      coalesce(sum(cp.votes_received), 0),
         'batch_votes_target',    count(cp.*) * 10,
@@ -773,10 +802,11 @@ as $$
     cross join totals t
     left join public.campaign_pool cp
         on cp.campaign_id = p_campaign_id and cp.batch_no = ab.batch_no
-    group by ab.batch_no, t.votes_cast_total, t.installations_total, t.installations_done;
+    group by ab.batch_no, t.votes_cast_total, t.installations_total, t.installations_done, t.batch_count;
 $$;
 
 grant execute on function public.season_completion(text) to authenticated;
+grant execute on function public.season_completion(text) to service_role;
 
 -- Per-département breakdown for the menu's "Progress" tab (rendered as a
 -- choropleth map client-side, see game/js/deptmap.js). Two different
