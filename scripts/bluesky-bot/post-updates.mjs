@@ -137,14 +137,44 @@ function truncateForBluesky(text, max = 300) {
     return chars.slice(0, max - 1).join('') + '…';
 }
 
+// The AT Protocol does NOT auto-linkify bare URLs in a post's text — the
+// official app's composer only *looks* like it does because it computes
+// "facets" (byte-range annotations over the text) client-side before
+// posting. Without this, a URL in `text` is just inert text. Facet byte
+// offsets are UTF-8 BYTE offsets into the text, not character/grapheme
+// offsets, hence the Buffer.byteLength() dance below (matters here because
+// our messages contain multi-byte emoji before the URL).
+function detectLinkFacets(text) {
+    const urlPattern = /https?:\/\/[^\s]+/g;
+    const facets = [];
+    let match;
+    while ((match = urlPattern.exec(text)) !== null) {
+        // Bluesky trims common trailing punctuation from auto-detected
+        // links; none of our own templates end a URL with punctuation, but
+        // strip it defensively in case a future template does.
+        const url = match[0].replace(/[.,!?;:)\]]+$/, '');
+        const byteStart = Buffer.byteLength(text.slice(0, match.index), 'utf8');
+        const byteEnd = byteStart + Buffer.byteLength(url, 'utf8');
+        facets.push({
+            index: { byteStart, byteEnd },
+            features: [{ $type: 'app.bsky.richtext.facet#link', uri: url }],
+        });
+    }
+    return facets;
+}
+
 async function bskyPost(session, text) {
+    const postText = truncateForBluesky(text);
+    const facets = detectLinkFacets(postText);
     const record = {
         $type: 'app.bsky.feed.post',
-        text: truncateForBluesky(text),
+        text: postText,
         createdAt: new Date().toISOString(),
+        ...(facets.length ? { facets } : {}),
     };
     if (DRY_RUN) {
         console.log('[dry-run] would post to Bluesky:\n---\n' + record.text + '\n---');
+        if (facets.length) console.log('[dry-run] facets:', JSON.stringify(facets));
         return;
     }
     const res = await fetch(`${BLUESKY_PDS}/xrpc/com.atproto.repo.createRecord`, {
