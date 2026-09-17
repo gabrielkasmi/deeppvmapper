@@ -3,7 +3,7 @@
 Posts to Bluesky automatically when:
 
 1. The **all-time leaderboard top 5** changes (new entrant or reordering).
-2. The **rolling-7-day leaderboard top 5** changes — same idea as #1, but scoped to `leaderboard(p_window='week')`, which is a rolling 7-day window, not a fixed calendar week, so this is checked daily just like #1 rather than posted once a week on a fixed schedule.
+2. The **rolling-7-day leaderboard top 5** changes — checked only on **Fridays** (Europe/Paris), so it reads as a real weekly recap of `leaderboard(p_window='week')`'s current rolling view, rather than a leaderboard post that could land on any day. Test it on another day with `node scripts/bluesky-bot/post-updates.mjs --dry-run --force-weekly`.
 3. **Installations validated** (PV Check, `season_completion().installations_done`) crosses a new multiple of **50**.
 4. **Map annotations** (`annotation_stats().count`) crosses a new multiple of **1,000**.
 

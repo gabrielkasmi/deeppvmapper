@@ -3,9 +3,11 @@
 //
 // Posts to Bluesky when:
 //   1. The all-time leaderboard top 5 has changed since the last run.
-//   1b. The rolling-7-day leaderboard top 5 has changed since the last run
-//       (leaderboard(p_window='week') — a rolling window, not a fixed
-//       weekly recap; checked daily, same as #1).
+//   1b. The rolling-7-day leaderboard top 5 has changed, checked ONLY on
+//       WEEKLY_LEADERBOARD_DAY (Friday, Europe/Paris) — a real weekly
+//       recap of leaderboard(p_window='week')'s current rolling view,
+//       rather than a post that could land on any day. Run with
+//       --force-weekly to test this check on a non-Friday.
 //   2. installations_done (PV Check, season_completion()) crosses a new
 //      multiple of 50.
 //   3. annotation_stats().count (the map's crowdsourced annotations) crosses
@@ -35,13 +37,33 @@
 //
 // Run with --dry-run to log what WOULD be posted and updated, without
 // actually calling Bluesky or writing to Supabase — use this first.
+// Run with --force-weekly to also exercise the Friday-only rolling-7-day
+// leaderboard check regardless of what day it actually is (testing only —
+// combine with --dry-run).
 
 const DRY_RUN = process.argv.includes('--dry-run');
+const FORCE_WEEKLY = process.argv.includes('--force-weekly'); // testing only — see main()
 
 const CAMPAIGN_ID = 'season-1'; // see game/js/config.js CAMPAIGN_ID
 const INSTALLATIONS_STEP = 50;
 const ANNOTATIONS_STEP = 1000;
 const BLUESKY_PDS = 'https://bsky.social';
+const WEEKLY_LEADERBOARD_DAY = 'Fri'; // Europe/Paris local day (see isWeeklyLeaderboardDay())
+
+// The workflow itself runs once a day, every day (see
+// ../../.github/workflows/bluesky-bot.yml) — the rolling-7-day leaderboard
+// check below only actually does anything on this one day of the week, so
+// "weekly" reads as a real Friday recap rather than a leaderboard post
+// that can land on any day depending on when contributors happen to
+// reshuffle. Uses Europe/Paris (Gabriel's timezone), via Node's built-in
+// Intl (no extra dependency), rather than the runner's UTC day — the two
+// only disagree right at the UTC day boundary, which the 20:00 UTC/22:00
+// CEST run time is nowhere near.
+function isWeeklyLeaderboardDay(date = new Date()) {
+    if (FORCE_WEEKLY) return true;
+    const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date);
+    return weekday === WEEKLY_LEADERBOARD_DAY;
+}
 
 function requireEnv(name) {
     const v = process.env[name];
@@ -233,17 +255,22 @@ async function main() {
         });
     }
 
-    // 1b. Leaderboard top 5 (rolling 7 days) --------------------------------
+    // 1b. Leaderboard top 5 (rolling 7 days, Friday only) -------------------
     // leaderboard(p_window='week') is a ROLLING 7-day window (not a
-    // calendar week — see verifications_setup.sql), so checking daily and
-    // posting only on a genuine change is the same pattern as the all-time
-    // leaderboard above, not a fixed weekly recap.
-    const weekTop5 = await supabaseRpc('leaderboard', { p_window: 'week', p_limit: 5 });
-    if (Array.isArray(weekTop5) && weekTop5.length && top5Changed(state.last_week_top5, weekTop5)) {
-        posts.push({
-            text: `🔥 This week's top 5 PV Check contributors:\n\n${formatTop5(weekTop5)}\n\nJoin in: https://deeppvmapper.fr/game/`,
-            stateUpdate: { last_week_top5: weekTop5 },
-        });
+    // calendar week — see verifications_setup.sql): querying it right now
+    // always gives "the last 7 days as of this moment". Gating this check
+    // to WEEKLY_LEADERBOARD_DAY (see top of file) is what turns that into
+    // an actual Friday recap instead of a leaderboard post that could land
+    // on any day the workflow happens to run. On every other day this
+    // section does nothing at all — no RPC call, no comparison.
+    if (isWeeklyLeaderboardDay()) {
+        const weekTop5 = await supabaseRpc('leaderboard', { p_window: 'week', p_limit: 5 });
+        if (Array.isArray(weekTop5) && weekTop5.length && top5Changed(state.last_week_top5, weekTop5)) {
+            posts.push({
+                text: `🔥 This week's top 5 PV Check contributors:\n\n${formatTop5(weekTop5)}\n\nJoin in: https://deeppvmapper.fr/game/`,
+                stateUpdate: { last_week_top5: weekTop5 },
+            });
+        }
     }
 
     // 2. Installations validated (PV Check, every 50) -----------------------
