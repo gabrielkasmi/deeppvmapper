@@ -3,6 +3,9 @@
 //
 // Posts to Bluesky when:
 //   1. The all-time leaderboard top 5 has changed since the last run.
+//   1b. The rolling-7-day leaderboard top 5 has changed since the last run
+//       (leaderboard(p_window='week') — a rolling window, not a fixed
+//       weekly recap; checked daily, same as #1).
 //   2. installations_done (PV Check, season_completion()) crosses a new
 //      multiple of 50.
 //   3. annotation_stats().count (the map's crowdsourced annotations) crosses
@@ -227,6 +230,19 @@ async function main() {
         posts.push({
             text: `🏆 Leaderboard update! Top 5 all-time PV Check contributors:\n\n${formatTop5(top5)}\n\nJoin in: https://deeppvmapper.fr/game/`,
             stateUpdate: { last_top5: top5 },
+        });
+    }
+
+    // 1b. Leaderboard top 5 (rolling 7 days) --------------------------------
+    // leaderboard(p_window='week') is a ROLLING 7-day window (not a
+    // calendar week — see verifications_setup.sql), so checking daily and
+    // posting only on a genuine change is the same pattern as the all-time
+    // leaderboard above, not a fixed weekly recap.
+    const weekTop5 = await supabaseRpc('leaderboard', { p_window: 'week', p_limit: 5 });
+    if (Array.isArray(weekTop5) && weekTop5.length && top5Changed(state.last_week_top5, weekTop5)) {
+        posts.push({
+            text: `🔥 This week's top 5 PV Check contributors:\n\n${formatTop5(weekTop5)}\n\nJoin in: https://deeppvmapper.fr/game/`,
+            stateUpdate: { last_week_top5: weekTop5 },
         });
     }
 
