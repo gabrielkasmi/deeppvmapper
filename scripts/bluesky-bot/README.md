@@ -3,12 +3,13 @@
 Posts to Bluesky automatically when:
 
 1. The **all-time leaderboard top 5** changes (new entrant or reordering).
-2. **Installations validated** (PV Check, `season_completion().installations_done`) crosses a new multiple of **50**.
-3. **Map annotations** (`annotation_stats().count`) crosses a new multiple of **1,000**.
+2. The **rolling-7-day leaderboard top 5** changes — same idea as #1, but scoped to `leaderboard(p_window='week')`, which is a rolling 7-day window, not a fixed calendar week, so this is checked daily just like #1 rather than posted once a week on a fixed schedule.
+3. **Installations validated** (PV Check, `season_completion().installations_done`) crosses a new multiple of **50**.
+4. **Map annotations** (`annotation_stats().count`) crosses a new multiple of **1,000**.
 
-Runs once a day via [`.github/workflows/bluesky-bot.yml`](../../.github/workflows/bluesky-bot.yml) (20:00 UTC — see the comment in that file about DST). Nothing is posted if none of the three conditions changed since the last run: "already announced" state lives in Supabase (`public.bluesky_bot_state`), not in this repo, so re-running the workflow (or triggering it manually) is always safe.
+Runs once a day via [`.github/workflows/bluesky-bot.yml`](../../.github/workflows/bluesky-bot.yml) (20:00 UTC — see the comment in that file about DST). Nothing is posted if none of the four conditions changed since the last run: "already announced" state lives in Supabase (`public.bluesky_bot_state`), not in this repo, so re-running the workflow (or triggering it manually) is always safe.
 
-You (Gabriel) can still post manually any time, from your own Bluesky account or the bot's — the bot doesn't need to be the only poster, it just adds these three specific, mechanical updates on top of whatever you post yourself.
+You (Gabriel) can still post manually any time, from your own Bluesky account or the bot's — the bot doesn't need to be the only poster, it just adds these four specific, mechanical updates on top of whatever you post yourself.
 
 ## One-time setup
 

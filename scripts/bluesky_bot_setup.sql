@@ -40,6 +40,11 @@ create table if not exists public.bluesky_bot_state (
     -- rank. Compared against the current top 5 on every run; a post only
     -- goes out (and this gets overwritten) when the two differ.
     last_top5                   jsonb,
+    -- Same idea, for the rolling-7-day leaderboard (leaderboard(p_window=
+    -- 'week') — a rolling window, not a fixed calendar week, so this is
+    -- checked/compared the same way as last_top5 above, just against a
+    -- different window).
+    last_week_top5              jsonb,
     -- Last multiple of 50 announced for installations_done (season_completion()).
     -- A post only goes out when floor(current / 50) > floor(this / 50).
     last_installations_posted   int not null default 0,
@@ -48,6 +53,12 @@ create table if not exists public.bluesky_bot_state (
     updated_at                  timestamptz not null default now(),
     constraint bluesky_bot_state_singleton check (id = 1)
 );
+
+-- For a project that already ran this script before last_week_top5 existed
+-- (create table if not exists is a no-op on an existing table, so the new
+-- column needs adding explicitly here).
+alter table public.bluesky_bot_state
+    add column if not exists last_week_top5 jsonb;
 
 insert into public.bluesky_bot_state (id) values (1)
 on conflict (id) do nothing;
