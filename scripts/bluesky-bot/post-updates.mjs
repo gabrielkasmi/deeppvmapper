@@ -237,7 +237,7 @@ function top5Changed(a, b) {
     // (someone overtaking someone else) counts as a change just as much as
     // a new name entering the top 5.
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return true;
-    return a.some((row, i) => row.pseudo !== b[i]?.pseudo || row.total !== b[i]?.total);
+    return a.some((row, i) => row.pseudo !== b[i]?.pseudo);
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
