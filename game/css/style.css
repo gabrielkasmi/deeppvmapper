@@ -140,6 +140,21 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
     display: block;
 }
 
+/* Below 640px (see the breakpoint used elsewhere in this file), the
+   popover's own centering (left: 50% + margin-left: -120px, relative to
+   the BADGE) can push it partway off-screen, since the badge itself isn't
+   necessarily near the viewport's center on a narrow phone. Decouple it
+   from the badge and center it on the viewport instead. */
+@media (max-width: 639px) {
+    .pvcheck-badge-popover {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: 0;
+        transform: translate(-50%, -50%) rotate(8deg);
+    }
+}
+
 .pvcheck-badge-popover strong {
     color: #1e7d3c;
     font-size: 1.1rem;
