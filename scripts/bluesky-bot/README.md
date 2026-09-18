@@ -7,7 +7,7 @@ Posts to Bluesky automatically when:
 3. **Installations validated** (PV Check, `season_completion().installations_done`) crosses a new multiple of **50**.
 4. **Map annotations** (`annotation_stats().count`) crosses a new multiple of **1,000**.
 
-Runs once a day via [`.github/workflows/bluesky-bot.yml`](../../.github/workflows/bluesky-bot.yml) (07:00 UTC ≈ 9:00 AM Paris — see the comment in that file about DST). Nothing is posted if none of the four conditions changed since the last run: "already announced" state lives in Supabase (`public.bluesky_bot_state`), not in this repo, so re-running the workflow (or triggering it manually) is always safe.
+Runs once a day via [`.github/workflows/bluesky-bot.yml`](../../.github/workflows/bluesky-bot.yml) (08:13 UTC ≈ 10:13 AM Paris, minute 13 on purpose to dodge top-of-hour scheduler congestion — see the comment in that file about DST). Nothing is posted if none of the four conditions changed since the last run: "already announced" state lives in Supabase (`public.bluesky_bot_state`), not in this repo, so re-running the workflow (or triggering it manually) is always safe.
 
 You (Gabriel) can still post manually any time, from your own Bluesky account or the bot's — the bot doesn't need to be the only poster, it just adds these four specific, mechanical updates on top of whatever you post yourself.
 
