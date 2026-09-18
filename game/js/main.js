@@ -192,21 +192,54 @@ function wireAuthScreen() {
     // way it is.
     const pvcheckBadge = $('#pvcheck-badge');
     if (pvcheckBadge) {
+        const pvcheckPopover = $('#pvcheck-badge-popover');
+        const MOBILE_QUERY = '(max-width: 639px)';
+
+        // Below 639px the popover is `position: fixed` (see game/css/
+        // style.css) so it can escape the badge's own rotated/scaled
+        // transform (a transform on an ancestor otherwise turns into the
+        // containing block for a `position: fixed` descendant, pinning it
+        // to the badge instead of the viewport). But `position: fixed`
+        // then has no built-in way to stay "next to the button" — CSS
+        // alone can't read the button's on-screen position — so we
+        // compute it here from getBoundingClientRect() and clamp it to
+        // the viewport, instead of just centering it on the page.
+        function positionMobilePopover() {
+            if (!pvcheckPopover || !window.matchMedia(MOBILE_QUERY).matches) return;
+            const gap = 12;
+            const edgePadding = 12;
+            const rect = pvcheckBadge.getBoundingClientRect();
+            const width = Math.min(240, window.innerWidth - edgePadding * 2);
+            let left = rect.left + rect.width / 2;
+            left = Math.max(edgePadding + width / 2, Math.min(window.innerWidth - edgePadding - width / 2, left));
+            const top = rect.bottom + gap;
+            pvcheckPopover.style.setProperty('--pv-popover-left', `${left}px`);
+            pvcheckPopover.style.setProperty('--pv-popover-top', `${top}px`);
+        }
+
         pvcheckBadge.addEventListener('click', e => {
             e.stopPropagation();
             const isOpen = pvcheckBadge.classList.toggle('is-open');
             pvcheckBadge.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (isOpen) {
+                positionMobilePopover();
+                window.addEventListener('resize', positionMobilePopover);
+            } else {
+                window.removeEventListener('resize', positionMobilePopover);
+            }
         });
         document.addEventListener('click', e => {
             if (!pvcheckBadge.contains(e.target)) {
                 pvcheckBadge.classList.remove('is-open');
                 pvcheckBadge.setAttribute('aria-expanded', 'false');
+                window.removeEventListener('resize', positionMobilePopover);
             }
         });
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape') {
                 pvcheckBadge.classList.remove('is-open');
                 pvcheckBadge.setAttribute('aria-expanded', 'false');
+                window.removeEventListener('resize', positionMobilePopover);
             }
         });
     }

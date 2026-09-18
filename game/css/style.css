@@ -143,15 +143,36 @@ button { font: inherit; cursor: pointer; border: none; border-radius: 10px; }
 /* Below 640px (see the breakpoint used elsewhere in this file), the
    popover's own centering (left: 50% + margin-left: -120px, relative to
    the BADGE) can push it partway off-screen, since the badge itself isn't
-   necessarily near the viewport's center on a narrow phone. Decouple it
-   from the badge and center it on the viewport instead. */
+   necessarily near the viewport's center on a narrow phone. Below, it's
+   repositioned next to the badge instead — using the badge's actual
+   on-screen coordinates (computed in game/js/main.js, since plain CSS has
+   no way to read an ancestor's viewport position) rather than a fixed
+   full-page center. */
 @media (max-width: 639px) {
+    /* .pvcheck-badge-popover lives INSIDE the <button class="pvcheck-badge">
+       (see game/index.html), and that button has its own `transform:
+       rotate(-8deg)`. A transform on an ancestor creates its own containing
+       block for any `position: fixed` descendant, so without this the
+       popover's "fixed" below would resolve against the rotated button,
+       not the viewport. Clear the button's transform while the popover is
+       open so `fixed` escapes it. */
+    .pvcheck-badge.is-open {
+        transform: none;
+    }
+
     .pvcheck-badge-popover {
         position: fixed;
-        top: 50%;
-        left: 50%;
+        /* Set by positionMobilePopover() in game/js/main.js on open, and
+           clamped there to stay on-screen; the values below are just a
+           sane fallback before that runs. */
+        top: var(--pv-popover-top, calc(100% + 12px));
+        left: var(--pv-popover-left, 50%);
         margin-left: 0;
-        transform: translate(-50%, -50%) rotate(8deg);
+        max-width: calc(100vw - 24px);
+        /* No more rotate(8deg) here — this is the "next to the button,
+           flat" placement the badge's own -8deg tilt no longer needs
+           counteracting. */
+        transform: translateX(-50%);
     }
 }
 
