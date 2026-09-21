@@ -47,6 +47,7 @@ const FORCE_WEEKLY = process.argv.includes('--force-weekly'); // testing only �
 const CAMPAIGN_ID = 'season-1'; // see game/js/config.js CAMPAIGN_ID
 const INSTALLATIONS_STEP = 50;
 const ANNOTATIONS_STEP = 1000;
+const VERIFICATIONS_STEP = 1000; // total PV Check contributions (public.verifications) — NOT the same counter as ANNOTATIONS_STEP (public.annotations, the map tool)
 const BLUESKY_PDS = 'https://bsky.social';
 const WEEKLY_LEADERBOARD_DAY = 'Fri'; // Europe/Paris local day (see isWeeklyLeaderboardDay())
 
@@ -295,6 +296,27 @@ async function main() {
             posts.push({
                 text: `📍 ${newMilestone.toLocaleString('en-US')} annotations submitted on the DeepPVMapper map! Every correction makes the registry more reliable.\n\nJoin in: https://deeppvmapper.fr/game/`,
                 stateUpdate: { last_annotations_posted: newMilestone },
+            });
+        }
+    }
+
+    // 4. Total PV Check contributions (verifications, all campaigns, every
+    //    1000) ------------------------------------------------------------
+    // A different counter from #3 above: leaderboard_total('all') is a
+    // straight count(*) from public.verifications (PV Check votes), not
+    // public.annotations (the map annotation tool) — the two features are
+    // unrelated and can sit at very different totals. This is the trigger
+    // for "N total PV Check contributions", which nothing else here
+    // covers: #1 only fires on a top-5 ranking change (not on totals
+    // moving), and #2 only tracks fully-validated installations, not raw
+    // vote count.
+    const totalVerifications = await supabaseRpc('leaderboard_total', { p_window: 'all' });
+    if (typeof totalVerifications === 'number') {
+        const newMilestone = Math.floor(totalVerifications / VERIFICATIONS_STEP) * VERIFICATIONS_STEP;
+        if (newMilestone > state.last_verifications_posted) {
+            posts.push({
+                text: `🎉 ${newMilestone.toLocaleString('en-US')} PV Check contributions submitted by the community! Thank you 🙏\n\nJoin in: https://deeppvmapper.fr/game/`,
+                stateUpdate: { last_verifications_posted: newMilestone },
             });
         }
     }

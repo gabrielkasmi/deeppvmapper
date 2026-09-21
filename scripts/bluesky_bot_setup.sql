@@ -24,6 +24,7 @@
 grant execute on function public.annotation_stats() to service_role;
 grant execute on function public.leaderboard(text, int) to service_role;
 grant execute on function public.season_completion(text) to service_role;
+grant execute on function public.leaderboard_total(text) to service_role;
 
 -- ─── bluesky_bot_state — what the bot has already announced ───────────────
 -- Singleton row (id is always 1) so a scheduled run only posts on a genuine
@@ -50,6 +51,13 @@ create table if not exists public.bluesky_bot_state (
     last_installations_posted   int not null default 0,
     -- Same idea for annotation_stats().count, in steps of 1000.
     last_annotations_posted     int not null default 0,
+    -- Same idea for total PV Check contributions (leaderboard_total('all')
+    -- — a straight count(*) from verifications, across all campaigns), in
+    -- steps of 1000. NOT the same counter as last_annotations_posted above:
+    -- that one tracks public.annotations (the map annotation tool), this
+    -- one tracks public.verifications (PV Check votes) — the two features
+    -- are unrelated and can be at very different totals.
+    last_verifications_posted   int not null default 0,
     updated_at                  timestamptz not null default now(),
     constraint bluesky_bot_state_singleton check (id = 1)
 );
@@ -59,6 +67,10 @@ create table if not exists public.bluesky_bot_state (
 -- column needs adding explicitly here).
 alter table public.bluesky_bot_state
     add column if not exists last_week_top5 jsonb;
+
+-- Same idea for last_verifications_posted (added after last_week_top5).
+alter table public.bluesky_bot_state
+    add column if not exists last_verifications_posted int not null default 0;
 
 insert into public.bluesky_bot_state (id) values (1)
 on conflict (id) do nothing;
