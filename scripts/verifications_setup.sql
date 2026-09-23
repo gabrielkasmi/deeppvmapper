@@ -368,6 +368,32 @@ create trigger trg_bump_votes_received
     after insert on public.verifications
     for each row execute function public.bump_votes_received();
 
+-- ─── gold_standard_items — quality-check installations ────────────────────
+-- A tiny, deliberately separate table: installations whose outcome is
+-- already settled, used to slip a known-answer item into a voter's batch
+-- (see the `gold` CTE in get_verification_batch() below). Lets us see,
+-- even on a single data point, whether a given account agrees with the
+-- known answer on an unambiguous case — a lightweight quality signal,
+-- not a gate: nothing currently blocks or flags an account based on it.
+--
+-- Deliberately empty here / not populated by this script: which
+-- detection_id(s) are used as gold items is NOT committed to this
+-- (public, gh-pages-served) repo — publishing the answer key would defeat
+-- the whole point. Rows are inserted by hand directly in the Supabase SQL
+-- editor and never appear in git history. See scripts/gold_standard_check.sql
+-- for the (id-free) query used to read back the results.
+create table if not exists public.gold_standard_items (
+    id                serial primary key,
+    campaign_id       text not null references public.campaigns(id),
+    detection_id      text not null,
+    expected_decision text not null check (expected_decision in ('confirm', 'reject')),
+    active            boolean not null default true,
+    created_at        timestamptz not null default now(),
+    unique (campaign_id, detection_id)
+);
+
+grant select on public.gold_standard_items to authenticated;
+
 -- ─── get_verification_batch — the only scheduling logic there is ─────────
 -- Least-covered items first, random tiebreak, excluding whatever this user
 -- has already voted — same as before, but now scoped to the single
@@ -439,6 +465,25 @@ as $$
         from public.campaign_pool
         where campaign_id = p_campaign_id and votes_received < 10
     ),
+    -- One known-answer item, when this caller hasn't seen it yet — see
+    -- the gold_standard_items comment above for why no id lives here.
+    gold as (
+        select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
+        from public.gold_standard_items g
+        join public.campaign_pool cp
+          on cp.campaign_id = g.campaign_id and cp.detection_id = g.detection_id
+        where g.campaign_id = p_campaign_id
+          and g.active
+          and not (cp.detection_id = any(p_exclude_ids))
+          and not exists (
+              select 1 from public.verifications v
+              where v.user_id = auth.uid()
+                and v.campaign_id = p_campaign_id
+                and v.detection_id = cp.detection_id
+          )
+        order by random()
+        limit 1
+    ),
     tier0 as (
         select cp.detection_id, cp.lat, cp.lng, cp.gsd, cp.geometry
         from public.campaign_pool cp, active_batch ab
@@ -487,6 +532,8 @@ as $$
         order by cp.batch_no asc, random()
         limit p_limit
     )
+    select * from gold
+    union all
     select * from tier0
     union all
     select * from tier1
