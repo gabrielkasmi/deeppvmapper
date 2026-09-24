@@ -19,3 +19,6 @@ __pycache__/
 
 # Large local detection dump used to build department pages (regenerate via scripts/build_department_pages.py)
 scripts/france_detections.geojson
+
+# Supabase CLI local state (project link, cached versions) — not portable, not secret-free
+supabase/.temp/
