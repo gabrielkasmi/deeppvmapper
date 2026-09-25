@@ -1,0 +1,19 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gabrielkasmi/deeppvmapper",
+  "title": "DeepPVMapper",
+  "description": "Query France's open rooftop-solar detection registry (1.14M+ installations, 96 departements) by natural language: search detections, aggregate installed capacity, explore an area, track yearly deployment, and check data-quality signals before trusting a result.",
+  "version": "0.1.0",
+  "websiteUrl": "https://deeppvmapper.fr",
+  "repository": {
+    "url": "https://github.com/gabrielkasmi/deeppvmapper",
+    "source": "github",
+    "subfolder": "supabase/functions/mcp"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://zelhliylrlktnasircwp.supabase.co/functions/v1/mcp/mcp"
+    }
+  ]
+}
