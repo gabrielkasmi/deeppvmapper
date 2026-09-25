@@ -17,6 +17,18 @@ Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of h
 
 ---
 
+## MCP Server
+
+DeepPVMapper's detection registry is also exposed as a public **MCP (Model Context Protocol) server** over Streamable HTTP, so any MCP-compatible client (Claude, etc.) can query the 1.14M+ rooftop-solar detections directly via natural language: search detections, aggregate installed capacity by department, explore an area, track yearly deployment, and check data-quality signals.
+
+- **Live endpoint:** `https://zelhliylrlktnasircwp.supabase.co/functions/v1/mcp/mcp`
+- **Server source:** [`supabase/functions/mcp`](https://github.com/gabrielkasmi/deeppvmapper/tree/gh-pages/supabase/functions/mcp) (`gh-pages` branch)
+- **Registry listing:** [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.gabrielkasmi/deeppvmapper) — `io.github.gabrielkasmi/deeppvmapper`
+
+No install required — add the endpoint as a custom connector in any MCP client.
+
+---
+
 ## Mapping data
 
 Pre-computed detection results for French departments are available on Zenodo:
