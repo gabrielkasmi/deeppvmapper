@@ -1,0 +1,45 @@
+# Model zoo for the BDAPPV segmentation experiments (refs #11).
+# train.py --model <key> selects an entry; models are built with
+# segmentation-models-pytorch, encoders prefixed `tu-` come from timm.
+# All models output raw logits (B, 1, H, W) — sigmoid + threshold for masks.
+#
+# pretrained_hf_id: placeholder consumed by the inference-side model loader
+# (#7). After full training, checkpoints will be published to the Hugging
+# Face Hub and referenced here so the loader can fetch them without code
+# changes, e.g.:
+#   pretrained_hf_id: <username>/deeppvmapper-segformer-b0
+
+segformer:
+  arch: segformer
+  encoder: mit_b0
+  encoder_weights: imagenet
+  classes: 1
+  pretrained_hf_id: null
+
+segformer-b1:
+  arch: segformer
+  encoder: mit_b1
+  encoder_weights: imagenet
+  classes: 1
+  pretrained_hf_id: null
+
+deeplab:
+  arch: deeplabv3plus
+  encoder: tu-convnext_tiny
+  encoder_weights: imagenet
+  classes: 1
+  pretrained_hf_id: null
+
+unet:
+  arch: unet
+  encoder: tu-convnext_tiny
+  encoder_weights: imagenet
+  classes: 1
+  pretrained_hf_id: null
+
+unet-efficientnet:
+  arch: unet
+  encoder: tu-efficientnet_b0
+  encoder_weights: imagenet
+  classes: 1
+  pretrained_hf_id: null

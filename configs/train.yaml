@@ -1,0 +1,66 @@
+# Training configuration — candidate segmentation backbones on BDAPPV (refs #11).
+# Defaults are quick-run sized (3 epochs, full data, subset overridable by
+# --subset / scripts/run_quick.sh); full-run guidance in experiments/README.md.
+
+# -------- Run --------
+# run_name : output directory under runs/ (default: the model name).
+#            Also settable with --run-name.
+run_name:
+
+seed   : 42
+device : 'cuda'          # falls back to CPU if CUDA is unavailable
+
+# -------- Data --------
+# Snapshot of the Hugging Face dataset gabrielkasmi/bdappv (see experiments/README.md):
+#   hf download gabrielkasmi/bdappv --repo-type dataset --local-dir data/bdappv
+data_dir        : 'data/bdappv'
+annotations_file : 'annotations.csv'
+
+# Provider config: 'ign' matches the pipeline's IGN 20 cm imagery and the
+# permissive Etalab 2.0 license; 'google' matches the BDAPPV paper baselines
+# (28.4k images, Google Earth Engine ToS restricts redistribution of weights).
+data_provider   : 'ign'
+
+# Canonical department-based split shipped with the dataset (annotations.csv).
+# Do not re-split — published BDAPPV results depend on this split.
+split_mode      : 'annotations'    # 'annotations' | 'random' (fallback only)
+val_fraction    : 0.2              # used only when split_mode: random
+
+# BDAPPV images are 400x400 px; image_size upsamples them. Keep it a multiple
+# of 32 (SegFormer encoder stages require it).
+image_size      : 512
+
+# Fraction of each split used (quick runs: 0.05 via --subset). Same seed +
+# fraction => identical subsets across candidate models, so runs stay
+# comparable.
+subset          : 1.0
+
+# -------- Model --------
+model         : 'segformer'         # key into configs/model.yaml; also --model
+models_config : 'configs/model.yaml'
+pretrained    : True                # download ImageNet encoder weights
+
+# -------- Training --------
+epochs        : 3
+# 3 keeps the ConvNeXt-Tiny decoders (DeepLabV3+/U-Net) inside 4 GB of VRAM
+# without spilling to shared memory: measured peaks at 512x512 are 2430 MiB
+# (DeepLabV3+), 2469 MiB (U-Net), 1239 MiB (SegFormer-B0). Batch 4 peaks at
+# 3193/3242 MiB against ~3306 MiB free, and batch 1 is impossible — the
+# decoders' BatchNorm layers raise with a single sample. Held constant across
+# models so the quick runs stay comparable.
+batch_size    : 3
+num_workers   : 4
+optimizer     : 'adamw'             # 'adamw' | 'sgd'
+lr            : 0.0001
+weight_decay  : 0.01
+sgd_momentum  : 0.9                 # sgd only
+augmentations : ['hflip', 'vflip', 'rot90']
+
+# -------- Loss / postprocessing --------
+loss             : 'bce_dice'       # 'bce_dice' | 'bce' | 'dice'
+threshold        : 0.5              # sigmoid binarization threshold
+selection_metric : 'val_mIoU'       # which val metric picks best.pth
+
+# -------- Outputs --------
+num_val_previews : 8                # input|GT|pred PNGs under runs/<run>/val_preds/
+fps_batches      : 50               # images used to measure FPS in eval.py
