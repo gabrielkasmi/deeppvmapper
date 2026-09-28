@@ -12,7 +12,7 @@ set -euo pipefail
 #   segformer | segformer-b1 | deeplab | unet | unet-efficientnet
 #
 # Env:
-#   SUBSET   fraction of each split to train on (default 0.01)
+#   SUBSET   fraction of each split to train on (default 0.05)
 #   PYTHON   python executable (default python)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,7 +20,7 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$ROOT_DIR"
 
 PYTHON="${PYTHON:-python}"
-SUBSET="${SUBSET:-0.01}"
+SUBSET="${SUBSET:-0.05}"
 
 MODEL="${1:-segformer}"
 shift || true

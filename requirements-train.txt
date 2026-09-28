@@ -13,6 +13,9 @@ timm>=0.9,<2
 
 # Dataset snapshot + artifact upload (scripts/upload_results.sh)
 huggingface_hub>=0.23
+# The Hub ships BDAPPV as Parquet shards; scripts/prepare_bdappv.py extracts
+# the raw img/mask layout from them.
+pyarrow>=14.0
 
 # Data handling / IO
 pandas>=1.3

@@ -12,9 +12,9 @@ BDAPPV positives (images with masks) and writes everything to runs/<run_name>/:
   runs/<run_name>/checkpoints/    best.pth / last.pth (never committed)
   runs/<run_name>/val_preds/      input | GT | prediction preview PNGs
 
-Quick run (1% subset, 3 epochs — see scripts/run_quick.sh):
+Quick run (5% subset, 3 epochs — see scripts/run_quick.sh):
 
-  python train.py --model segformer --subset 0.01 --run-name segformer-mini
+  python train.py --model segformer --subset 0.05 --run-name segformer-mini
 
 Smoke test without the dataset (synthetic data, CPU, no downloads):
 
@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument('--run-name', default=None,
                         help='output dir under runs/ (default: model name)')
     parser.add_argument('--subset', type=float, default=None,
-                        help='fraction of each split to use, e.g. 0.01')
+                        help='fraction of each split to use, e.g. 0.05')
     parser.add_argument('--device', default=None,
                         help='cuda | cpu (default: config value, CPU fallback)')
     parser.add_argument('--seed', type=int, default=None,
@@ -250,7 +250,7 @@ def main():
                                      cfg.get('augmentations') or [])
         val_set = BDAPPVSegDataset(val_pairs, image_size)
 
-    batch_size = int(cfg.get('batch_size', 8))
+    batch_size = int(cfg.get('batch_size', 3))
     num_workers = int(cfg.get('num_workers', 4))
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
                               num_workers=num_workers,

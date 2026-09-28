@@ -30,7 +30,7 @@ val_fraction    : 0.2              # used only when split_mode: random
 # of 32 (SegFormer encoder stages require it).
 image_size      : 512
 
-# Fraction of each split used (quick runs: 0.01 via --subset). Same seed +
+# Fraction of each split used (quick runs: 0.05 via --subset). Same seed +
 # fraction => identical subsets across candidate models, so runs stay
 # comparable.
 subset          : 1.0
@@ -42,7 +42,13 @@ pretrained    : True                # download ImageNet encoder weights
 
 # -------- Training --------
 epochs        : 3
-batch_size    : 8
+# 3 keeps the ConvNeXt-Tiny decoders (DeepLabV3+/U-Net) inside 4 GB of VRAM
+# without spilling to shared memory: measured peaks at 512x512 are 2430 MiB
+# (DeepLabV3+), 2469 MiB (U-Net), 1239 MiB (SegFormer-B0). Batch 4 peaks at
+# 3193/3242 MiB against ~3306 MiB free, and batch 1 is impossible — the
+# decoders' BatchNorm layers raise with a single sample. Held constant across
+# models so the quick runs stay comparable.
+batch_size    : 3
 num_workers   : 4
 optimizer     : 'adamw'             # 'adamw' | 'sgd'
 lr            : 0.0001

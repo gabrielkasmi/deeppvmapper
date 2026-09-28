@@ -125,7 +125,7 @@ def main():
         raise SystemExit('No images in the {!r} split — was the run trained '
                          'with a different split?'.format(args.split))
 
-    batch_size = args.batch_size or int(cfg.get('batch_size', 8))
+    batch_size = args.batch_size or int(cfg.get('batch_size', 3))
     loader = DataLoader(val_set, batch_size=batch_size, shuffle=False,
                         num_workers=int(cfg.get('num_workers', 4)),
                         pin_memory=(device == 'cuda'))
