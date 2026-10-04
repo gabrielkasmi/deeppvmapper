@@ -5,7 +5,7 @@ confiance : l'utilisateur swipe une image aérienne recadrée sur une
 installation et confirme/infirme que c'est bien un système PV. Positionnement :
 "Check. Validate. Improve the map." Sert à transformer les ~installations
 mono-source (jamais recoupées avec OSM/FRPV/correction manuelle) en
-détections vérifiées par 10 votes indépendants, sans passer par la carte
+détections vérifiées par 5 votes indépendants (10 pour un sous-ensemble), sans passer par la carte
 principale.
 
 Statut : v1 codée et en cours de test en conditions réelles avec Gabriel
@@ -20,12 +20,12 @@ l'ensemble de la saison, pas le % de complétion — voir
 season_progress_by_department() dans scripts/verifications_setup.sql).
 Scheduler revu en "batches" : le pool de season-1 (~655k installations) est
 maintenant traversé par lots de ~65k (ntile(10) sur campaign_pool.batch_no),
-chaque lot poussé jusqu'à ses 10 votes/installation avant que le suivant ne
+chaque lot poussé jusqu'à `target_votes` votes/installation (5 par défaut, 10 pour un sous-ensemble) avant que le suivant ne
 s'ouvre (get_verification_batch() ne sert que le lot le moins avancé). Les
 % affichés (national + par département) sont scopés au lot actif, donc le
 dénominateur réel est ~65k et pas ~655k — ça bouge visiblement au lieu de
 rester proche de 0% pendant des semaines, sans rien changer à la vraie
-cible de redondance (toujours 10 votes indépendants par installation). Le
+cible de redondance (depuis octobre 2026 : 5 votes indépendants par installation par défaut, 10 pour un sous-ensemble `bench10` et pour les installations promues ; voir `campaign_pool.target_votes`). Le
 SQL doit être ré-exécuté dans Supabase après chaque changement de
 schéma/RPC — le script est maintenant rejouable sans erreur ("relation
 already exists" etc. ; les fonctions à `returns table(...)` se font
@@ -80,7 +80,7 @@ et valeur dans `('0','1')`) avant de dimensionner quoi que ce soit — ne pas
 supposer que c'est le chiffre 600k évoqué au départ (celui-ci compte tout,
 pas seulement le mono-source).
 
-Cible : 10 vérifications indépendantes par installation.
+Cible : `campaign_pool.target_votes` vérifications indépendantes par installation (5 par défaut ; 10 pour le bras `bench10` et les installations promues).
 
 ## Format des images
 
@@ -167,7 +167,7 @@ Le premier design (file avec claim + bail Postgres, `SKIP LOCKED`, passes
 discrètes) a été écarté après relecture avant l'implémentation : c'est le
 pattern standard des files de tâches, où une unité de travail doit être
 traitée exactement une fois par un seul worker — mais notre tâche est
-l'inverse, elle veut explicitement 10 votes indépendants par item. Le
+l'inverse, elle veut explicitement plusieurs votes indépendants par item (5 ou 10). Le
 mécanisme protégeait contre un scénario (deux utilisateurs sur le même
 item en même temps) qui n'est pas un problème ici, juste deux des dix
 votes attendus. Retour au standard du domaine (Zooniverse, LabelStudio,
@@ -181,7 +181,7 @@ de claim, pas de bail, pas de passes.
 est maintenu par un trigger `AFTER INSERT ON verifications`, pas recalculé
 à la volée par agrégation.
 
-**Sélection d'un lot** : `WHERE campaign_id = $c AND votes_received < 10
+**Sélection d'un lot** : `WHERE campaign_id = $c AND votes_received < target_votes
 AND detection_id NOT IN (mes détections déjà votées) ORDER BY
 votes_received ASC, random() LIMIT $n`. La couverture en largeur d'abord
 ressort naturellement du tri (les moins votés sortent en premier) — cible
@@ -193,7 +193,7 @@ campaign_id)` sur `verifications` — empêche qu'un même utilisateur vote
 deux fois le même item, seul cas qui compte vraiment.
 
 **Fin de saison** : quand `campaign_pool` est entièrement à
-`votes_received = 10`, la requête de sélection revient vide — l'écran
+`votes_received >= target_votes`, la requête de sélection revient vide — l'écran
 affiche "bravo, tu as tout couvert, reviens plus tard." Option
 "préviens-moi" au même endroit, via le canal email déjà prévu pour le
 claim, pas via de vraies notifications push (infra Web Push jugée
