@@ -323,6 +323,23 @@ function batchStatusText(batchNo) {
     return `Already ${completed.toLocaleString()} batch${completed === 1 ? '' : 'es'} completed — now on batch ${batchNo.toLocaleString()}.`;
 }
 
+// Next milestone for the "installations validated" counter, and how far
+// along we are between the previous milestone and it. The bar is scaled to
+// that gap (not to the whole season, not to a single batch): it fills to
+// 100%, then the next milestone becomes the new target and the bar restarts
+// on the new gap. Fixed ladder first, then every 10,000.
+const MILESTONES = [1000, 1500, 2000, 3000, 5000, 10000, 20000];
+
+function nextMilestone(done) {
+    let prev = 0;
+    for (const m of MILESTONES) {
+        if (done < m) return { prev, next: m };
+        prev = m;
+    }
+    const next = (Math.floor(done / 10000) + 1) * 10000;
+    return { prev: next - 10000, next };
+}
+
 async function refreshCompletion() {
     const sb = getSupabase();
     const { data, error } = await sb.rpc('season_completion', { p_campaign_id: CAMPAIGN_ID });
@@ -330,8 +347,14 @@ async function refreshCompletion() {
     $('#menu-votes-cast').textContent = data.votes_cast_total.toLocaleString();
     if (data.installations_done != null) $('#menu-installations-done').textContent = data.installations_done.toLocaleString();
     if (data.batch_no != null) $('#menu-batch-no').textContent = data.batch_no.toLocaleString();
-    $('#menu-pct').textContent = `${data.pct}%`;
-    $('#menu-pct-bar').style.width = `${data.pct}%`;
+    // Bar = progress between the last milestone and the next one.
+    const done = data.installations_done || 0;
+    const { prev, next } = nextMilestone(done);
+    const pct = Math.min(99.9, Math.round(1000 * (done - prev) / (next - prev)) / 10);
+    const msEl = $('#menu-milestone');
+    if (msEl) msEl.textContent = next.toLocaleString();
+    $('#menu-pct').textContent = `${pct}%`;
+    $('#menu-pct-bar').style.width = `${pct}%`;
     const leaderboardStatusEl = $('#menu-leaderboard-batch-status');
     if (leaderboardStatusEl) leaderboardStatusEl.textContent = batchStatusText(data.batch_no);
 }
