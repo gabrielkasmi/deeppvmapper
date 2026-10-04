@@ -112,6 +112,14 @@ where campaign_id = 'season-1' and batch_no <= 8
 group by batch_no, arm
 order by batch_no, arm;
 
+-- ═══ 2c. Index pour la condition « votes_received < target_votes » ═══════════
+-- Sans lui, les fonctions du jeu relisent toute la table (~655 000 lignes) et
+-- dépassent la limite de durée du rôle « authenticated » (le jeu ne charge plus).
+-- « concurrently » : ne bloque pas le jeu ; à lancer hors d'une transaction.
+create index concurrently if not exists idx_campaign_pool_batch_votes_target
+    on public.campaign_pool (campaign_id, batch_no) include (votes_received, target_votes);
+vacuum (analyze) public.campaign_pool;
+
 -- ═══ 3. Fonctions du jeu : « complet » = votes_received >= target_votes ══════
 -- Même signature, mêmes colonnes de sortie : le front-end n'a rien à changer.
 -- Seuls le « 10 » codé en dur et le « * 10 » des objectifs sont remplacés par
