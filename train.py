@@ -66,6 +66,8 @@ def parse_args():
                         help='output dir under runs/ (default: model name)')
     parser.add_argument('--subset', type=float, default=None,
                         help='fraction of each split to use, e.g. 0.05')
+    parser.add_argument('--epochs', type=int, default=None,
+                        help='number of training epochs (default: config value)')
     parser.add_argument('--device', default=None,
                         help='cuda | cpu (default: config value, CPU fallback)')
     parser.add_argument('--seed', type=int, default=None,
@@ -206,6 +208,8 @@ def main():
     seed = cfg.get('seed', 42)
     if args.subset is not None:
         cfg['subset'] = args.subset
+    if args.epochs is not None:
+        cfg['epochs'] = args.epochs
     cfg['dry_run'] = args.dry_run
 
     model_name = args.model or cfg.get('model') or 'segformer'
@@ -270,15 +274,36 @@ def main():
     optimizer = _build_optimizer(model, cfg)
 
     threshold = float(cfg.get('threshold', 0.5))
-    selection_metric = cfg.get('selection_metric', 'val_mIoU')
+    selection_metric = cfg.get('selection_metric', 'val_pixelF1')
+    if selection_metric not in ('val_mIoU', 'val_pixelF1', 'val_instanceF1'):
+        # Otherwise a typo fails silently for the whole run: every epoch scores
+        # the -1.0 default, so the `> best_score` test never fires, best.pth is
+        # never written, and only eval.py later notices.
+        raise SystemExit('selection_metric must be one of val_mIoU, val_pixelF1 '
+                         'or val_instanceF1 — got {!r}'.format(selection_metric))
     epochs = int(cfg.get('epochs', 3))
+
+    # ── Mixed precision + gradient accumulation ───────────────────────────────
+    # Effective batch = batch_size * grad_accum_steps. Accumulation is how the
+    # ConvNeXt-Tiny decoders reach the production effective batch (32 = 4x8)
+    # inside 4 GB, instead of raising batch_size past the hardware ceiling.
+    # BatchNorm still only sees `batch_size` samples per micro-batch, so
+    # accumulation does not lift the batch-1 floor. AMP is CUDA-only, and
+    # applies to the training step only — validation stays fp32 so the reported
+    # metrics are not perturbed by fp16 rounding.
+    amp = bool(cfg.get('amp', False)) and str(device).startswith('cuda')
+    accum_steps = max(1, int(cfg.get('grad_accum_steps', 1)))
+    scaler = torch.amp.GradScaler('cuda', enabled=amp)
+    cfg['amp'], cfg['grad_accum_steps'] = amp, accum_steps
 
     # Persist the effective config before training starts
     with open(os.path.join(run_dir, 'config.yaml'), 'w') as f:
         yaml.safe_dump(cfg, f, sort_keys=False, default_flow_style=False)
 
-    print('Model: {} ({}M params) | device: {} | epochs: {} | batch: {}'.format(
-        model_name, params_m, device, epochs, batch_size))
+    print('Model: {} ({}M params) | device: {} | epochs: {} | batch: {}x{} = {} '
+          '| amp: {}'.format(
+              model_name, params_m, device, epochs, batch_size, accum_steps,
+              batch_size * accum_steps, 'fp16' if amp else 'fp32'))
 
     # ── Training loop ─────────────────────────────────────────────────────────
     history = []
@@ -290,17 +315,25 @@ def main():
         t0 = time.time()
 
         model.train()
+        optimizer.zero_grad(set_to_none=True)
         running_loss, n_batches = 0.0, 0
-        for images, masks, _ in tqdm.tqdm(train_loader,
-                                          desc='epoch {}/{} train'.format(epoch, epochs),
-                                          leave=False):
+        n_steps = len(train_loader)
+        for step, (images, masks, _) in enumerate(tqdm.tqdm(
+                train_loader,
+                desc='epoch {}/{} train'.format(epoch, epochs), leave=False)):
             images = images.to(device, non_blocking=True)
             masks = masks.to(device, non_blocking=True)
-            optimizer.zero_grad()
-            logits = model(images)
-            loss = criterion(logits, masks)
-            loss.backward()
-            optimizer.step()
+            with torch.autocast(device_type='cuda', dtype=torch.float16,
+                                enabled=amp):
+                logits = model(images)
+                loss = criterion(logits, masks)
+            scaler.scale(loss / accum_steps).backward()
+            # Step on every full accumulation window, plus the tail so the final
+            # partial window is not dropped.
+            if (step + 1) % accum_steps == 0 or (step + 1) == n_steps:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
             running_loss += float(loss.item())
             n_batches += 1
         train_loss = running_loss / max(n_batches, 1)
@@ -314,10 +347,12 @@ def main():
                  'epoch_time_s': round(epoch_time, 2)}
         entry.update(val_metrics)
         history.append(entry)
-        print('epoch {}/{} — train_loss {:.4f} | {} {:.4f} | val_pixelF1 {:.4f} | {:.1f}s'
-              .format(epoch, epochs, train_loss, selection_metric,
-                      entry.get(selection_metric, float('nan')),
-                      entry['val_pixelF1'], epoch_time))
+        line = 'epoch {}/{} — train_loss {:.4f} | {} {:.4f}'.format(
+            epoch, epochs, train_loss, selection_metric,
+            entry.get(selection_metric, float('nan')))
+        if selection_metric != 'val_pixelF1':
+            line += ' | val_pixelF1 {:.4f}'.format(entry['val_pixelF1'])
+        print('{} | {:.1f}s'.format(line, epoch_time))
 
         ckpt = _checkpoint(model_name, cfg, model, epoch, val_metrics)
         torch.save(ckpt, os.path.join(run_dir, 'checkpoints', 'last.pth'))
@@ -336,6 +371,10 @@ def main():
         'subset': cfg.get('subset', 1.0),
         'seed': seed,
         'device': device,
+        'batch_size': batch_size,
+        'grad_accum_steps': accum_steps,
+        'effective_batch_size': batch_size * accum_steps,
+        'amp': amp,
         'dry_run': args.dry_run,
         'history': history,
         'best_epoch': best_epoch,

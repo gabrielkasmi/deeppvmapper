@@ -137,12 +137,50 @@ epoch budget.
 
 ## Full runs
 
-Edit `configs/train.yaml` (or pass CLI overrides): `subset: 1.0`, more epochs,
-possibly a larger `batch_size`. Use a distinct `--run-name`:
+Edit `configs/train.yaml` (or pass CLI overrides): `subset: 1.0`, more epochs.
+Use a distinct `--run-name`:
 
 ```bash
 python train.py --model segformer --subset 1.0 --epochs 50 --run-name segformer-full
 ```
+
+`batch_size` is a micro-batch (see the VRAM ceiling above), so raise the
+*effective* batch by accumulating gradients rather than pushing `batch_size`
+past the hardware limit:
+
+```yaml
+batch_size       : 4
+grad_accum_steps : 8      # effective batch 32 — matches the production segmenter
+amp              : true   # fp16 autocast + GradScaler (CUDA only)
+```
+
+`amp` applies to the training step only; validation stays fp32 so the reported
+metrics are not perturbed by fp16 rounding. Accumulation does not change what
+BatchNorm sees — it still normalises over `batch_size` samples per step.
+
+### Benchmarking against the production baseline
+
+Report on the **test** split (val is for model selection), using the
+foreground-only `iouPV` / `pixelF1` keys — those are what line up with the
+published baseline (DeepLabV3-ResNet101, `ign`: **IoU 0.735 / F1 0.844**,
+n=1239). The test shards (`ign/test-*`, ~0.69 GB) are not part of the quick-run
+download; fetch them and re-run `scripts/prepare_bdappv.py` first.
+
+```bash
+python eval.py --checkpoint runs/segformer-full/checkpoints/best.pth \
+    --split test --batch-size 8 \
+    --out experiments/results/segformer-full-test.json \
+    --previews-dir experiments/results/previews/segformer-full-test
+```
+
+Two caveats on comparability with that baseline. The published figures come
+from `train/evaluate.py`, which averages per-batch IoU/F1 ratios, whereas
+`SegMetrics` pools TP/FP/FN across the whole split and computes each ratio once
+— the pooled form is the statistically sounder one, and the maintainers are
+recomputing the baseline rather than this scaffold adopting mean-of-means. And
+the released segmenter is initialised from Mayer et al. (2022) PV checkpoints,
+with cosine annealing, `weight_decay 1e-4` and early stopping on val, none of
+which this scaffold does yet.
 
 ## Protocol notes
 
@@ -155,8 +193,12 @@ python train.py --model segformer --subset 1.0 --epochs 50 --run-name segformer-
   the Etalab 2.0 license. Switch to `google` (BDAPPV paper baselines) via
   `data_provider`. Google imagery carries Google Earth Engine ToS
   redistribution restrictions — relevant when publishing weights later.
-- **Image size**: BDAPPV is 400×400; default `image_size: 512` upsamples.
-  Keep multiples of 32 (SegFormer requirement).
+- **Image size**: BDAPPV is 400×400; default `image_size: 416`, the smallest
+  multiple of 32 that covers it (SegFormer's encoder stages require a multiple
+  of 32). 416 upsamples ~4% where 512 upsamples ~28% — cheaper in VRAM, and
+  closer to the native 400 px the production baseline is evaluated at. The
+  committed quick-run results below were produced at 512², before this default
+  changed, so re-run them before comparing against 416² numbers.
 - **Quick-run hyperparams** (held constant across models for comparability):
   5% subset, 3 epochs, batch 3, AdamW lr 1e-4, seed 42, basic augmentations
   (hflip/vflip/rot90). Same seed + `--subset` fraction ⇒ identical data
@@ -168,13 +210,14 @@ python train.py --model segformer --subset 1.0 --epochs 50 --run-name segformer-
   possible at all — the decoders' BatchNorm layers raise
   `Expected more than 1 value per channel when training`. On a larger GPU raise
   `batch_size` uniformly across the models, or the comparison stops being
-  apples-to-apples.
+  apples-to-apples. The effective batch must stay uniform too.
 
 ## Metrics
 
 | key | definition |
 |---|---|
 | `mIoU` | mean of PV-class and background IoU |
+| `iouPV` | foreground (PV) IoU — the key the published baseline reports as "IoU" |
 | `pixelF1` | foreground (PV) pixel F1 |
 | `instanceF1` | connected components matched one-to-one at IoU ≥ 0.5 (a proxy for per-installation detection) |
 | `inference_fps` | single-image forward passes/s at `image_size` (eval.py) |
