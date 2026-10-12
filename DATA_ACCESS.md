@@ -411,6 +411,18 @@ Commercial use does not imply that DeepPVMapper provides data validation, certif
 
 Users incorporating DeepPVMapper data into commercial products or services remain responsible for determining whether the data is sufficiently accurate and complete for their intended purpose.
 
+### 13.6 Acceptable use
+
+The registry and the public API are provided to support research, planning, open mapping and other lawful uses. Users are asked not to use the API or the data in any way that is unlawful or harmful, in particular:
+
+* to identify, locate, profile or target individuals or households, including by combining the data with other sources for that purpose;
+* for fraud, scams, harassment or intimidation;
+* in violation of applicable law, including data protection and privacy law.
+
+Users are also asked not to degrade the shared public API, for example through abusive request volumes. For large-scale processing, the versioned bulk releases should be used.
+
+The maintainers may take appropriate measures against misuse, including changing access conditions and reporting it to the relevant platforms or authorities. This section concerns the use of the API and of the project's services, and does not restrict the rights granted by the CC BY 4.0 license on the data. Removal of a detection can be requested at [gabriel.kasmi@deeppvmapper.fr](mailto:gabriel.kasmi@deeppvmapper.fr).
+
 ## 14. Reporting Issues & Discussions
 
 DeepPVMapper welcomes public feedback, questions, and contributions concerning the API and registry.
