@@ -724,3 +724,18 @@ header button:hover { background: var(--border-2); }
     #controls { gap: 24px; }
     .ctrl { width: 68px; height: 68px; }
 }
+
+/* ─── EN | FR switch (landing top bar + menu) — js/i18n.js wires the buttons.
+   Absolutely positioned so adding it doesn't move anything already there. ── */
+.game-topbar { position: relative; }
+.lang-switch {
+    position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 18px;
+    display: inline-flex; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 999px; overflow: hidden;
+}
+.lang-switch button {
+    background: transparent; color: rgba(255, 255, 255, 0.68); border-radius: 0;
+    padding: 3px 9px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+}
+.lang-switch button:hover, .lang-switch button:focus-visible { color: #ffffff; }
+.lang-switch button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.18); color: #ffffff; }
+#menu > .lang-switch { top: calc(21px + env(safe-area-inset-top, 0px)); right: 58px; border-color: var(--border-2); z-index: 1; }

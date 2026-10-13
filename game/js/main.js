@@ -1,5 +1,6 @@
 // ─── Boot ──────────────────────────────────────────────────────────────────
 
+import { t, fmt } from './i18n.js';
 import { S, $, show, hide, getSupabase, toast } from './store.js';
 import { CAMPAIGN_ID } from './config.js';
 import { ensureSession, claimPseudo, login, refreshProfile } from './auth.js';
@@ -41,7 +42,7 @@ async function boot() {
         await ensureSession();
     } catch (err) {
         console.error('ensureSession failed:', err);
-        $('#auth-error') && ($('#auth-error').textContent = 'Could not connect — try again in a moment.');
+        $('#auth-error') && ($('#auth-error').textContent = t('main.connectError', 'Could not connect — try again in a moment.'));
         return;
     }
 
@@ -84,8 +85,8 @@ async function refreshLandingStats() {
         // authenticated` line is missing/stale (permission denied — 42501).
         console.error('verification_stats RPC failed:', error);
     } else if (data) {
-        $('#landing-count').textContent = (data.count ?? 0).toLocaleString();
-        $('#landing-last').textContent = data.last_at ? timeAgo(new Date(data.last_at)) : 'never yet — be the first';
+        $('#landing-count').textContent = fmt(data.count ?? 0);
+        $('#landing-last').textContent = data.last_at ? timeAgo(new Date(data.last_at)) : t('landing.neverYet', 'never yet — be the first');
     }
 
     refreshPvCheckBadge(sb);
@@ -119,19 +120,19 @@ async function refreshPvCheckBadge(sb) {
         if (error) console.error('season_completion RPC failed:', error);
         return;
     }
-    $('#pvcheck-badge-count').textContent = data.installations_done.toLocaleString();
+    $('#pvcheck-badge-count').textContent = fmt(data.installations_done);
     badge.hidden = false; // reveal only once there's real data to show
 }
 
 function timeAgo(date) {
     const s = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
-    if (s < 60) return 'just now';
+    if (s < 60) return t('time.now', 'just now');
     const m = Math.round(s / 60);
-    if (m < 60) return `${m} min ago`;
+    if (m < 60) return t('time.min', '{m} min ago', { m });
     const h = Math.round(m / 60);
-    if (h < 24) return `${h}h ago`;
+    if (h < 24) return t('time.hour', '{h}h ago', { h });
     const d = Math.round(h / 24);
-    return `${d}d ago`;
+    return t('time.day', '{d}d ago', { d });
 }
 
 function randomPseudo() {
@@ -177,7 +178,7 @@ function wireAuthScreen() {
         await openMenu('progress');
     });
     $('#landing-share-card').addEventListener('click', shareApp);
-    wireInstallButton($('#landing-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
+    wireInstallButton($('#landing-install-btn'), () => toast(t('toast.iosInstall', 'Tap the Share icon, then "Add to Home Screen".'), 4500));
 
     // "What is the purpose of this game?" — same panel, two entry points
     // (this landing link, and the header button wired in help.js), both
@@ -262,9 +263,9 @@ function wireAuthScreen() {
         const email = $('#email-input').value.trim();
         const password = $('#password-input').value;
         const err = $('#email-error');
-        if (!email || !password) { err.textContent = 'Enter your email and password.'; show(err); return; }
+        if (!email || !password) { err.textContent = t('login.empty', 'Enter your email and password.'); show(err); return; }
         const res = await login(email, password);
-        if (!res.ok) { err.textContent = 'Incorrect email or password.'; show(err); return; }
+        if (!res.ok) { err.textContent = t('login.bad', 'Incorrect email or password.'); show(err); return; }
         hide(err);
         // login() SWITCHES to whatever account that email belongs to —
         // S.pseudo from the session we had a moment ago (usually anonymous)
@@ -288,9 +289,9 @@ async function attemptPlay() {
     if ($('#play-btn').disabled) return;
     const res = await claimPseudo($('#pseudo-input').value);
     if (res.ok) { startGame(); return; }
-    const msg = { taken: 'That name is already taken — try another.',
-                  invalid: 'Use 2 to 24 characters.',
-                  error: 'Something went wrong — try again.' }[res.reason];
+    const msg = { taken: t('pseudo.taken', 'That name is already taken — try another.'),
+                  invalid: t('pseudo.invalid', 'Use 2 to 24 characters.'),
+                  error: t('error.generic', 'Something went wrong — try again.') }[res.reason];
     const err = $('#pseudo-error');
     err.textContent = msg; show(err);
 }

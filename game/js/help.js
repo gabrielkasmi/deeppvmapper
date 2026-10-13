@@ -14,6 +14,7 @@
 // that move between screen widths, for a one-time-per-player payoff that
 // doesn't justify the fragility.
 
+import { t } from './i18n.js';
 import { $, $$, show, hide, toast } from './store.js';
 import { wireInstallButton } from './pwa.js';
 
@@ -30,7 +31,7 @@ export function initHelp() {
     dots = $$('#tutorial-dots .tutorial-dot');
 
     $('#help-open').addEventListener('click', openTutorial);
-    wireInstallButton($('#header-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
+    wireInstallButton($('#header-install-btn'), () => toast(t('toast.iosInstall', 'Tap the Share icon, then "Add to Home Screen".'), 4500));
     $('#header-purpose-btn').addEventListener('click', () => show($('#purpose-panel')));
     $('#tutorial-next').addEventListener('click', () => { advance(); restartAutoplay(); });
     $('#tutorial-close').addEventListener('click', dismiss);

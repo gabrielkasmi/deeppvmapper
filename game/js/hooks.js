@@ -5,6 +5,7 @@
 // disabled so it never blocks a swipe); the leaderboard-rank banner is the
 // same idea, just a wider strip with more text and a longer auto-hide.
 
+import { t } from './i18n.js';
 import { S, $, getSupabase } from './store.js';
 
 const MILESTONES_FIXED = [5, 10, 30, 50, 100, 200, 500, 1000];
@@ -21,7 +22,11 @@ function isMilestone(total) {
 // the DB.
 const RANK_CHECK_EVERY = 5;
 const RANK_WINDOWS = ['day', 'week', 'all'];
-const WINDOW_LABEL = { day: 'daily', week: 'weekly', all: 'all-time' };
+const WINDOW_LABEL = {
+    day: () => t('hooks.label.day', 'daily'),
+    week: () => t('hooks.label.week', 'weekly'),
+    all: () => t('hooks.label.all', 'all-time'),
+};
 
 function tierOf(rnk) {
     if (rnk == null) return 0;
@@ -96,13 +101,13 @@ export function announceStreak() {
         if (localStorage.getItem(STREAK_KEY) === today) return;
         localStorage.setItem(STREAK_KEY, today);
     } catch { /* private mode etc — just skip the dedupe, no big deal */ }
-    showFlash(`🔥 ${S.streak}-day streak!`, 'streak');
+    showFlash(t('hooks.streak', '🔥 {n}-day streak!', { n: S.streak }), 'streak');
 }
 
 /** Call after S.lifetimeTotal has just been incremented for a counted vote. */
 export function checkMilestone(total) {
     if (isMilestone(total)) {
-        showFlash(`🎉 ${total} verifications!`, 'milestone');
+        showFlash(t('hooks.milestone', '🎉 {n} verifications!', { n: total }), 'milestone');
     }
 }
 
@@ -136,9 +141,9 @@ export async function checkRankMaybe(total) {
     results.forEach(({ window, rnk }) => { S.rankCache[window] = rnk; });
 
     if (!best) return;
-    const label = WINDOW_LABEL[best.window];
+    const label = WINDOW_LABEL[best.window]();
     const html = best.rnk === 1
-        ? `You're <strong>#1</strong> on the ${label} leaderboard! 🏆`
-        : `Keep going — you're now <strong>#${best.rnk}</strong> on the ${label} leaderboard.`;
+        ? t('hooks.rank1', "You're <strong>#1</strong> on the {label} leaderboard! 🏆", { label })
+        : t('hooks.rankN', "Keep going — you're now <strong>#{rank}</strong> on the {label} leaderboard.", { label, rank: best.rnk });
     showRankBanner(html);
 }

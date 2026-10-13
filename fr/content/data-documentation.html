@@ -1,0 +1,178 @@
+---
+layout: default
+lang: fr
+title: "Documentation des données &middot; DeepPVMapper"
+description: "Référence technique du registre PV en toiture DeepPVMapper : schéma, attributs, formats de fichiers, conventions de coordonnées et interopérabilité avec GeoJSON, STAC et OpenStreetMap."
+keywords: "GeoJSON solar dataset, STAC catalog photovoltaic, OpenStreetMap solar interoperability, open data schema photovoltaic, solar panel dataset documentation, cadastre solaire format données, QGIS photovoltaic data, open source geospatial solar France"
+og_description: "Schéma, attributs, formats de fichiers et conventions d'interopérabilité du registre PV en toiture DeepPVMapper."
+og_image: ""
+og_type: "article"
+body_class: "has-back-to-top"
+nav_active: ""
+head_include: "pages/data-documentation/head.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Documentation des données</h1>
+      <div class="quick-links">
+          <a href="data.html" class="quick-link">&larr; Retour aux données</a>
+          <a href="#schema" class="quick-link">Schéma</a>
+          <a href="#sources" class="quick-link">Codage des sources</a>
+          <a href="#interop" class="quick-link">Interopérabilité</a>
+      </div>
+  </div>
+---
+    <section class="abstract">
+        <div class="container doc-content">
+            <h2><span class="section-number">1.</span>Vue d'ensemble</h2>
+            <p>
+                Cette page est la référence technique du registre DeepPVMapper : un enregistrement par installation
+                photovoltaïque en toiture détectée en France métropolitaine, chacun portant un polygone d'emprise et
+                un ensemble de caractéristiques dérivées. Elle s'adresse à celles et ceux qui intègrent les données par
+                programme — la carte interactive de la <a href="data.html">page Données</a> expose le même schéma que
+                celui décrit ici via ses exports CSV et GeoJSON, et le registre complet est publié sur Zenodo et
+                reproduit sur Hugging Face (voir <a href="data.html#map-section">Accéder aux données</a>).
+            </p>
+            <p>
+                Pour savoir comment les détections elles-mêmes sont produites — le pipeline de deep learning, les
+                sources d'imagerie et les modèles de caractérisation — voir la page <a href="pipeline.html">Pipeline</a>.
+                Pour savoir comment les différents jeux de données sources (détections par IA, OpenStreetMap,
+                registres) sont combinés en un seul registre, voir <a href="openpvmapper.html">OpenPVMapper</a>.
+            </p>
+        </div>
+    </section>
+
+    <section id="schema">
+        <div class="container doc-content">
+            <h2><span class="section-number">2.</span>Formats de fichiers et conventions</h2>
+            <p>
+                Le format de géométrie de référence est <a href="https://datatracker.ietf.org/doc/html/rfc7946" target="_blank">GeoJSON (RFC&nbsp;7946)</a>,
+                le même que celui d'un export de zone personnalisée depuis la carte. Les coordonnées sont données en
+                longitude, latitude (dans cet ordre, selon la spécification GeoJSON) en <strong>WGS&nbsp;84 / EPSG:4326</strong>
+                — aucune projection ni reprojection n'est nécessaire pour les utiliser directement dans un outil SIG,
+                <code>geopandas</code> ou une carte web. L'emprise de chaque installation est un <code>Polygon</code>
+                ou un <code>MultiPolygon</code>.
+            </p>
+            <p>
+                Deux formes d'export sont disponibles depuis la carte pour une sélection personnalisée :
+            </p>
+            <ul>
+                <li><strong>GeoJSON</strong> — une <code>Feature</code> par installation, avec la géométrie réelle
+                    de l'emprise et la table complète d'attributs ci-dessous dans <code>properties</code>.</li>
+                <li><strong>CSV</strong> — une ligne par installation, avec l'emprise réduite à son centroïde
+                    (colonnes <code>lat</code>, <code>lng</code>) et les mêmes attributs, pour les outils qui n'ont pas
+                    besoin de la forme du polygone.</li>
+            </ul>
+            <p>La publication complète du registre (Zenodo / Hugging Face) est fournie sous la forme d'un seul fichier GeoJSON, avec le même schéma.</p>
+
+            <h3 class="subsection"><span class="section-number">2.1</span>Référence des attributs</h3>
+            <div class="doc-table-wrap">
+                <table class="doc-table">
+                    <thead>
+                        <tr><th class="mono">Champ</th><th>Type</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="mono">array_id</td><td>chaîne</td><td>Identifiant stable de l'installation (par ex. <code>"1024.0"</code>). Distinct de l'identifiant interne de la ligne en base — c'est l'identifiant à utiliser comme clé d'une version à l'autre.</td></tr>
+                        <tr><td class="mono">surface</td><td>flottant (m&sup2;)</td><td>Surface d'emprise du champ détecté.</td></tr>
+                        <tr><td class="mono">kwp</td><td>flottant (kWc)</td><td>Puissance installée estimée (DC), déduite de l'emprise et des caractéristiques des panneaux.</td></tr>
+                        <tr><td class="mono">tilt</td><td>entier (&deg;)</td><td>Inclinaison estimée des panneaux par rapport à l'horizontale (0&deg; = posés à plat sur le toit, croissant vers la verticale).</td></tr>
+                        <tr><td class="mono">azimuth</td><td>entier (&deg;)</td><td>Orientation estimée des panneaux, dans le sens horaire à partir du nord géographique (0&ndash;360&deg;) — la convention standard de l'industrie solaire. Voir la page <a href="pipeline.html">Pipeline</a> pour son estimation.</td></tr>
+                        <tr><td class="mono">first_seen</td><td>entier (année)</td><td>Millésime d'imagerie le plus ancien dans lequel cette installation a été détectée.</td></tr>
+                        <tr><td class="mono">last_seen</td><td>entier (année)</td><td>Millésime d'imagerie le plus récent dans lequel elle a été détectée. Utilisé pour le filtre « année » de la carte.</td></tr>
+                        <tr><td class="mono">n_vintages</td><td>nombre</td><td>Nombre de millésimes d'imagerie distincts dans lesquels cette installation a été détectée indépendamment, entre <code>first_seen</code> et <code>last_seen</code> — un indicateur approximatif de stabilité/confiance (une installation vue dans tous les millésimes disponibles est plus solide qu'une vue une seule fois).</td></tr>
+                        <tr><td class="mono">sources</td><td>chaîne</td><td>Liste, séparée par des virgules, des indices de sources contribuant à cet enregistrement (par ex. <code>"0,1"</code>). Voir <a href="#sources">Codage des sources</a> ci-dessous.</td></tr>
+                        <tr><td class="mono">frpv_proba</td><td>flottant [0&ndash;1], nullable</td><td>Probabilité de correspondance avec la source de référence FRPV (voir <a href="#sources">Codage des sources</a>) utilisée dans l'<a href="../../content/main-results.html">audit des registres</a>, lorsqu'une comparaison a été tentée. Nulle quand aucune comparaison n'a eu lieu (par ex. aucun candidat à proximité).</td></tr>
+                        <tr><td class="mono">false_positive</td><td>booléen, nullable</td><td>Renseigné lorsque cet enregistrement a été signalé (par relecture ou annotation communautaire) comme n'étant pas une vraie installation. La carte les masque par défaut. Nul/absent signifie « non signalé » — ce qui n'équivaut pas à un vrai positif confirmé.</td></tr>
+                        <tr><td class="mono">false_positive_source</td><td>chaîne, nullable</td><td>Qui/quoi l'a signalé (par ex. une passe de relecture ou une contribution communautaire), lorsque <code>false_positive</code> est renseigné.</td></tr>
+                        <tr><td class="mono">insee</td><td>chaîne</td><td>Code INSEE de la commune où se trouve l'installation.</td></tr>
+                        <tr><td class="mono">dpt</td><td>chaîne</td><td>Code du département sur deux caractères (<code>"2A"</code>/<code>"2B"</code> pour la Corse).</td></tr>
+                        <tr><td class="mono">rnb_id</td><td>chaîne, nullable</td><td>Identifiant du bâtiment dans le <a href="https://rnb.beta.gouv.fr/" target="_blank">Référentiel National des Bâtiments (RNB)</a>, lorsqu'un rapprochement fiable au niveau du bâtiment a été trouvé — utile pour croiser avec d'autres jeux de données référencés RNB.</td></tr>
+                    </tbody>
+                    <caption>Chaque export (carte, CSV, GeoJSON, publication complète) expose ce même jeu de propriétés — rien n'est supprimé ni renommé d'un export à l'autre.</caption>
+                </table>
+            </div>
+
+            <div class="doc-note">
+                <strong>Une remarque sur les champs estimés.</strong> <code>surface</code>, <code>kwp</code>, <code>tilt</code>,
+                <code>azimuth</code> et <code>frpv_proba</code> sont des sorties de modèles, pas des vérités terrain —
+                considérez-les comme des estimations, avec les caractéristiques d'erreur décrites sur la page
+                <a href="../../content/main-results.html">audit des registres</a>, et non comme des valeurs mesurées ou déclarées.
+            </div>
+        </div>
+    </section>
+
+    <section id="sources">
+        <div class="container doc-content">
+            <h2><span class="section-number">3.</span>Codage des sources</h2>
+            <p>
+                <code>sources</code> est une liste d'indices séparés par des virgules, car une même installation peut
+                être corroborée par plusieurs sources (par ex. une détection par IA confirmée ensuite par une
+                contribution OpenStreetMap). Les indices correspondent à :
+            </p>
+            <div class="doc-table-wrap">
+                <table class="doc-table">
+                    <thead><tr><th class="mono">Indice</th><th>Source</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td class="mono">0</td><td>DPVM</td><td>Le pipeline de détection sur imagerie aérienne de DeepPVMapper lui-même.</td></tr>
+                        <tr><td class="mono">1</td><td>FRPV</td><td>Rapprochée du jeu de référence FRPV — voir la page <a href="../../content/main-results.html">audit des registres</a> pour la méthodologie de comparaison et son lien avec le registre public RNI.</td></tr>
+                        <tr><td class="mono">2</td><td>OSM</td><td>Apportée via OpenStreetMap (voir <a href="#interop">Interopérabilité</a> ci-dessous pour les conventions d'étiquetage OSM concernées).</td></tr>
+                        <tr><td class="mono">3</td><td>Correction manuelle</td><td>Une correction manuelle soumise via les outils d'annotation de la carte.</td></tr>
+                        <tr><td class="mono">4</td><td>Échantillon de rappel</td><td>Ajoutée à partir d'un échantillon d'annotation du rappel — installations initialement manquées par le pipeline automatique, retrouvées par une relecture ciblée.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="interop">
+        <div class="container doc-content">
+            <h2><span class="section-number">4.</span>Interopérabilité et standards</h2>
+
+            <h3 class="subsection"><span class="section-number">4.1</span>STAC</h3>
+            <p>
+                <a href="https://stacspec.org/en" target="_blank">STAC (SpatioTemporal Asset Catalog)</a> est une
+                spécification très répandue pour cataloguer des données d'observation de la Terre — son unité de base,
+                l'<em>Item</em> STAC, est une Feature GeoJSON dotée d'une date et d'un ensemble d'<em>Assets</em>
+                liés (tuiles d'imagerie, nuages de points, etc.), organisés en <em>Catalogs</em>/<em>Collections</em>.
+                Elle est conçue pour être large et, en principe, ne se limite pas à l'imagerie raster.
+            </p>
+            <p>
+                <strong>DeepPVMapper n'est actuellement pas conforme à STAC</strong>, et c'est un choix délibéré,
+                non un oubli : ce registre est une collection plate de plus de 1,1&nbsp;M d'annotations vectorielles
+                d'emprises de bâtiments, et non un ensemble modeste d'items scène/asset pointant chacun vers des
+                fichiers externes avec une étendue temporelle bien définie. Forcer chaque installation (voire chaque
+                extrait départemental) dans une hiérarchie STAC Item/Asset/Catalog ajouterait une vraie charge de
+                modélisation sans apporter grand-chose à celles et ceux qui utilisent réellement ces données — qui
+                les veulent en immense majorité comme de simples entités vectorielles avec attributs, ce que GeoJSON
+                leur donne déjà, lisible nativement par QGIS, <code>geopandas</code>, PostGIS et toute pile SIG
+                moderne sans aucune connaissance de STAC.
+            </p>
+            <p>
+                Si la découvrabilité entre catalogues (apparaître dans les catalogues/navigateurs EO compatibles STAC)
+                devient utile plus tard, il existe un compromis léger : envelopper l'ensemble du fichier publié dans
+                une seule Collection + un seul Item STAC (un Asset = le téléchargement GeoJSON), sans restructurer
+                les données elles-mêmes. C'est un ajout peu coûteux et facultatif par-dessus le format actuel — pas
+                un prérequis pour utiliser les données aujourd'hui.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">4.2</span>Conventions d'étiquetage OpenStreetMap</h3>
+            <p>
+                Le sous-ensemble issu d'OSM (indice <code>2</code> de <code>sources</code>) est construit à partir de
+                contributions OpenStreetMap étiquetées selon les conventions usuelles. Pour celles et ceux qui
+                comparent notre schéma directement au schéma d'étiquetage OSM :
+            </p>
+            <ul>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:building" target="_blank">Key:building</a> — étiquetage de l'emprise des bâtiments, base de nos propres polygones d'emprise.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:generator:source" target="_blank">Key:generator:source</a> and <a href="https://wiki.openstreetmap.org/wiki/Tag:generator:source=solar" target="_blank">Tag:generator:source=solar</a> — comment une installation solaire est étiquetée comme générateur d'électricité dans OSM.</li>
+                <li><a href="https://wiki.openstreetmap.org/wiki/Key:roof:direction" target="_blank">Key:roof:direction</a> — l'équivalent OSM le plus proche de notre champ <code>azimuth</code>, même si la direction du toit et l'azimut des panneaux ne sont pas toujours la même chose (les panneaux ne sont pas toujours alignés sur le toit).</li>
+            </ul>
+
+            <h3 class="subsection"><span class="section-number">4.3</span>Licence et citation</h3>
+            <p>
+                Voir la notice Zenodo (accessible depuis <a href="data.html#map-section">Accéder aux données</a> sur la
+                page Données) pour la licence du jeu de données et la citation à utiliser dans un travail académique.
+                Le code de DeepPVMapper lui-même est sous licence MIT (voir le pied de page ci-dessous).
+            </p>
+        </div>
+    </section>
+
+    

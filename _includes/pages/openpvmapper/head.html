@@ -1,0 +1,54 @@
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ site.canonical_host }}{{ page.url }}">
+    <meta property="twitter:title" content="{{ page.og_title | default: page.title }}">
+    <meta property="twitter:description" content="{{ page.og_description | default: page.description }}">
+    <meta property="twitter:image" content="https://deeppvmapper.fr/static/images/teaser.webp">
+<style>
+        .source-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            max-width: 900px;
+            margin: 30px auto 0 auto;
+        }
+        .source-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 22px 24px;
+        }
+        .source-card .source-tag {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #868e96;
+            margin-bottom: 8px;
+        }
+        .source-card h4 {
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .source-card p {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #6c757d;
+            margin: 0;
+        }
+        .hierarchy-box {
+            max-width: 700px;
+            margin: 24px auto 0 auto;
+            background-color: #eef1f4;
+            border-radius: 8px;
+            padding: 18px 26px;
+            text-align: center;
+            font-size: 1.02rem;
+            color: #2c3e50;
+        }
+        @media (max-width: 700px) {
+            .source-cards { grid-template-columns: 1fr; }
+        }
+    </style>

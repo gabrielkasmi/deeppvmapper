@@ -36,3 +36,8 @@ DeepPVMapper grew out of a CIFRE PhD thesis conducted between Mines Paris (PSL U
 ## Optional
 
 - [Interactive map](https://deeppvmapper.fr/content/map.html): Full-screen map application — explore, filter, and export detections; contribute corrections.
+
+## Français
+
+- [Accueil (FR)](https://deeppvmapper.fr/fr/index.html): Version française du site.
+- [Données](https://deeppvmapper.fr/fr/content/data.html), [Logiciels](https://deeppvmapper.fr/fr/content/software.html), [Contribuer](https://deeppvmapper.fr/fr/content/contribute.html), [À propos](https://deeppvmapper.fr/fr/content/about.html), [Mentions légales](https://deeppvmapper.fr/fr/content/legal.html), [Pipeline](https://deeppvmapper.fr/fr/content/pipeline.html), [OpenPVMapper](https://deeppvmapper.fr/fr/content/openpvmapper.html), [Documentation des données](https://deeppvmapper.fr/fr/content/data-documentation.html), [Cas d'usage](https://deeppvmapper.fr/fr/content/outlook.html)

@@ -1,0 +1,262 @@
+---
+layout: default
+lang: fr
+title: "Pipeline · DeepPVMapper"
+description: "Le pipeline de détection et de caractérisation de DeepPVMapper : architecture, entraînement et déploiement à l'échelle nationale."
+keywords: "deep learning solar panel detection pipeline, remote sensing photovoltaic France, aerial imagery solar detection, computer vision rooftop PV, national scale solar detection pipeline, pipeline open source détection panneaux solaires"
+og_title: "Le pipeline · DeepPVMapper"
+og_image: "https://deeppvmapper.fr/static/images/assets/f1-score.webp"
+og_type: "article"
+body_class: "has-back-to-top"
+nav_active: "pipeline"
+head_include: "pages/pipeline/head.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Le pipeline</h1>
+  </div>
+---
+    <!-- ============ 1. Pipeline overview ============ -->
+    <section class="abstract">
+        <div class="container">
+            <h2><span class="section-number">1.</span>Vue d'ensemble du pipeline</h2>
+            <p>
+                DeepPVMapper est un pipeline de deep learning, inspiré de 3D-PV-Locator (Mayer et al., 2022), qui
+                détecte les installations photovoltaïques en toiture sur des images aériennes et les caractérise.
+                Il procède en deux étapes : l'extraction des polygones, puis l'extraction des caractéristiques.
+            </p>
+            <figure style="text-align: center; margin: 30px 0;">
+                <img src="../../static/images/assets/flowchart.webp" alt="Schéma du pipeline DeepPVMapper" class="teaser-image" style="max-width: 800px;">
+                <figcaption class="caption">Vue d'ensemble du pipeline DeepPVMapper, des tuiles aériennes à un registre PV caractérisé</figcaption>
+            </figure>
+
+            <h3 class="subsection"><span class="section-number">1.1</span>Extraction des polygones</h3>
+            <p>
+                Les tuiles aériennes sont d'abord découpées en vignettes, qui passent par un
+                <strong>modèle de classification (Inception v3)</strong> repérant celles susceptibles de contenir une
+                installation PV. Les vignettes classées positives sont ensuite transmises à un
+                <strong>modèle de segmentation (DeepLab v3)</strong>, qui extrait les contours précis de chaque
+                système détecté. Cette conception en deux temps (classer, puis segmenter) rend le pipeline
+                exécutable à l'échelle nationale, puisque l'étape coûteuse de segmentation ne s'applique qu'à la
+                petite fraction de vignettes jugées positives par le classifieur.
+            </p>
+
+            <h3 class="subsection"><span class="section-number">1.2</span>Extraction des caractéristiques</h3>
+            <p>
+                Les polygones extraits sont traités avec <strong>pypvroof</strong>, un paquet développé pour ce
+                projet et publié sur <a href="https://pypi.org/project/pypvroof/" target="_blank">PyPI</a>,
+                qui estime la surface, l'inclinaison, l'orientation (azimut) et la puissance installée de chaque
+                système. Les détections sont ensuite croisées avec la <strong>BD TOPO&reg;</strong>, la base de
+                données nationale des bâtiments de l'IGN, lors d'une étape de nettoyage et de filtrage qui
+                (i) ne conserve que les détections situées sur des toitures et (ii) fusionne les détections
+                multiples appartenant à un même toit en un seul système. Le résultat est un <strong>registre PV</strong>
+                propre et géolocalisé, avec une entrée par installation physique et ses caractéristiques estimées.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ 2. Training ============ -->
+    <section class="method">
+        <div class="container">
+            <h2><span class="section-number">2.</span>Entraînement</h2>
+
+            <h3 class="subsection"><span class="section-number">2.1</span>Données d'entraînement</h3>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        Les modèles sont entraînés sur <strong>BDAPPV</strong>, un jeu de données d'images aériennes
+                        d'installations PV en toiture en France et en Belgique, avec masques de segmentation et
+                        métadonnées d'installation. Les images proviennent de deux fournisseurs d'imagerie aérienne
+                        — <strong>Google</strong> et <strong>IGN</strong> — pour un total de
+                        <strong>45&nbsp;733 images</strong>, ce qui rend le jeu de données adapté aussi bien aux
+                        benchmarks de segmentation/classification qu'à l'évaluation des changements de distribution
+                        entre sources d'imagerie. Toutes les images sont des PNG de 400&times;400&nbsp;px, avec des
+                        masques de segmentation binaires PNG à la même résolution ; le jeu Google est un sur-ensemble
+                        du jeu IGN, c'est-à-dire que chaque installation IGN a aussi une image Google correspondante.
+                        Pour DeepPVMapper, comme le déploiement s'appuie sur la BD ORTHO&reg; de l'IGN, les modèles
+                        sont entraînés spécifiquement sur le <strong>sous-ensemble IGN (17&nbsp;325 images, dont
+                        7&nbsp;685 exemples positifs)</strong>.
+                    </p>
+                    <div class="results-table-wrap">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Fournisseur</th>
+                                    <th>Images</th>
+                                    <th>Positifs (masques)</th>
+                                    <th>Négatifs</th>
+                                    <th>Remarque</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Google</td>
+                                    <td>28&nbsp;408</td>
+                                    <td>13&nbsp;303</td>
+                                    <td>15&nbsp;105</td>
+                                    <td>399 images exclues (pas d'entrée de métadonnées)</td>
+                                </tr>
+                                <tr>
+                                    <td>IGN</td>
+                                    <td>17&nbsp;325</td>
+                                    <td>7&nbsp;685</td>
+                                    <td>9&nbsp;640</td>
+                                    <td>&ndash;</td>
+                                </tr>
+                            </tbody>
+                            <caption>
+                                <strong>Composition du jeu de données BDAPPV.</strong> Kasmi et al., <em>Scientific Data</em>, 2023.
+                            </caption>
+                        </table>
+                    </div>
+                    <figure style="text-align: center; margin: 30px 0;">
+                        <img src="../../static/images/assets/bdappv-samples.webp" alt="Exemples d'images et de masques du jeu de données BDAPPV" class="teaser-image" style="max-width: 700px;">
+                        <figcaption class="caption">Exemples d'images (images IGN) du jeu de données BDAPPV.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <h3 class="subsection"><span class="section-number">2.2</span>Résultats de l'entraînement</h3>
+            <div class="method-content">
+                <div class="method-text">
+                    <p>
+                        Le tableau ci-dessous, reproduit de Kasmi et al. (2022), compare la précision de classification
+                        et de segmentation de nos modèles à celle de travaux comparables de la littérature. La
+                        résolution au sol (GSD) indique le niveau de détail de l'imagerie — plus la GSD est faible,
+                        plus l'image est détaillée. Les panneaux PV ne sont généralement pas détectables sur des
+                        images dont la GSD dépasse 30&nbsp;cm/pixel.
+                    </p>
+                    <div class="results-table-wrap">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Travail</th>
+                                    <th>Classification<br><span style="font-weight:400;">score F1</span></th>
+                                    <th>Segmentation<br><span style="font-weight:400;">IoU</span></th>
+                                    <th>GSD (cm/pixel)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ref">Mayer et al.</td>
+                                    <td>0,87</td>
+                                    <td>0,74</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Malof et al.</td>
+                                    <td>&ndash;</td>
+                                    <td>0,67</td>
+                                    <td>30</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Zech &amp; Ranalli</td>
+                                    <td>0,82</td>
+                                    <td>&ndash;</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td class="ref">Parhar et al.</td>
+                                    <td><strong>0,97</strong></td>
+                                    <td>0,86</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>Notre travail</td>
+                                    <td>0,84</td>
+                                    <td><strong>0,86</strong></td>
+                                    <td>20</td>
+                                </tr>
+                            </tbody>
+                            <caption>
+                                <strong>Tableau 2 (Kasmi et al., 2022).</strong> Précision de classification et de
+                                segmentation — les références complètes de chaque travail figurent dans la section
+                                Références ci-dessous.
+                            </caption>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 3. Deployment ============ -->
+    <section class="results">
+        <div class="container">
+            <h2><span class="section-number">3.</span>Déploiement</h2>
+                <p>
+                    Le pipeline est ensuite déployé sur toute la France, département par département.
+                    <strong>Cartographier un département prend environ 6 à 10 heures</strong>, selon sa taille et le
+                    matériel disponible. Le principal goulot d'étranglement est le prétraitement des tuiles d'images
+                    en vignettes. Les détections départementales brutes sont ensuite post-traitées et fusionnées en
+                    un seul fichier.
+                </p>
+                <p>
+                    10 départements avaient été cartographiés en 2022, et 38 en avril 2024.
+                    <strong>La première cartographie complète de la France a été achevée en 2024</strong>, à partir
+                    d'images acquises entre 2018 et 2023. Plusieurs départements ont depuis été cartographiés trois
+                    à quatre fois, ce qui crée un jeu de données dynamique permettant d'étudier les dynamiques de
+                    déploiement et les effets de voisinage.
+                </p>
+                <p>
+                    La première version du jeu de données, en juillet 2026, a été produite sur les images IGN les plus
+                    récentes disponibles à l'époque, couvrant 2022 à 2025. L'IGN mettant à jour ses images au fil de
+                    l'eau, le jeu de données est conçu pour être régulièrement actualisé. Au total,
+                    <strong>tous les départements sauf 4 avaient été couverts au moins deux fois</strong> par
+                    DeepPVMapper, ce qui permet de calculer un attribut <code>first_seen</code> dans OpenPVMapper en
+                    fusionnant les détections de plusieurs millésimes d'imagerie.
+                </p>
+                <p>
+                    La publication sur Zenodo comprend le fichier de couverture le plus récent, obtenu en fusionnant la
+                    cartographie la plus récente de chaque département. Elle comprend aussi toutes les détections
+                    départementales brutes, couvrant à la fois les millésimes d'imagerie récents et antérieurs.
+                </p>
+                <p> <!-- ============ update this paragraph upon new releases ============ -->
+                    La version actuelle du jeu de données (juillet 2026), qui ne comprend que les détections issues des
+                    images IGN les plus récentes, contient <strong>589&nbsp;623 installations, soit 2,9 GWc de puissance
+                    installée</strong>. L'imagerie couvre de 2022 à 2025.
+                </p>
+
+            <div class="validation-stats" style="margin-top: 30px;">
+                <div class="stat-item">
+                    <span class="stat-number">590&nbsp;k</span>
+                    <span class="stat-label">Systèmes PV détectés</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">2,9 GWc</span>
+                    <span class="stat-label">Puissance installée détectée</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">209</span>
+                    <span class="stat-label">Cartographies département-année</span>
+                </div>
+            </div>
+            <figure style="margin-top: 40px; text-align: center;">
+                <img src="../../static/images/assets/mapping.webp" alt="Résultats de cartographie de DeepPVMapper" class="teaser-image" style="max-width: 700px;">
+                <figcaption class="caption">Vue d'ensemble de la cartographie des installations PV en toiture par DeepPVMapper. Plus la teinte est foncée, plus la puissance installée est élevée.</figcaption>
+            </figure>
+            <div class="badge-row" style="margin-top: 30px;">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank"><img src="https://img.shields.io/badge/GitHub-Source%20Code-181717?logo=github&amp;logoColor=white" alt="Code source sur GitHub"></a>
+                <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg" alt="DOI"></a>
+                <a href="openpvmapper.html" class="btn">OpenPVMapper &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ References ============ -->
+    <section class="references">
+        <div class="container">
+            <h2>Références</h2>
+            <div class="reference-list">
+                <p>Mayer, J., Rausch, B., Arlt, M.-L., Gust, G., Wang, Z., Neumann, D., &amp; Rajagopal, R. (2022). 3D-PV-Locator: Large-scale detection of rooftop-mounted photovoltaic systems in 3D. <em>Applied Energy</em>, 310, 118469.</p>
+                <p>Malof, J. M., Li, B., Huang, B., Bradbury, K., &amp; Stretslov, A. (2019). Mapping solar array location, size, and capacity using deep learning and overhead imagery. <em>arXiv preprint arXiv:1902.10895</em>.</p>
+                <p>Zech, M., &amp; Ranalli, J. (2020). Predicting PV areas in aerial images with deep learning. In <em>2020 47th IEEE Photovoltaic Specialists Conference (PVSC)</em> (pp. 0767&ndash;0774). IEEE.</p>
+                <p>Parhar, P., Sawasaki, R., Todeschini, A., Reed, C., Vahabi, H., Nusaputra, N., &amp; Vergara, F. (2021). HyperionSolarNet: Solar panel detection from aerial images. In <em>NeurIPS 2021 Workshop on Tackling Climate Change with Machine Learning</em>.</p>
+                <p>Kasmi, G., Saint-Drenan, Y. M., Trebosc, D., Jolivet, R., Leloux, J., Sarr, B., &amp; Dubus, L. (2023). A crowdsourced dataset of aerial images with annotated solar photovoltaic arrays and installation metadata. <em>Scientific Data</em>, 10, 59.</p>
+                <p>Trémenbert, Y., Kasmi, G., Dubus, L., Saint-Drenan, Y. M., &amp; Blanc, P. (2023). PyPVRoof: a Python package for extracting the characteristics of rooftop PV installations using remote sensing data. <em>arXiv preprint <a href="https://arxiv.org/abs/2309.07143" target="_blank">arXiv:2309.07143</a></em>.</p>
+                <p>Kasmi, G., Dubus, L., Blanc, P., &amp; Saint-Drenan, Y. M. (2022). Towards unsupervised assessment with open-source data of the accuracy of deep learning-based distributed PV mapping. <em>arXiv preprint <a href="https://arxiv.org/abs/2207.07466" target="_blank">arXiv:2207.07466</a></em>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    

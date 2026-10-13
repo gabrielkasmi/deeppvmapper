@@ -1,0 +1,249 @@
+<style>
+        /* Contribution-mode cards (was persona cards — Enthusiast/Mapper/
+           Coder — replaced by one card per concrete way to contribute, so
+           people can pick the activity directly instead of a profile that
+           routes them to it). Position: relative so the status ribbon
+           (Featured/New/Coming soon) can sit in the corner. */
+        .contrib-card {
+            position: relative;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .contrib-card:hover {
+            transform: translateY(-3px);
+            border-color: #34495e;
+            box-shadow: 0 12px 28px rgba(44, 62, 80, 0.1);
+        }
+        .persona-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 16px auto;
+            color: #34495e;
+        }
+        .persona-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        .contrib-card h3 {
+            text-align: center;
+        }
+        .contrib-card p {
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        /* Small audience hint under the icon ("No skills needed", "For
+           developers"...) — a lightweight stand-in for the old profile
+           split, so a visitor can still tell at a glance which card fits
+           them without the page forcing them down a single profile path. */
+        .contrib-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #6c8299;
+            background-color: #eef1f4;
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Corner ribbon for a card the site owner wants to highlight
+           (Featured), something recently added (New), or something not
+           live yet (Coming soon) — same three-variant pattern, different
+           color per meaning. */
+        .contrib-status {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+        .contrib-status--featured {
+            background-color: #fff3d6;
+            color: #a86a00;
+        }
+        .contrib-status--new {
+            background-color: #e3f3e8;
+            color: #1e7d3c;
+        }
+        .contrib-status--soon {
+            background-color: #eceef1;
+            color: #6c757d;
+        }
+
+        /* Force a fixed 3-across grid for the 6 contribution cards (2 tidy
+           rows of 3) instead of the shared .card-grid's auto-fit, which
+           would pack 4 into the first row and leave 2 stranded alone in
+           the second on wide screens. */
+        .card-grid--contrib {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        @media (max-width: 900px) {
+            .card-grid--contrib {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 560px) {
+            .card-grid--contrib {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sub-block {
+            margin-top: 30px;
+            padding-top: 26px;
+            border-top: 1px solid #e9ecef;
+        }
+        .sub-block h4 {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .issues-list {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0 22px 0;
+        }
+        .issues-loading, .issues-empty {
+            color: #868e96;
+            font-size: 0.92rem;
+            font-style: italic;
+        }
+        .issue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 14px 18px;
+            text-decoration: none;
+            transition: border-color 0.2s ease, transform 0.15s ease;
+        }
+        .issue-item:hover {
+            border-color: #34495e;
+            transform: translateX(2px);
+        }
+        .issue-title {
+            font-size: 0.94rem;
+            color: #2c3e50;
+            font-weight: 400;
+        }
+        .issue-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .issue-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: 999px;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+
+        /* MapRoulette challenges — same live-fetch pattern as the GitHub
+           issues list above (.issues-list/.issue-item reused for the outer
+           card), plus a per-challenge completion bar and an aggregate
+           banner across all live challenges. */
+        .mr-challenges-banner {
+            font-size: 0.88rem;
+            color: #34495e;
+            font-weight: 500;
+            margin: 0 0 14px 0;
+        }
+        .mr-challenge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+        }
+        .mr-challenge-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+        }
+        .mr-challenge-pct {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #34495e;
+            white-space: nowrap;
+        }
+        .mr-challenge-bar {
+            display: block;
+            height: 6px;
+            border-radius: 999px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .mr-challenge-bar-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background-color: #34495e;
+        }
+        .mr-challenge-meta {
+            font-size: 0.78rem;
+            color: #868e96;
+        }
+
+        /* Persona modals (Enthusiast / Mapper / Coder): reuse the shared
+           .modal-overlay/.modal-box from style.css (same as the citation
+           popover), just with a centered icon + title header. */
+        .persona-modal-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .persona-modal-header .persona-icon {
+            margin-bottom: 12px;
+        }
+        .persona-modal-header h3 {
+            margin-bottom: 4px;
+        }
+        .persona-modal-header .persona-modal-sub {
+            font-size: 0.82rem;
+            color: #868e96;
+        }
+
+        .mapper-contrib-count {
+            text-align: center;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #34495e;
+            margin-top: 10px;
+        }
+
+        /* Small live-count badge on the PV Check card icon (Contribute page
+           grid), so the tally is visible before the card is even opened.
+           Hidden until the fetch below resolves. */
+        .persona-icon--pvcheck {
+            position: relative;
+        }
+        .icon-badge {
+            position: absolute;
+            top: -6px;
+            right: -12px;
+            background-color: #34495e;
+            color: #ffffff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            line-height: 1;
+            padding: 3px 6px;
+            border-radius: 999px;
+            border: 2px solid #ffffff;
+            white-space: nowrap;
+        }
+    </style>

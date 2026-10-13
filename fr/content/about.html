@@ -1,0 +1,151 @@
+---
+layout: default
+lang: fr
+title: "À propos &middot; DeepPVMapper"
+description: "DeepPVMapper : un registre ouvert et communautaire des installations solaires en toiture en France, issu d'une thèse CIFRE menée avec Mines Paris (Université PSL) et RTE France."
+keywords: "open source solar mapping project, community rooftop solar registry, open data energy research, CIFRE PhD photovoltaic mapping, Mines Paris RTE solar research, cartographie solaire communautaire, projet open source photovoltaïque"
+body_class: "has-back-to-top"
+nav_active: "about"
+head_include: "pages/about/head.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">À propos de DeepPVMapper</h1>
+  </div>
+---
+    <section>
+        <div class="container">
+            <div class="project-prose project-prose-intro">
+                <p>
+                    Le solaire en toiture progresse vite et joue un rôle réel dans la décarbonation du système
+                    électrique — il rend aussi les territoires plus résilients et rapproche les gens de leur
+                    propre consommation d'électricité. Mais le photovoltaïque en toiture est une classe d'actifs
+                    à part, et difficile à suivre : en France, les installations en toiture représentent plus de
+                    99 % de l'ensemble des systèmes PV raccordés au réseau. DeepPVMapper vise à combler ce manque,
+                    en combinant données géospatiales, télédétection et science participative au sein d'un
+                    registre aussi complet et précis que possible. Tout ce que le projet produit est publié en
+                    open data, reste interopérable avec OpenStreetMap et peut être reproduit de bout en bout par
+                    quiconque souhaite vérifier le travail ou l'adapter. Les pages <a href="data.html">Données</a>
+                    et <a href="software.html">Logiciels</a> présentent ce que produit le projet et comment
+                    l'utiliser ; cette page raconte d'où il vient.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>Origine : une thèse menée à RTE et à Mines Paris</h2>
+                <p>
+                    DeepPVMapper est né d'une thèse CIFRE — un contrat de recherche industrielle français qui
+                    associe un établissement académique et une entreprise — menée entre
+                    <strong>Mines Paris (Université PSL)</strong> et <strong>RTE France</strong>, le gestionnaire
+                    du réseau français de transport d'électricité. La thèse, <em>« Enhancing the Reliability of
+                    Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic
+                    Installations »</em> (en anglais), a été soutenue en 2024 à l'Université Paris sciences et
+                    lettres (<a href="https://theses.fr/2024UPSLM027" target="_blank">notice theses.fr</a>,
+                    <a href="https://gabrielkasmi.github.io/content/phd_thesis.html" target="_blank">résumé</a>).
+                </p>
+                <p>
+                    Le point de départ était opérationnel. En 2020, des résultats préliminaires — publiés ensuite
+                    dans le rapport conjoint RTE-AIE de 2021 sur la faisabilité technique d'un système électrique
+                    à forte proportion d'énergies renouvelables en France à l'horizon 2050
+                    (<a href="https://www.iea.org/reports/conditions-and-requirements-for-the-technical-feasibility-of-a-power-system-with-a-high-share-of-renewables-in-france-towards-2050" target="_blank">RTE &amp; AIE, 2021</a>)
+                    — montraient que le risque d'aléas induits par le PV en toiture pourrait augmenter fortement
+                    d'ici 2050, en raison du manque d'<em>observabilité</em> de ces petites installations
+                    réparties. L'objectif initial était de caractériser ces installations de façon systématique
+                    et d'alimenter avec cette caractérisation améliorée les modèles régionaux de prévision de
+                    production.
+                </p>
+                <p>
+                    La première étape a consisté à constituer des données d'entraînement et à adapter au contexte
+                    français une approche de détection existante — en s'appuyant sur
+                    <a href="https://www.cell.com/joule/fulltext/S2542-4351(18)30570-1" target="_blank">DeepSolar</a>
+                    (Yu et al., 2018) et <a href="https://doi.org/10.1016/j.apenergy.2021.118469" target="_blank">3D-PV-Locator</a>
+                    (Mayer et al., 2022). Ce travail a donné l'algorithme de détection DeepPVMapper et le jeu de
+                    données d'entraînement BDAPPV.
+                </p>
+                <p>
+                    La thèse traite aussi en détail la sensibilité de l'algorithme de cartographie aux
+                    changements de distribution — c'est-à-dire de combien ses performances se dégradent dès qu'on
+                    l'applique hors de ses conditions d'entraînement. Cette ligne de recherche a conduit à une
+                    nouvelle méthode d'attribution de caractéristiques,
+                    <a href="https://gabrielkasmi.github.io/wam/" target="_blank">WAM</a>, présentée à l'ICML
+                    2025, ainsi qu'à plusieurs études complémentaires sur cette même sensibilité dans le cas
+                    particulier de la détection de PV par télédétection
+                    (<a href="https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5" target="_blank">Environmental Data Science, 2025</a>).
+                    En résumé : les classifieurs de PV sont, bien plus souvent qu'on ne le croit, de simples
+                    détecteurs de grilles.
+                </p>
+                <p>
+                    Pour revenir à la question de départ : de meilleures prévisions et un moindre risque d'aléas
+                    pour le PV en toiture ne viennent pas d'un meilleur modèle de prévision — elles viennent d'une
+                    réduction de l'incertitude sur la puissance installée elle-même. Il s'avère qu'en France, la
+                    puissance installée agrégée est assez bien suivie à l'échelle nationale, mais que des
+                    déséquilibres importants subsistent à l'échelle locale. Parvenir à cette conclusion a demandé
+                    une nouvelle méthodologie, fondée sur la statistique bayésienne, pour transformer des
+                    détections de télédétection en une véritable estimation de la puissance PV installée en
+                    toiture — voir l'<a href="../../content/main-results.html">audit des registres</a> (en anglais).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>De la thèse à un registre de référence</h2>
+                <p>
+                    À la fin de la thèse, 38 départements français avaient été cartographiés — environ
+                    175 000&nbsp;km² — ce qui faisait de DeepPVMapper, à l'époque, la deuxième plus grande base
+                    de données de ce type au monde après DeepSolar, centrée sur les États-Unis, et la plus
+                    détaillée géographiquement.
+                </p>
+                <p>
+                    À mesure que le reste de la France était cartographié, d'autres équipes de recherche ont
+                    publié leurs propres détections de PV en toiture — notamment
+                    <a href="https://www.sciencedirect.com/science/article/pii/S0306261925003605" target="_blank">FRPV</a>
+                    (Thebault et al., 2025). Ces détections ont été consolidées avec celles de DeepPVMapper dans
+                    <a href="https://arxiv.org/abs/2607.25153" target="_blank">OpenPVMapper</a>, qui ambitionne
+                    de devenir un registre de référence des installations PV en toiture en France — combiner
+                    plusieurs détecteurs améliore sensiblement la précision. Le registre est mis à jour au fil de
+                    la disponibilité de nouvelles images, et sa qualité continue de s'améliorer grâce à la
+                    science participative — voir <a href="contribute.html">Contribuer</a> pour savoir comment
+                    aider.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>Vision actuelle</h2>
+                <p>
+                    Comme évoqué plus haut, les installations PV en toiture se multiplient rapidement et posent
+                    des difficultés particulières de cartographie. DeepPVMapper et la base OpenPVMapper visent à
+                    fournir un jeu de données soigné, conçu spécifiquement pour y répondre.
+                </p>
+                <p>
+                    Plutôt que de prétendre représenter une vérité terrain définitive, notre objectif est de
+                    fournir la meilleure information disponible sur le PV en toiture, en combinant télédétection,
+                    données participatives et validation humaine. Cette approche nous permet d'améliorer le
+                    registre en continu à mesure que de nouvelles informations deviennent disponibles.
+                </p>
+                <p>
+                    Tout — des données d'entraînement au registre final — reste librement accessible. Une
+                    suggestion, l'envie de contribuer ? <a href="contribute.html">Contactez-nous</a>.
+                </p>
+                <div class="citation-box" style="margin-top: 40px;">
+                    <pre><code>@phdthesis{kasmi2024enhancing,
+  title={Enhancing the Reliability of Deep Learning Models to Improve the Observability of French Rooftop Photovoltaic Installations},
+  author={Kasmi, Gabriel},
+  year={2024},
+  school={Universit{\'e} Paris sciences et lettres}
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    

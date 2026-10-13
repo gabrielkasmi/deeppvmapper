@@ -1,0 +1,23 @@
+<style>
+        .legal-prose { max-width: 760px; margin: 0 auto; }
+        .legal-prose-intro p { text-align: center; }
+        .legal-prose p { font-size: 1rem; line-height: 1.75; color: #495057; margin: 0 0 16px; }
+        .legal-prose p:last-child { margin-bottom: 0; }
+        .legal-prose h2 { font-size: 1.3rem; margin: 0 0 12px; color: #2c3e50; }
+        .legal-prose ul { margin: 0 0 16px; padding-left: 22px; }
+        .legal-prose li { font-size: 1rem; line-height: 1.7; color: #495057; margin-bottom: 8px; }
+        .legal-prose li:last-child { margin-bottom: 0; }
+        .legal-prose a { color: #34495e; }
+        /* No border/margin here anymore — each item is now the sole
+           .legal-section inside its own <section>, so the <section>'s own
+           padding (see below) and alternating background already separate
+           consecutive items; a border here would just double up on that. */
+        .legal-section { max-width: 760px; margin: 0 auto; }
+        /* Each numbered item is now its own <section> (see the markup below)
+           so static/js/script.js's reveal-on-scroll IntersectionObserver
+           fires per item instead of once for a whole multi-item block. The
+           shared site rule (section { padding: 80px 0; }) was sized for a
+           handful of big sections per page — with 16 of them here that's
+           excessive, so it's trimmed just for this page. */
+        section { padding: 40px 0; }
+    </style>

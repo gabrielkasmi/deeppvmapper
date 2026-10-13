@@ -1,5 +1,6 @@
 // ─── Menu: my stats (with a confirm/reject/unsure breakdown) / leaderboard / % progress ─
 
+import { t, fmt, locale } from './i18n.js';
 import { CAMPAIGN_ID } from './config.js';
 import { $, $$, show, hide, getSupabase, S, toast } from './store.js';
 import { editPseudo, linkEmailPassword, changePassword, signOut, deleteAccount } from './auth.js';
@@ -20,7 +21,7 @@ export function initMenu() {
     $$('#menu-tabs button').forEach(btn =>
         btn.addEventListener('click', () => { currentWindow = btn.dataset.window; refreshLeaderboard(); }));
     $('#menu-share').addEventListener('click', shareApp);
-    wireInstallButton($('#menu-install-btn'), () => toast('Tap the Share icon, then "Add to Home Screen".', 4500));
+    wireInstallButton($('#menu-install-btn'), () => toast(t('toast.iosInstall', 'Tap the Share icon, then "Add to Home Screen".'), 4500));
 
     // Rename — only reachable once an account has an email (the pencil
     // icon stays hidden for anonymous players, see refreshAccountState()).
@@ -57,14 +58,14 @@ export function initMenu() {
     $('#menu-new-password').addEventListener('keydown', e => { if (e.key === 'Enter') submitPasswordChange(); });
 
     $('#menu-signout').addEventListener('click', async () => {
-        if (!window.confirm('Logging out clears the local session (name, client-side history) — votes you already submitted stay saved. Continue?')) return;
+        if (!window.confirm(t('menu.signoutConfirm', 'Logging out clears the local session (name, client-side history) — votes you already submitted stay saved. Continue?'))) return;
         await signOut();
         location.reload();
     });
     $('#menu-delete-account').addEventListener('click', async () => {
-        if (!window.confirm('Delete your account permanently? Your name and email are removed — this cannot be undone. Verifications you already submitted stay counted toward the season, just no longer linked to you.')) return;
+        if (!window.confirm(t('menu.deleteConfirm', 'Delete your account permanently? Your name and email are removed — this cannot be undone. Verifications you already submitted stay counted toward the season, just no longer linked to you.'))) return;
         const res = await deleteAccount();
-        if (!res.ok) { toast('Could not delete — try again.'); return; }
+        if (!res.ok) { toast(t('menu.deleteFailed', 'Could not delete — try again.')); return; }
         location.reload();
     });
 }
@@ -82,11 +83,11 @@ async function submitPseudoEdit() {
         hide(err);
         hide($('#menu-pseudo-form'));
         $('#menu-pseudo').textContent = S.pseudo;
-        toast('Name updated.');
+        toast(t('menu.nameUpdated', 'Name updated.'));
     } else {
-        const msg = { taken: 'That name is already taken — try another.',
-                      invalid: 'Use 2 to 24 characters.',
-                      error: 'Something went wrong — try again.' }[res.reason];
+        const msg = { taken: t('pseudo.taken', 'That name is already taken — try another.'),
+                      invalid: t('pseudo.invalid', 'Use 2 to 24 characters.'),
+                      error: t('error.generic', 'Something went wrong — try again.') }[res.reason];
         err.textContent = msg;
         show(err);
     }
@@ -114,7 +115,7 @@ async function claimByEmail() {
     const password = $('#menu-claim-password').value;
     const err = $('#menu-claim-error');
     if (!email || password.length < 6) {
-        err.textContent = 'Enter an email and a password of at least 6 characters.';
+        err.textContent = t('claim.needFields', 'Enter an email and a password of at least 6 characters.');
         show(err);
         return;
     }
@@ -122,7 +123,7 @@ async function claimByEmail() {
     // Enter on the password field calls claimByEmail() directly, bypassing
     // that disabled state.
     if (!$('#menu-claim-consent').checked) {
-        err.textContent = 'Please confirm you have read the privacy notice.';
+        err.textContent = t('claim.needConsent', 'Please confirm you have read the privacy notice.');
         show(err);
         return;
     }
@@ -130,10 +131,10 @@ async function claimByEmail() {
     if (res.ok) {
         hide(err);
         hide($('#menu-claim-form'));
-        toast('Account created — log in with this email+password on any device.');
+        toast(t('claim.ok', 'Account created — log in with this email+password on any device.'));
         refreshAccountState();
     } else {
-        err.textContent = res.error?.message || 'Could not secure the account — try again.';
+        err.textContent = res.error?.message || t('claim.failed', 'Could not secure the account — try again.');
         show(err);
     }
 }
@@ -145,7 +146,7 @@ async function submitPasswordChange() {
     const password = $('#menu-new-password').value;
     const err = $('#menu-password-error');
     if (password.length < 6) {
-        err.textContent = 'Use at least 6 characters.';
+        err.textContent = t('pw.short', 'Use at least 6 characters.');
         show(err);
         return;
     }
@@ -154,9 +155,9 @@ async function submitPasswordChange() {
         hide(err);
         $('#menu-new-password').value = '';
         hide($('#menu-password-form'));
-        toast('Password updated.');
+        toast(t('pw.updated', 'Password updated.'));
     } else {
-        err.textContent = res.error?.message || 'Could not update — try again.';
+        err.textContent = res.error?.message || t('pw.failed', 'Could not update — try again.');
         show(err);
     }
 }
@@ -174,7 +175,7 @@ function refreshAccountState() {
     $('#menu-member-since').hidden = !email;
     if (email && S.session?.user?.created_at) {
         $('#menu-since-date').textContent = new Date(S.session.user.created_at)
-            .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            .toLocaleDateString(locale || 'en-US', { month: 'long', year: 'numeric' });
     }
     $('#menu-edit-pseudo').hidden = !email;
     $('#menu-claim').hidden = !!email;
@@ -191,7 +192,7 @@ function refreshAccountState() {
 export async function shareApp() {
     const shareData = {
         title: 'PV Check',
-        text: 'Help verify solar panel installations across France, one swipe at a time.',
+        text: t('share.text', 'Help verify solar panel installations across France, one swipe at a time.'),
         url: location.origin + location.pathname.replace(/index\.html$/, ''),
     };
     if (navigator.share) {
@@ -200,7 +201,7 @@ export async function shareApp() {
     }
     try {
         await navigator.clipboard.writeText(shareData.url);
-        toast('Link copied — share it however you like!');
+        toast(t('share.copied', 'Link copied — share it however you like!'));
     } catch {
         toast(shareData.url);
     }
@@ -260,7 +261,11 @@ async function refreshStats() {
     $('#menu-bd-ambiguous').textContent = data.ambiguous ?? 0;
 }
 
-const WINDOW_LABELS = { day: 'today', week: 'this week', all: 'all time' };
+const TOTAL_TEXT = {
+    day: n => t('menu.total.day', '{n} validations today', { n }),
+    week: n => t('menu.total.week', '{n} validations this week', { n }),
+    all: n => t('menu.total.all', '{n} validations all time', { n }),
+};
 
 async function refreshLeaderboard() {
     $$('#menu-tabs button').forEach(b => b.classList.toggle('active', b.dataset.window === currentWindow));
@@ -274,13 +279,13 @@ async function refreshLeaderboard() {
     if (totalError || total == null) {
         totalEl.textContent = '';
     } else {
-        totalEl.textContent = `${Number(total).toLocaleString()} validations ${WINDOW_LABELS[currentWindow]}`;
+        totalEl.textContent = TOTAL_TEXT[currentWindow](fmt(total));
     }
 
     const list = $('#menu-leaderboard');
     list.innerHTML = '';
     if (error || !data?.length) {
-        list.innerHTML = '<li class="empty">No one yet — be the first.</li>';
+        list.innerHTML = `<li class="empty">${t('menu.noOneYet', 'No one yet — be the first.')}</li>`;
         return;
     }
     data.forEach((row, i) => {
@@ -319,8 +324,11 @@ async function refreshLeaderboard() {
 function batchStatusText(batchNo) {
     if (batchNo == null) return '';
     const completed = batchNo - 1;
-    if (completed <= 0) return `Now working through batch ${batchNo.toLocaleString()}.`;
-    return `Already ${completed.toLocaleString()} batch${completed === 1 ? '' : 'es'} completed — now on batch ${batchNo.toLocaleString()}.`;
+    const b = fmt(batchNo), n = fmt(completed);
+    if (completed <= 0) return t('menu.batch.first', 'Now working through batch {b}.', { b });
+    return completed === 1
+        ? t('menu.batch.one', 'Already {n} batch completed — now on batch {b}.', { n, b })
+        : t('menu.batch.many', 'Already {n} batches completed — now on batch {b}.', { n, b });
 }
 
 // Next milestone for the "installations validated" counter, and how far
@@ -344,15 +352,15 @@ async function refreshCompletion() {
     const sb = getSupabase();
     const { data, error } = await sb.rpc('season_completion', { p_campaign_id: CAMPAIGN_ID });
     if (error || !data) return;
-    $('#menu-votes-cast').textContent = data.votes_cast_total.toLocaleString();
-    if (data.installations_done != null) $('#menu-installations-done').textContent = data.installations_done.toLocaleString();
-    if (data.batch_no != null) $('#menu-batch-no').textContent = data.batch_no.toLocaleString();
+    $('#menu-votes-cast').textContent = fmt(data.votes_cast_total);
+    if (data.installations_done != null) $('#menu-installations-done').textContent = fmt(data.installations_done);
+    if (data.batch_no != null) $('#menu-batch-no').textContent = fmt(data.batch_no);
     // Bar = progress between the last milestone and the next one.
     const done = data.installations_done || 0;
     const { prev, next } = nextMilestone(done);
     const pct = Math.min(99.9, Math.round(1000 * (done - prev) / (next - prev)) / 10);
     const msEl = $('#menu-milestone');
-    if (msEl) msEl.textContent = next.toLocaleString();
+    if (msEl) msEl.textContent = fmt(next);
     $('#menu-pct').textContent = `${pct}%`;
     $('#menu-pct-bar').style.width = `${pct}%`;
     const leaderboardStatusEl = $('#menu-leaderboard-batch-status');
@@ -370,7 +378,7 @@ async function refreshDeptProgress() {
     const container = $('#menu-dept-map');
     if (error) {
         console.error('season_progress_by_department RPC failed:', error);
-        container.innerHTML = '<p class="menu-dept-error">Map data unavailable right now — try again in a moment.</p>';
+        container.innerHTML = `<p class="menu-dept-error">${t('menu.deptUnavailable', 'Map data unavailable right now — try again in a moment.')}</p>`;
         return;
     }
     renderDeptMap(container, data || []);

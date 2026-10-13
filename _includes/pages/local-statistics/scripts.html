@@ -1,0 +1,10 @@
+<script>
+    document.querySelectorAll('.rankings-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.rankings-tab').forEach(function (b) { b.classList.remove('is-active'); });
+            document.querySelectorAll('.ranking-panel').forEach(function (p) { p.classList.remove('is-active'); });
+            btn.classList.add('is-active');
+            document.getElementById('ranking-' + btn.dataset.panel).classList.add('is-active');
+        });
+    });
+</script>

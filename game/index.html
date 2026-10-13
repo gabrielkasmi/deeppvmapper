@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>PV Check — DeepPVMapper</title>
-<meta name="description" content="Check. Validate. Improve the map. Help verify solar panel installations detected across France, one swipe at a time." />
+<meta name="description" content="Check. Validate. Improve the map. Help verify solar panel installations detected across France, one swipe at a time." data-i18n-attr="content:meta.description" />
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#2c3e50" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -25,6 +25,7 @@
         </svg>
         DeepPVMapper
       </a>
+      <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:common.language"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="fr" lang="fr">FR</button></div>
     </div>
 
     <div class="game-hero">
@@ -39,7 +40,7 @@
              Leaderboard panels (see game/js/menu.js) — what's been done and
              which batch is next, never "of ~5,600 batches" or "of ~2.7M
              installations". -->
-        <button type="button" id="pvcheck-badge" class="pvcheck-badge" aria-haspopup="true" aria-expanded="false" aria-label="Season progress" hidden>
+        <button type="button" id="pvcheck-badge" class="pvcheck-badge" aria-haspopup="true" aria-expanded="false" aria-label="Season progress" hidden data-i18n-attr="aria-label:landing.badge.aria">
           <svg viewBox="0 0 100 100" class="pvcheck-badge-icon" aria-hidden="true">
             <defs>
               <linearGradient id="pvcheck-badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -50,34 +51,34 @@
             <polygon points="50.0,4.0 60.5,17.7 77.0,12.8 77.5,30.0 93.7,35.8 84.0,50.0 93.7,64.2 77.5,70.0 77.0,87.2 60.5,82.3 50.0,96.0 39.5,82.3 23.0,87.2 22.5,70.0 6.3,64.2 16.0,50.0 6.3,35.8 22.5,30.0 23.0,12.8 39.5,17.7" fill="url(#pvcheck-badge-gradient)"></polygon>
             <path d="M32 52 L44 64 L69 36" fill="none" stroke="#2a1a02" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
-          <span class="pvcheck-badge-popover" id="pvcheck-badge-popover">
+          <span class="pvcheck-badge-popover" id="pvcheck-badge-popover" data-i18n="landing.badge.popover">
             <strong id="pvcheck-badge-count">&mdash;</strong> installations validated! Thank you &#128591;
           </span>
         </button>
       </h1>
-      <p class="pitch">Check. Validate. Improve the map.</p>
+      <p class="pitch" data-i18n="landing.pitch">Check. Validate. Improve the map.</p>
 
       <p class="hero-stats" id="landing-stats">
-        <span><strong id="landing-count">—</strong> verifications so far</span>
+        <span data-i18n="landing.count"><strong id="landing-count">—</strong> verifications so far</span>
         <span class="hero-stat-sep">&middot;</span>
-        <span>Last one <strong id="landing-last">—</strong></span>
+        <span data-i18n="landing.last">Last one <strong id="landing-last">—</strong></span>
       </p>
       <div class="quick-links">
-        <a href="#" id="landing-leaderboard-link" class="quick-link">Leaderboard</a>
-        <a href="#" id="landing-progress-link" class="quick-link">Progress</a>
-        <a href="#" id="landing-purpose-link" class="quick-link">Purpose</a>
+        <a href="#" id="landing-leaderboard-link" class="quick-link" data-i18n="common.leaderboard">Leaderboard</a>
+        <a href="#" id="landing-progress-link" class="quick-link" data-i18n="common.progress">Progress</a>
+        <a href="#" id="landing-purpose-link" class="quick-link" data-i18n="landing.purpose">Purpose</a>
       </div>
 
       <div id="pseudo-form">
         <div class="pseudo-row">
-          <input id="pseudo-input" maxlength="24" placeholder="Enter your name" autocomplete="off" />
-          <button id="pseudo-random" type="button" aria-label="Random name">🎲</button>
+          <input id="pseudo-input" maxlength="24" placeholder="Enter your name" autocomplete="off" data-i18n-attr="placeholder:landing.name.placeholder" />
+          <button id="pseudo-random" type="button" aria-label="Random name" data-i18n-attr="aria-label:landing.name.random">🎲</button>
         </div>
-        <button id="play-btn" class="btn" disabled>Play</button>
+        <button id="play-btn" class="btn" disabled data-i18n="landing.play">Play</button>
         <p id="pseudo-error" class="error" hidden></p>
       </div>
 
-      <button id="auth-login-link" class="link">Already have an account? Log in</button>
+      <button id="auth-login-link" class="link" data-i18n="landing.login.link">Already have an account? Log in</button>
 
       <div class="landing-cta-actions">
         <button id="landing-share-card" class="cta-card">
@@ -88,7 +89,7 @@
               <line x1="12" y1="2" x2="12" y2="15"></line>
             </svg>
           </span>
-          <span class="cta-card-title">Share</span>
+          <span class="cta-card-title" data-i18n="common.share">Share</span>
         </button>
         <a id="landing-discuss-card" class="cta-card" href="https://github.com/gabrielkasmi/deeppvmapper/discussions/17" target="_blank" rel="noopener">
           <span class="cta-card-icon">
@@ -96,7 +97,7 @@
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
           </span>
-          <span class="cta-card-title">Join the discussion</span>
+          <span class="cta-card-title" data-i18n="common.discuss">Join the discussion</span>
         </a>
         <button id="landing-install-btn" class="cta-card" hidden>
           <span class="cta-card-icon">
@@ -108,40 +109,40 @@
               <line x1="9" y1="11" x2="15" y2="11"></line>
             </svg>
           </span>
-          <span class="cta-card-title">Add to Home Screen</span>
+          <span class="cta-card-title" data-i18n="common.addHome">Add to Home Screen</span>
         </button>
       </div>
 
       <div id="login-panel" hidden>
-        <p class="login-panel-title">Log in</p>
+        <p class="login-panel-title" data-i18n="landing.login.title">Log in</p>
         <div id="email-form">
-          <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email" />
-          <input id="password-input" type="password" placeholder="Password" autocomplete="current-password" />
-          <button id="login-submit" class="btn">Log in</button>
+          <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email" data-i18n-attr="placeholder:common.emailPlaceholder" />
+          <input id="password-input" type="password" placeholder="Password" autocomplete="current-password" data-i18n-attr="placeholder:landing.password" />
+          <button id="login-submit" class="btn" data-i18n="landing.login.submit">Log in</button>
           <p id="email-error" class="error" hidden></p>
         </div>
 
-        <button class="google-badge" disabled aria-label="Sign in with Google — coming soon">
+        <button class="google-badge" disabled aria-label="Sign in with Google — coming soon" data-i18n-attr="aria-label:landing.google">
           <svg viewBox="0 0 18 18" width="18" height="18">
             <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
             <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
             <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
           </svg>
-          <span>Sign in with Google — coming soon</span>
+          <span data-i18n="landing.google">Sign in with Google — coming soon</span>
         </button>
 
-        <button id="login-cancel" class="link">&larr; Back</button>
+        <button id="login-cancel" class="link" data-i18n="common.back">&larr; Back</button>
       </div>
       <p id="auth-error" class="error"></p>
     </div>
 
     <footer class="footer">
       <div class="container">
-        <a href="../content/about.html" class="footer-about-link">About</a>
-        <a href="../content/legal.html" class="footer-about-link">Legal</a>
+        <a href="../content/about.html" class="footer-about-link" data-i18n="footer.about">About</a>
+        <a href="../content/legal.html" class="footer-about-link" data-i18n="footer.legal">Legal</a>
         <div class="footer-contact">
-          <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
+          <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email" data-i18n-attr="aria-label:footer.email">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 4h16v16H4z" stroke="none"/>
               <rect x="2" y="4" width="20" height="16" rx="2"></rect>
@@ -164,7 +165,7 @@
             </svg>
           </a>
         </div>
-        <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
+        <p data-i18n="footer.license">Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
       </div>
     </footer>
   </section>
@@ -173,7 +174,7 @@
     <header>
       <div class="header-actions">
         <button id="menu-open" aria-label="Menu">☰</button>
-        <button id="header-install-btn" aria-label="Add to Home Screen" title="Add to Home Screen" hidden>
+        <button id="header-install-btn" aria-label="Add to Home Screen" title="Add to Home Screen" hidden data-i18n-attr="aria-label:common.addHome,title:common.addHome">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="4" width="18" height="14" rx="2"></rect>
             <line x1="8" y1="21" x2="16" y2="21"></line>
@@ -185,14 +186,14 @@
       </div>
       <span id="header-pseudo"></span>
       <div class="header-actions">
-        <button id="header-purpose-btn" aria-label="What is the purpose of this game?" title="What is the purpose of this game?">
+        <button id="header-purpose-btn" aria-label="What is the purpose of this game?" title="What is the purpose of this game?" data-i18n-attr="aria-label:common.purposeQ,title:common.purposeQ">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9"></circle>
             <line x1="12" y1="11" x2="12" y2="16"></line>
             <line x1="12" y1="7.5" x2="12" y2="7.51"></line>
           </svg>
         </button>
-        <button id="help-open" aria-label="Help">?</button>
+        <button id="help-open" aria-label="Help" data-i18n-attr="aria-label:game.help">?</button>
       </div>
     </header>
 
@@ -210,14 +211,14 @@
     <div id="card-stack">
       <div id="card-loading" class="card loading">
         <div class="spinner"></div>
-        <p>Loading...</p>
+        <p data-i18n="game.loading">Loading...</p>
       </div>
       <div id="card-empty" class="card" hidden>
-        <p class="empty-title">You're all caught up 🎉</p>
-        <p>Nice work — come back later, more installations will be ready to check.</p>
+        <p class="empty-title" data-i18n="game.empty.title">You're all caught up 🎉</p>
+        <p data-i18n="game.empty.body">Nice work — come back later, more installations will be ready to check.</p>
         <div id="notify-form">
-          <input id="notify-email" type="email" placeholder="you@example.com (optional)" />
-          <button id="notify-submit" class="btn">Notify me</button>
+          <input id="notify-email" type="email" placeholder="you@example.com (optional)" data-i18n-attr="placeholder:game.empty.email" />
+          <button id="notify-submit" class="btn" data-i18n="game.empty.notify">Notify me</button>
         </div>
       </div>
       <div id="card-current" class="card" hidden>
@@ -229,55 +230,55 @@
     </div>
 
     <div id="report-form" hidden>
-      <p class="report-form-title">What would you like to report?</p>
-      <textarea id="report-comment" maxlength="500" placeholder="e.g. issue with the image, panel hidden, image not understandable…"></textarea>
-      <button id="report-send-skip" class="btn">Send &amp; skip</button>
-      <button id="report-send-stay" class="btn-outline">Send &amp; stay</button>
-      <button id="report-cancel" class="link">Cancel</button>
+      <p class="report-form-title" data-i18n="report.title">What would you like to report?</p>
+      <textarea id="report-comment" maxlength="500" placeholder="e.g. issue with the image, panel hidden, image not understandable…" data-i18n-attr="placeholder:report.placeholder"></textarea>
+      <button id="report-send-skip" class="btn" data-i18n="report.sendSkip">Send &amp; skip</button>
+      <button id="report-send-stay" class="btn-outline" data-i18n="report.sendStay">Send &amp; stay</button>
+      <button id="report-cancel" class="link" data-i18n="common.cancel">Cancel</button>
     </div>
 
     <div id="install-nudge" hidden>
-      <p class="install-nudge-text">Enjoying it? Add PV Check to your home screen for one-tap access.</p>
+      <p class="install-nudge-text" data-i18n="nudge.text">Enjoying it? Add PV Check to your home screen for one-tap access.</p>
       <div class="install-nudge-actions">
-        <button id="install-nudge-accept" class="btn">Add to Home Screen</button>
-        <button id="install-nudge-dismiss" class="link">Not now</button>
+        <button id="install-nudge-accept" class="btn" data-i18n="common.addHome">Add to Home Screen</button>
+        <button id="install-nudge-dismiss" class="link" data-i18n="nudge.dismiss">Not now</button>
       </div>
     </div>
 
     <div id="utility-row">
-      <button id="btn-undo" class="utility-btn" disabled aria-label="Undo last swipe" title="Undo last swipe">
+      <button id="btn-undo" class="utility-btn" disabled aria-label="Undo last swipe" title="Undo last swipe" data-i18n-attr="aria-label:undo.label,title:undo.label">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="9 14 4 9 9 4"></polyline>
           <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
         </svg>
-        <span>Go back</span>
+        <span data-i18n="undo.text">Go back</span>
       </button>
-      <button id="btn-comment" class="utility-btn" aria-label="Comment on this image" title="Report an issue with this image">
+      <button id="btn-comment" class="utility-btn" aria-label="Comment on this image" title="Report an issue with this image" data-i18n-attr="aria-label:comment.label,title:comment.title">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
         </svg>
-        <span>Comment</span>
+        <span data-i18n="comment.text">Comment</span>
       </button>
     </div>
 
     <div id="controls">
       <div class="ctrl-wrap">
-        <button id="btn-reject" class="ctrl reject" aria-label="Not a PV system (←)">✕</button>
-        <span class="ctrl-label">No</span>
+        <button id="btn-reject" class="ctrl reject" aria-label="Not a PV system (←)" data-i18n-attr="aria-label:ctrl.reject">✕</button>
+        <span class="ctrl-label" data-i18n="ctrl.no">No</span>
       </div>
       <div class="ctrl-wrap">
-        <button id="btn-ambiguous" class="ctrl ambiguous" aria-label="Ambiguous, but counts as a vote (↑)">?</button>
-        <span class="ctrl-label">Unsure</span>
+        <button id="btn-ambiguous" class="ctrl ambiguous" aria-label="Ambiguous, but counts as a vote (↑)" data-i18n-attr="aria-label:ctrl.ambiguous">?</button>
+        <span class="ctrl-label" data-i18n="ctrl.unsure">Unsure</span>
       </div>
       <div class="ctrl-wrap">
-        <button id="btn-confirm" class="ctrl confirm" aria-label="It's a PV system (→)">✓</button>
-        <span class="ctrl-label">Yes</span>
+        <button id="btn-confirm" class="ctrl confirm" aria-label="It's a PV system (→)" data-i18n-attr="aria-label:ctrl.confirm">✓</button>
+        <span class="ctrl-label" data-i18n="ctrl.yes">Yes</span>
       </div>
     </div>
 
     <div id="tutorial" hidden>
       <div class="tutorial-box">
-        <h2>How to play</h2>
+        <h2 data-i18n="tut.title">How to play</h2>
 
         <div id="tutorial-frames">
           <div class="tutorial-frame" data-frame="0">
@@ -288,7 +289,7 @@
               </div>
               <div class="tutorial-swipe tutorial-swipe-right" aria-hidden="true"></div>
             </div>
-            <p class="tutorial-caption">Panel in the square? <strong>Swipe right</strong> — or tap <span class="key">&#10003;</span>.</p>
+            <p class="tutorial-caption" data-i18n="tut.1">Panel in the square? <strong>Swipe right</strong> — or tap <span class="key">&#10003;</span>.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="1">
@@ -299,7 +300,7 @@
               </div>
               <div class="tutorial-swipe tutorial-swipe-left" aria-hidden="true"></div>
             </div>
-            <p class="tutorial-caption">No panel? <strong>Swipe left</strong> — or tap <span class="key">&#10005;</span>.</p>
+            <p class="tutorial-caption" data-i18n="tut.2">No panel? <strong>Swipe left</strong> — or tap <span class="key">&#10005;</span>.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="2">
@@ -310,7 +311,7 @@
               </div>
               <div class="tutorial-swipe tutorial-swipe-up" aria-hidden="true"></div>
             </div>
-            <p class="tutorial-caption">Don't know? <strong>Swipe up</strong> — or tap <strong>? Unsure</strong>. This still counts as a vote.</p>
+            <p class="tutorial-caption" data-i18n="tut.3">Don't know? <strong>Swipe up</strong> — or tap <strong>? Unsure</strong>. This still counts as a vote.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="3">
@@ -323,7 +324,7 @@
                 </svg>
               </div>
             </div>
-            <p class="tutorial-caption">Made a mistake? Tap <strong>Go back</strong> to undo your last swipe.</p>
+            <p class="tutorial-caption" data-i18n="tut.4">Made a mistake? Tap <strong>Go back</strong> to undo your last swipe.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="4">
@@ -335,7 +336,7 @@
                 </svg>
               </div>
             </div>
-            <p class="tutorial-caption">Problem with the image itself? Tap <strong>Comment</strong> to report it — doesn't count as a vote.</p>
+            <p class="tutorial-caption" data-i18n="tut.5">Problem with the image itself? Tap <strong>Comment</strong> to report it — doesn't count as a vote.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="5">
@@ -345,7 +346,7 @@
                 <span class="tutorial-tap-glyph">&#9776;</span>
               </div>
             </div>
-            <p class="tutorial-caption">Your <strong>leaderboard</strong> and <strong>account</strong> are here, top left.</p>
+            <p class="tutorial-caption" data-i18n="tut.6">Your <strong>leaderboard</strong> and <strong>account</strong> are here, top left.</p>
           </div>
 
           <div class="tutorial-frame" data-frame="6">
@@ -355,7 +356,7 @@
                 <span class="tutorial-tap-glyph">?</span>
               </div>
             </div>
-            <p class="tutorial-caption">Find this tutorial again anytime, top right.</p>
+            <p class="tutorial-caption" data-i18n="tut.7">Find this tutorial again anytime, top right.</p>
           </div>
         </div>
 
@@ -370,20 +371,21 @@
         </div>
 
         <div id="tutorial-nav">
-          <button id="tutorial-next" class="btn-outline">Next</button>
-          <button id="tutorial-close" class="btn" hidden>Got it, let's go</button>
+          <button id="tutorial-next" class="btn-outline" data-i18n="common.next">Next</button>
+          <button id="tutorial-close" class="btn" hidden data-i18n="tut.close">Got it, let's go</button>
         </div>
       </div>
     </div>
   </section>
 
   <aside id="menu" hidden>
-    <button id="menu-close" aria-label="Close">✕</button>
+    <button id="menu-close" aria-label="Close" data-i18n-attr="aria-label:common.close">✕</button>
+    <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:common.language"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="fr" lang="fr">FR</button></div>
 
     <div id="menu-account">
-      <p class="menu-section-title">My account</p>
-      <p class="menu-pseudo">Name: <strong id="menu-pseudo"></strong>
-        <button id="menu-edit-pseudo" class="menu-edit-pseudo-btn" hidden aria-label="Edit name">
+      <p class="menu-section-title" data-i18n="menu.account">My account</p>
+      <p class="menu-pseudo"><span data-i18n="menu.name">Name:</span> <strong id="menu-pseudo"></strong>
+        <button id="menu-edit-pseudo" class="menu-edit-pseudo-btn" hidden aria-label="Edit name" data-i18n-attr="aria-label:menu.editName">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
@@ -391,79 +393,79 @@
         </button>
       </p>
       <div id="menu-pseudo-form" class="menu-inline-form" hidden>
-        <input id="menu-pseudo-input" maxlength="24" placeholder="New name" autocomplete="off" />
+        <input id="menu-pseudo-input" maxlength="24" placeholder="New name" autocomplete="off" data-i18n-attr="placeholder:menu.newName" />
         <div class="menu-inline-form-actions">
-          <button id="menu-pseudo-submit" class="btn">Save</button>
-          <button id="menu-pseudo-cancel" class="link">Cancel</button>
+          <button id="menu-pseudo-submit" class="btn" data-i18n="common.save">Save</button>
+          <button id="menu-pseudo-cancel" class="link" data-i18n="common.cancel">Cancel</button>
         </div>
         <p id="menu-pseudo-error" class="error" hidden></p>
       </div>
-      <p class="menu-email-line" id="menu-email-line" hidden>Email: <strong id="menu-email"></strong></p>
-      <p class="menu-email-line" id="menu-member-since" hidden>Member since <strong id="menu-since-date"></strong></p>
+      <p class="menu-email-line" id="menu-email-line" hidden data-i18n="menu.email">Email: <strong id="menu-email"></strong></p>
+      <p class="menu-email-line" id="menu-member-since" hidden data-i18n="menu.since">Member since <strong id="menu-since-date"></strong></p>
       <div class="menu-account-links">
         <button id="menu-claim" class="menu-account-link">
           <svg class="menu-account-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="2" y="4" width="20" height="16" rx="2"></rect>
             <path d="m22 6-10 7L2 6"></path>
           </svg>
-          <span>Connect email</span>
+          <span data-i18n="menu.connectEmail">Connect email</span>
         </button>
-        <button id="menu-change-password" class="menu-account-link" hidden>Change password</button>
-        <button id="menu-google" class="menu-account-link" disabled title="Coming soon">
+        <button id="menu-change-password" class="menu-account-link" hidden data-i18n="menu.changePw">Change password</button>
+        <button id="menu-google" class="menu-account-link" disabled title="Coming soon" data-i18n-attr="title:common.soon">
           <svg class="menu-account-link-icon" viewBox="0 0 18 18" aria-hidden="true">
             <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 0 0 9 18z"/>
             <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.03l3.05-2.33z"/>
             <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
           </svg>
-          <span>Connect Google account</span>
+          <span data-i18n="menu.connectGoogle">Connect Google account</span>
         </button>
       </div>
 
       <div id="menu-claim-form" class="menu-inline-form" hidden>
-        <input id="menu-claim-email" type="email" placeholder="you@example.com" autocomplete="email" />
-        <input id="menu-claim-password" type="password" placeholder="Choose a password" autocomplete="new-password" />
+        <input id="menu-claim-email" type="email" placeholder="you@example.com" autocomplete="email" data-i18n-attr="placeholder:common.emailPlaceholder" />
+        <input id="menu-claim-password" type="password" placeholder="Choose a password" autocomplete="new-password" data-i18n-attr="placeholder:menu.choosePw" />
         <label id="menu-claim-consent-label" class="menu-consent-label">
           <input id="menu-claim-consent" type="checkbox" />
-          <span>I acknowledge having read the <a href="../content/legal.html#privacy-policy" target="_blank">privacy notice</a>.</span>
+          <span data-i18n="menu.consent">I acknowledge having read the <a href="../content/legal.html#privacy-policy" target="_blank">privacy notice</a>.</span>
         </label>
         <div class="menu-inline-form-actions">
-          <button id="menu-claim-submit" class="btn" disabled>Create account</button>
-          <button id="menu-claim-cancel" class="btn-outline">Cancel</button>
+          <button id="menu-claim-submit" class="btn" disabled data-i18n="menu.createAccount">Create account</button>
+          <button id="menu-claim-cancel" class="btn-outline" data-i18n="common.cancel">Cancel</button>
         </div>
         <p id="menu-claim-error" class="error" hidden></p>
       </div>
 
       <div id="menu-password-form" class="menu-inline-form" hidden>
-        <input id="menu-new-password" type="password" placeholder="New password" autocomplete="new-password" />
+        <input id="menu-new-password" type="password" placeholder="New password" autocomplete="new-password" data-i18n-attr="placeholder:menu.newPw" />
         <div class="menu-inline-form-actions">
-          <button id="menu-password-submit" class="btn">Update password</button>
-          <button id="menu-password-cancel" class="link">Cancel</button>
+          <button id="menu-password-submit" class="btn" data-i18n="menu.updatePw">Update password</button>
+          <button id="menu-password-cancel" class="link" data-i18n="common.cancel">Cancel</button>
         </div>
         <p id="menu-password-error" class="error" hidden></p>
       </div>
 
-      <p class="menu-mycount-line">My verifications: <strong id="menu-mycount"></strong></p>
+      <p class="menu-mycount-line" data-i18n="menu.mycount">My verifications: <strong id="menu-mycount"></strong></p>
       <p class="menu-breakdown">
-        <span class="bd bd-confirm">✓ <strong id="menu-bd-confirm">0</strong> yes</span>
-        <span class="bd bd-reject">✕ <strong id="menu-bd-reject">0</strong> no</span>
-        <span class="bd bd-ambiguous">? <strong id="menu-bd-ambiguous">0</strong> unsure</span>
+        <span class="bd bd-confirm" data-i18n="menu.bd.yes">✓ <strong id="menu-bd-confirm">0</strong> yes</span>
+        <span class="bd bd-reject" data-i18n="menu.bd.no">✕ <strong id="menu-bd-reject">0</strong> no</span>
+        <span class="bd bd-ambiguous" data-i18n="menu.bd.unsure">? <strong id="menu-bd-ambiguous">0</strong> unsure</span>
       </p>
       <p class="menu-rank-line">
-        <span class="rank-pill">Day <strong id="menu-rank-day">—</strong></span>
-        <span class="rank-pill">Week <strong id="menu-rank-week">—</strong></span>
-        <span class="rank-pill">All time <strong id="menu-rank-all">—</strong></span>
+        <span class="rank-pill" data-i18n="menu.rank.day">Day <strong id="menu-rank-day">—</strong></span>
+        <span class="rank-pill" data-i18n="menu.rank.week">Week <strong id="menu-rank-week">—</strong></span>
+        <span class="rank-pill" data-i18n="menu.rank.all">All time <strong id="menu-rank-all">—</strong></span>
       </p>
       <div class="menu-account-danger">
-        <button id="menu-signout" class="menu-signout-link">Logout</button>
-        <button id="menu-delete-account" class="menu-signout-link menu-delete-link" hidden>Delete my account</button>
+        <button id="menu-signout" class="menu-signout-link" data-i18n="menu.logout">Logout</button>
+        <button id="menu-delete-account" class="menu-signout-link menu-delete-link" hidden data-i18n="menu.delete">Delete my account</button>
       </div>
     </div>
 
     <div id="menu-scroll">
       <div id="menu-main-tabs">
-        <button data-panel="leaderboard" class="active">Leaderboard</button>
-        <button data-panel="progress">Progress</button>
+        <button data-panel="leaderboard" class="active" data-i18n="common.leaderboard">Leaderboard</button>
+        <button data-panel="progress" data-i18n="common.progress">Progress</button>
       </div>
 
       <div id="menu-panel-leaderboard">
@@ -474,9 +476,9 @@
              ready whichever tab opens first. -->
         <p id="menu-leaderboard-batch-status" class="menu-leaderboard-batch-status"></p>
         <div id="menu-tabs">
-          <button data-window="day">Day</button>
-          <button data-window="week">Week</button>
-          <button data-window="all" class="active">All time</button>
+          <button data-window="day" data-i18n="menu.tab.day">Day</button>
+          <button data-window="week" data-i18n="menu.tab.week">Week</button>
+          <button data-window="all" class="active" data-i18n="menu.tab.all">All time</button>
         </div>
         <p id="menu-leaderboard-total"></p>
         <ol id="menu-leaderboard"></ol>
@@ -484,7 +486,7 @@
 
       <div id="menu-panel-progress" hidden>
         <div id="menu-completion">
-          <p class="menu-completion-headline"><strong id="menu-votes-cast">—</strong> validations done</p>
+          <p class="menu-completion-headline" data-i18n="menu.headline"><strong id="menu-votes-cast">—</strong> validations done</p>
           <!-- Season-wide, monotonic — never resets, unlike the batch bar
                below. Deliberately doesn't mention how many batches remain
                (~5,600 and counting) or the season's full installation
@@ -492,17 +494,17 @@
                read as "this will never finish" rather than "here's what's
                been done". Framed instead as forward motion: what's been
                validated, then which batch is next. -->
-          <p class="menu-completion-installations"><strong id="menu-installations-done">—</strong> installations validated &mdash; on our way to <strong id="menu-milestone">—</strong></p>
+          <p class="menu-completion-installations" data-i18n="menu.installations"><strong id="menu-installations-done">—</strong> installations validated &mdash; on our way to <strong id="menu-milestone">—</strong></p>
           <div class="bar"><div id="menu-pct-bar"></div></div>
-          <p class="menu-completion-sub"><span id="menu-pct"></span> of the way there &middot; now on batch <strong id="menu-batch-no">—</strong></p>
+          <p class="menu-completion-sub" data-i18n="menu.sub"><span id="menu-pct"></span> of the way there &middot; now on batch <strong id="menu-batch-no">—</strong></p>
         </div>
 
-        <p class="menu-dept-title">Votes by département</p>
+        <p class="menu-dept-title" data-i18n="menu.deptTitle">Votes by département</p>
         <div id="menu-dept-map"></div>
         <div id="menu-dept-legend">
-          <span>Less</span>
+          <span data-i18n="menu.less">Less</span>
           <span id="menu-dept-legend-bar"></span>
-          <span>More</span>
+          <span data-i18n="menu.more">More</span>
         </div>
       </div>
     </div>
@@ -517,7 +519,7 @@
               <line x1="12" y1="2" x2="12" y2="15"></line>
             </svg>
           </span>
-          <span class="cta-card-title">Share</span>
+          <span class="cta-card-title" data-i18n="common.share">Share</span>
         </button>
         <a id="menu-discuss" class="cta-card" href="https://github.com/gabrielkasmi/deeppvmapper/discussions/17" target="_blank" rel="noopener">
           <span class="cta-card-icon">
@@ -525,7 +527,7 @@
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
           </span>
-          <span class="cta-card-title">Join the discussion</span>
+          <span class="cta-card-title" data-i18n="common.discuss">Join the discussion</span>
         </a>
         <button id="menu-install-btn" class="cta-card" hidden>
           <span class="cta-card-icon">
@@ -537,7 +539,7 @@
               <line x1="9" y1="11" x2="15" y2="11"></line>
             </svg>
           </span>
-          <span class="cta-card-title">Add to Home Screen</span>
+          <span class="cta-card-title" data-i18n="common.addHome">Add to Home Screen</span>
         </button>
       </div>
     </div>
@@ -550,20 +552,20 @@
        of overlay inside a hidden ancestor silently breaks it. -->
   <div id="purpose-panel" hidden>
     <div class="tutorial-box">
-      <h2>What is the purpose of this game?</h2>
-      <p class="purpose-intro">PV Check is a crowdsourcing platform designed to improve <a href="../content/openpvmapper.html">OpenPVMapper</a>.</p>
+      <h2 data-i18n="purpose.title">What is the purpose of this game?</h2>
+      <p class="purpose-intro" data-i18n="purpose.intro">PV Check is a crowdsourcing platform designed to improve <a href="../content/openpvmapper.html">OpenPVMapper</a>.</p>
 
-      <h3>How it works?</h3>
-      <p>Every yes / no / unsure you swipe is one vote on a single installation. Once an installation collects its target number of independent votes (5 for most installations, 10 for a small random subset), we compute a consensus score from all of them — that's what turns into a label: contains PV, no PV, or ambiguous. No single swipe decides anything on its own, it's the sum of everyone's votes that does. So if you're not sure, swipe unsure rather than guessing — and a quick comment on an ambiguous case helps even more.</p>
+      <h3 data-i18n="purpose.h.how">How it works?</h3>
+      <p data-i18n="purpose.how">Every yes / no / unsure you swipe is one vote on a single installation. Once an installation collects its target number of independent votes (5 for most installations, 10 for a small random subset), we compute a consensus score from all of them — that's what turns into a label: contains PV, no PV, or ambiguous. No single swipe decides anything on its own, it's the sum of everyone's votes that does. So if you're not sure, swipe unsure rather than guessing — and a quick comment on an ambiguous case helps even more.</p>
 
-      <h3>Feeding back into OpenPVMapper</h3>
-      <p>Every installation in <a href="../content/openpvmapper.html">OpenPVMapper</a> carries a tag showing where its label comes from. Today, one tag marks installations already verified through DeepPVMapper's manual annotation effort — see the <a href="../content/main-results.html">Registry Audit</a> page for how that works. Installations verified here, through crowdsourced consensus, will get their own tag in upcoming releases — raising the confidence level of the data for everyone. The first campaign focuses on the installations the model is currently least sure about.</p>
+      <h3 data-i18n="purpose.h.feed">Feeding back into OpenPVMapper</h3>
+      <p data-i18n="purpose.feed">Every installation in <a href="../content/openpvmapper.html">OpenPVMapper</a> carries a tag showing where its label comes from. Today, one tag marks installations already verified through DeepPVMapper's manual annotation effort — see the <a href="../content/main-results.html">Registry Audit</a> page for how that works. Installations verified here, through crowdsourced consensus, will get their own tag in upcoming releases — raising the confidence level of the data for everyone. The first campaign focuses on the installations the model is currently least sure about.</p>
 
-      <h3>Building an open training dataset</h3>
-      <p>In the same spirit as the <a href="https://www.nature.com/articles/s41597-023-01951-4" target="_blank" rel="noopener">BDAPPV</a> annotation campaign, the goal is also to build an open dataset that can be used to retrain and improve the AI models that detect solar panels in the first place — not just label what's already there.</p>
+      <h3 data-i18n="purpose.h.train">Building an open training dataset</h3>
+      <p data-i18n="purpose.train">In the same spirit as the <a href="https://www.nature.com/articles/s41597-023-01951-4" target="_blank" rel="noopener">BDAPPV</a> annotation campaign, the goal is also to build an open dataset that can be used to retrain and improve the AI models that detect solar panels in the first place — not just label what's already there.</p>
 
-      <a href="../content/about.html" class="btn-outline">Learn more about DeepPVMapper</a>
-      <button id="purpose-close" class="btn">Got it</button>
+      <a href="../content/about.html" class="btn-outline" data-i18n="purpose.learn">Learn more about DeepPVMapper</a>
+      <button id="purpose-close" class="btn" data-i18n="common.gotIt">Got it</button>
     </div>
   </div>
 

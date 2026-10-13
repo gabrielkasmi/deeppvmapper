@@ -1671,3 +1671,44 @@ a.hub-card:hover {
         font-size: 0.8rem;
     }
 } 
+/* EN | FR switcher in the top nav (only rendered on pages that have a translation) */
+.topnav-lang {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-radius: 999px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+}
+
+.topnav-lang a {
+    padding: 5px 9px;
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.topnav-lang a:hover {
+    color: #2c3e50;
+}
+
+.topnav-lang a.is-active {
+    background: #2c3e50;
+    color: #ffffff;
+    cursor: default;
+}
+
+.topnav--overlay .topnav-lang {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.topnav--overlay .topnav-lang a {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.topnav--overlay .topnav-lang a.is-active {
+    background: rgba(255, 255, 255, 0.92);
+    color: #2c3e50;
+}
