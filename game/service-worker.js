@@ -5,12 +5,12 @@
 // app shell (HTML/CSS/JS) is cached so a repeat visit opens instantly; data
 // (Supabase, IGN images) always goes straight to the network.
 
-const CACHE = 'pv-scroll-shell-v18';
+const CACHE = 'pv-scroll-shell-v19';
 const SHELL = [
     './', './index.html', './css/style.css',
     './js/config.js', './js/store.js', './js/auth.js', './js/image.js',
     './js/campaign.js', './js/swipe.js', './js/menu.js', './js/main.js', './js/help.js',
-    './js/pwa.js', './js/hooks.js',
+    './js/pwa.js', './js/hooks.js', './js/i18n.js', './js/lang/fr.js',
 ];
 
 self.addEventListener('install', event => {

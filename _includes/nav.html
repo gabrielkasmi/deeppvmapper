@@ -1,0 +1,53 @@
+{%- assign _lang = page.lang | default: site.lang | default: 'en' -%}
+{%- assign _t = site.data.i18n[_lang] -%}
+{%- assign _p = root -%}{%- if _lang == 'fr' -%}{%- assign _p = root | append: 'fr/' -%}{%- endif -%}
+<nav class="topnav topnav--overlay">
+            <div class="container topnav-inner">
+                {% if page.is_home %}<span class="topnav-logo-spacer" aria-hidden="true"></span>{% else %}<a href="{{ _p }}index.html" class="topnav-logo topnav-logo--home" aria-label="{{ _t.home_label }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>{% endif %}
+                                <div class="topnav-links">
+                                    <a href="{{ _p }}content/about.html" class="topnav-link{% if page.nav_active == 'about' %} is-active{% endif %}">{{ _t.about }}</a>
+                                    <a href="{{ _p }}content/data.html" class="topnav-link{% if page.nav_active == 'data' %} is-active{% endif %}">{{ _t.data }}</a>
+                                    <a href="{{ _p }}content/software.html" class="topnav-link{% if page.nav_active == 'software' %} is-active{% endif %}">{{ _t.software }}</a>
+                                    <a href="{{ _p }}content/contribute.html" class="topnav-link{% if page.nav_active == 'contribute' %} is-active{% endif %}">{{ _t.contribute }}</a>
+                                    <a href="{{ _p }}content/outlook.html" class="topnav-link{% if page.nav_active == 'outlook' %} is-active{% endif %}">{{ _t.outlook }}</a>
+                                    <span class="topnav-break" aria-hidden="true"></span>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn{% if page.nav_active == 'pipeline' or page.nav_active == 'openpvmapper' %} is-active{% endif %}">{{ _t.docs }} &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="{{ _p }}content/pipeline.html" class="dropdown-item{% if page.nav_active == 'pipeline' %} is-active{% endif %}">{{ _t.pipeline }}<span class="dropdown-item-sub">{{ _t.pipeline_sub }}</span></a>
+                                            <a href="{{ _p }}content/openpvmapper.html" class="dropdown-item{% if page.nav_active == 'openpvmapper' %} is-active{% endif %}">{{ _t.openpvmapper }}<span class="dropdown-item-sub">{{ _t.openpvmapper_sub }}</span></a>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <span class="topnav-link dropdown-btn{% if page.nav_active == 'publications' or page.nav_active == 'in-press' %} is-active{% endif %}">{{ _t.publications }} &#9662;</span>
+                                        <div class="dropdown-content">
+                                            <a href="{{ root }}content/publications.html" class="dropdown-item{% if page.nav_active == 'publications' %} is-active{% endif %}">{{ _t.papers }}<span class="dropdown-item-sub">{{ _t.papers_sub }}</span></a>
+                                            <a href="{{ root }}content/in-press.html" class="dropdown-item{% if page.nav_active == 'in-press' %} is-active{% endif %}">{{ _t.press }}<span class="dropdown-item-sub">{{ _t.press_sub }}</span></a>
+                                        </div>
+                                    </div>
+                                    {%- if _has_alt %}
+                                    <span class="topnav-lang" role="group" aria-label="{{ _t.language }}"><a href="{{ root }}{{ _en_path }}" hreflang="en" lang="en"{% if _lang == 'en' %} class="is-active" aria-current="true"{% endif %}>EN</a><a href="{{ root }}{{ _fr_path }}" hreflang="fr" lang="fr"{% if _alt_fallback %} title="Version française (cette page n'est pas traduite)"{% endif %}{% if _lang == 'fr' %} class="is-active" aria-current="true"{% endif %}>FR</a></span>
+                                    {%- endif %}
+                                </div>
+            {% if page.is_home %}
+                <div class="topnav-right">
+                    <button type="button" id="citation-trigger" class="cite-badge" aria-label="{{ _t.cite_label }}" title="{{ _t.cite_label }}">
+                        <span class="cite-mark" aria-hidden="true">&rdquo;</span> {{ _t.cite }}
+                    </button>
+                    <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="topnav-repo" aria-label="{{ _t.github_label }}">
+                        <svg class="topnav-icon-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.38 2.89-.39.98 0 1.97.13 2.89.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.44-2.7 5.42-5.27 5.7.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.2.67.8.56C20.21 21.38 23.5 17.08 23.5 12c0-6.35-5.15-11.5-11.5-11.5z"/>
+                        </svg>
+                        <span class="repo-stat">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span id="gh-stars">&ndash;</span>
+                        </span>
+                        <span class="repo-stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                            <span id="gh-forks">&ndash;</span>
+                        </span>
+                    </a>
+                </div>
+            {% endif %}
+            </div>
+        </nav>

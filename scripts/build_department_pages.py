@@ -1533,6 +1533,7 @@ TEMPLATE = """<!DOCTYPE html>
                             <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
                         </div>
                     </div>
+                    <span class="topnav-lang" role="group" aria-label="Language"><a href="" hreflang="en" lang="en" class="is-active" aria-current="true">EN</a><a href="../../fr/content/local-statistics.html" hreflang="fr" lang="fr" title="Version française (page non traduite) : classement">FR</a></span>
                 </div>
             </div>
         </nav>
@@ -1632,6 +1633,7 @@ TEMPLATE = """<!DOCTYPE html>
             }}
         }})();
     </script>
+    <script src="../../static/js/page-lang.js"></script>
 </body>
 </html>
 """
@@ -1936,6 +1938,7 @@ CITY_TEMPLATE = """<!DOCTYPE html>
                             <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
                         </div>
                     </div>
+                    <span class="topnav-lang" role="group" aria-label="Language"><a href="" hreflang="en" lang="en" class="is-active" aria-current="true">EN</a><a href="../../fr/content/local-statistics.html" hreflang="fr" lang="fr" title="Version française (page non traduite) : classement">FR</a></span>
                 </div>
             </div>
         </nav>
@@ -2006,6 +2009,7 @@ CITY_TEMPLATE = """<!DOCTYPE html>
             }});
         }})();
     </script>
+    <script src="../../static/js/page-lang.js"></script>
 </body>
 </html>
 """
@@ -2252,6 +2256,7 @@ REGION_TEMPLATE = """<!DOCTYPE html>
                             <a href="../in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
                         </div>
                     </div>
+                    <span class="topnav-lang" role="group" aria-label="Language"><a href="" hreflang="en" lang="en" class="is-active" aria-current="true">EN</a><a href="../../fr/content/local-statistics.html" hreflang="fr" lang="fr" title="Version française (page non traduite) : classement">FR</a></span>
                 </div>
             </div>
         </nav>
@@ -2365,6 +2370,7 @@ REGION_TEMPLATE = """<!DOCTYPE html>
             sections.forEach(function (s) {{ observer.observe(s); }});
         }})();
     </script>
+    <script src="../../static/js/page-lang.js"></script>
 </body>
 </html>
 """
@@ -2735,11 +2741,33 @@ def main():
     inject_rankings(dept_index, region_index, city_index)
     build_sitemap(dept_index, region_index, city_index)
     ensure_robots_txt()
+    run_frenchify()
 
     print(f"Wrote {len(dept_index)} département pages to {OUT_DIR}")
     print(f"Wrote {len(region_index)} région pages to {REGION_OUT_DIR}")
     print(f"Wrote {n_city_pages} city pages to {CITY_OUT_DIR}")
     print("Regenerated sitemap.xml and checked robots.txt")
+
+
+def run_frenchify():
+    """The pages above are written in English; French is the version that gets indexed (same URLs),
+    so rewrite them in place with scripts/frenchify_pages.js (node + jsdom; set NODE_PATH if jsdom
+    is not installed next to the repo). The English text stays in each page as JSON (#dpm-en) and
+    is restored by static/js/page-lang.js when a visitor picks EN."""
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    script = os.path.join(ROOT, "scripts", "frenchify_pages.js")
+    if not node:
+        print("WARNING: node not found - generated pages left in English. Run: node scripts/frenchify_pages.js")
+        return
+    r = subprocess.run([node, script], capture_output=True, text=True)
+    out = (r.stdout or "").strip()
+    if r.returncode != 0:
+        print("WARNING: frenchify_pages.js failed (is jsdom reachable? try NODE_PATH=/path/to/node_modules):")
+        print((r.stderr or out).strip()[-600:])
+    else:
+        print(out)
 
 
 RANKING_ITEM = """                <a class="ranking-item{rank_class}" href="{href}">
@@ -2787,7 +2815,11 @@ def inject_rankings(dept_index, region_index, city_index):
         for d in depts_sorted
     ])
 
-    cities_sorted = sorted(city_index, key=lambda c: -c["kwp"])[:TOP_CITIES_FOR_RANKING]
+    if not city_index:
+        # Supabase-only runs have no commune-level data (see main()): rebuild the city list
+        # from the city pages already on disk instead of blanking the "Cities" tab.
+        city_index = city_index_from_disk()
+    cities_sorted = sorted(city_index, key=lambda c: (-c["kwp"], -c.get("systems", 0)))[:TOP_CITIES_FOR_RANKING]
     city_rows = []
     for c in cities_sorted:
         cap_fmt, cap_unit = fmt_capacity(c["kwp"])
@@ -2798,23 +2830,77 @@ def inject_rankings(dept_index, region_index, city_index):
         })
     city_rows_html = _ranking_rows(city_rows)
 
-    target_path = os.path.join(ROOT, "content", "local-statistics.html")
-    with open(target_path, encoding="utf-8") as f:
-        page = f.read()
-
-    for label, rows_html in (
+    blocks = (
         ("RANKING_REGIONS", region_rows),
         ("RANKING_DEPARTEMENTS", dept_rows),
         ("RANKING_CITIES", city_rows_html),
-    ):
+    )
+    splice_rankings(os.path.join(ROOT, "content", "local-statistics.html"), blocks)
+    # French leaderboard (fr/content/local-statistics.html): same rows, links pointed back at the
+    # (English) région / département / city pages and numbers/units in French style.
+    splice_rankings(os.path.join(ROOT, "fr", "content", "local-statistics.html"), blocks, rows_fn=_fr_rows)
+
+
+def splice_rankings(target_path, blocks, rows_fn=None):
+    """Refill what sits between each RANKING_*_START/END marker pair in target_path.
+    No-op if the file doesn't exist (e.g. no French leaderboard)."""
+    if not os.path.exists(target_path):
+        return
+    with open(target_path, encoding="utf-8") as f:
+        page = f.read()
+    for label, rows_html in blocks:
+        if rows_fn:
+            rows_html = rows_fn(rows_html)
         start_marker = f"<!-- {label}_START -->"
         end_marker = f"<!-- {label}_END -->"
         start = page.index(start_marker) + len(start_marker)
         end = page.index(end_marker)
         page = page[:start] + "\n" + rows_html + "\n                " + page[end:]
-
     with open(target_path, "w", encoding="utf-8") as f:
         f.write(page)
+
+
+def _fr_rows(rows_html):
+    """English-leaderboard rows -> French leaderboard rows: links go up to ../../content/,
+    '1 234.5 MWp' becomes '1 234,5 MWc' (French decimal comma, 'c' for crête)."""
+    rows_html = re.sub(r'href="(regions|data|cities)/', r'href="../../content/\1/', rows_html)
+    rows_html = re.sub(r'(\d)\.(\d) (k|M|G)Wp', r'\1,\2 \3Wc', rows_html)
+    return re.sub(r'(\d) (k|M|G)Wp', r'\1 \2Wc', rows_html)
+
+
+def city_index_from_disk():
+    """Rebuild the minimal city index (insee, names, capacity, systems) by reading the city
+    pages already written under content/cities/. Capacity is the page's displayed value, so it
+    has the pages' own rounding."""
+    import html as _html
+    out = []
+    if not os.path.isdir(CITY_OUT_DIR):
+        return out
+    for fn in sorted(os.listdir(CITY_OUT_DIR)):
+        if not fn.endswith(".html"):
+            continue
+        with open(os.path.join(CITY_OUT_DIR, fn), encoding="utf-8") as f:
+            h = f.read()
+        nom = re.search(r'<h1 class="title">(.*?)</h1>', h)
+        reg = re.search(r'<p class="title-region">(.*?)</p>', h)
+        cap = re.search(r'<span class="stat-number">([^<]+?) ([kMG]W[pc])</span>', h)
+        sysn = re.search(r'<span class="stat-number">([^<]+)</span>\s*<span class="stat-label">(?:PV systems|Systèmes PV)', h)
+        if not (nom and reg and cap):
+            continue
+        parts = [_html.unescape(p).strip() for p in re.split(r"&middot;|·", reg.group(1))]
+        if len(parts) != 2:
+            continue
+        num = re.sub(r"[\s\u00a0\u202f]", "", _html.unescape(cap.group(1)))
+        # English pages: "1,234.5" ; French pages (frenchify_pages.js): "1234,5"
+        num = num.replace(",", ".") if cap.group(2)[-1] == "c" else num.replace(",", "")
+        val = float(num)
+        val *= {"kWp": 1, "MWp": 1000, "GWp": 1_000_000, "kWc": 1, "MWc": 1000, "GWc": 1_000_000}[cap.group(2)]
+        out.append({
+            "insee": fn[:-len(".html")], "nom": _html.unescape(nom.group(1)),
+            "dept_nom": parts[0], "region_nom": parts[1], "kwp": val,
+            "systems": int(re.sub(r"[\s\u00a0\u202f]", "", _html.unescape(sysn.group(1)))) if sysn else 0,
+        })
+    return out
 
 
 # ─── Sitemap / robots.txt (SEO) ────────────────────────────────────────────
@@ -2851,6 +2937,16 @@ def build_sitemap(dept_index, region_index=(), city_index=()):
             urls.append((f"{SITE_BASE}/content/{fn}", "weekly", "0.9"))
         else:
             urls.append((f"{SITE_BASE}/content/{fn}", "monthly", "0.7"))
+
+    # French versions (fr/ tree, see _data/i18n.yml): home + top-level content pages.
+    fr_dir = os.path.join(ROOT, "fr")
+    if os.path.exists(os.path.join(fr_dir, "index.html")):
+        urls.append((f"{SITE_BASE}/fr/index.html", "weekly", "0.8"))
+    fr_content = os.path.join(fr_dir, "content")
+    if os.path.isdir(fr_content):
+        for fn in sorted(os.listdir(fr_content)):
+            if fn.endswith(".html"):
+                urls.append((f"{SITE_BASE}/fr/content/{fn}", "monthly", "0.6"))
 
     for d in dept_index:
         urls.append((f"{SITE_BASE}/content/data/{d['code']}.html", "monthly", "0.6"))

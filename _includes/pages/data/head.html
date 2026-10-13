@@ -1,0 +1,406 @@
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+        /* ─ Embedded map: sober/native, matching the rest of the site rather
+           than a separate dark "glass" language. Floating chrome ON the map
+           (draw/clear buttons, filter panel, spinner, export toast) reads as
+           plain white cards — standard for a map overlay; buttons reuse the
+           site's own solid navy .btn look so they stay legible over any
+           basemap without needing their own translucent styling. ─ */
+        #map-embed-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 860px;
+            height: 560px;
+            max-height: 72vh;
+            margin: 22px auto 0;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        #map-embed-wrap #map { position: absolute; inset: 0; z-index: 1; }
+
+        .me-glass {
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            color: #2c3e50;
+        }
+
+        /* Search: a plain page element above the map, not floating chrome. */
+        #me-search-standalone { position: relative; max-width: 420px; margin: 18px auto 0; }
+        #me-search-box {
+            display: flex; align-items: center; gap: 6px; border-radius: 8px; padding: 10px 14px;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        #city-search { flex: 1; background: none; border: none; color: #2c3e50; font-size: 14px; font-family: inherit; outline: none; }
+        #city-search::placeholder { color: #adb5bd; }
+        .me-icon-btn { background: none; border: none; color: #adb5bd; cursor: pointer; padding: 2px; display: flex; align-items: center; flex-shrink: 0; }
+        .me-icon-btn:hover { color: #6c757d; }
+        #search-results {
+            margin-top: 5px; border-radius: 8px; overflow: hidden; display: none; max-height: 220px;
+            overflow-y: auto; position: absolute; left: 0; right: 0; z-index: 850;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        .sr-item { padding: 8px 12px; cursor: pointer; font-size: 12px; color: #2c3e50; border-bottom: 1px solid #f1f3f5; display: flex; justify-content: space-between; }
+        .sr-item:hover { background: #f8f9fa; }
+        .sr-type { font-size: 9px; font-weight: 600; text-transform: uppercase; color: #adb5bd; }
+
+        /* Zone-drawing controls: icon-only, stacked directly under Leaflet's
+           own zoom control (top-left) so they read as part of the same
+           control cluster instead of a separate floating bar. Draw (pencil)
+           sits above clear (eraser) — same column, drawing tool on top. */
+        #me-topbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .me-icon-action {
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; background: white; border: 1px solid #dee2e6; color: #34495e;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 0;
+            transition: background 0.15s ease;
+        }
+        .me-icon-action:hover { background: #f8f9fa; }
+
+        /* Custom hover tooltip for the topbar buttons (draw/clear/report) —
+           attr(data-tip) instead of the native title tooltip, so it can carry
+           the site's own card styling instead of the browser's default. Opens
+           to the right: the buttons sit at the map's left edge, so there's
+           always room there and never on the left. report-issue-btn's tip
+           text is kept in sync with its disabled state by report.js. */
+        #me-topbar .me-icon-action[data-tip] { position: relative; }
+        #me-topbar .me-icon-action[data-tip]:hover::after,
+        #me-topbar .me-icon-action[data-tip]:focus-visible::after {
+            content: attr(data-tip);
+            position: absolute; top: 50%; left: calc(100% + 8px); transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.97); border: 1px solid #dee2e6;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12); color: #2c3e50; font-size: 11px;
+            white-space: nowrap; padding: 5px 10px; border-radius: 6px;
+            pointer-events: none; z-index: 950;
+        }
+
+        /* Same solid pill as the site's .btn — opaque, so it reads over any
+           basemap, and consistent with the rest of the site instead of a
+           separate visual language. */
+        .me-action-btn, .me-primary-btn {
+            display: inline-block; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer; border: 1px solid #34495e;
+            background: #34495e; color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+        }
+        .me-action-btn:hover, .me-primary-btn:hover { background: #2c3e50; border-color: #2c3e50; transform: translateY(-1px); }
+
+        #zone-editbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900; border-radius: 10px;
+            padding: 8px 10px; display: flex; gap: 8px; align-items: center; font-size: 12px;
+        }
+        #zone-editbar span { color: #495057; }
+        #zone-editbar button {
+            border-radius: 6px; padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer;
+            border: 1px solid #ced4da; background: white; color: #495057;
+        }
+        #zone-editbar button:hover { background: #f8f9fa; }
+
+        /* Layer switcher: a plain segmented toggle we style ourselves, rather
+           than Leaflet's own layer control — avoids fighting that control's
+           CSS (a recurring oversized/misaligned render in some browsers).
+           The filter gear sits right beside it, same row. */
+        .map-corner-stack {
+            position: absolute; top: 12px; right: 12px; z-index: 900;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .layer-toggle {
+            display: flex; background: white; border: 1px solid #dee2e6; border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12); overflow: hidden;
+        }
+        .layer-toggle button {
+            border: none; background: none; padding: 7px 12px; cursor: pointer; color: #6c757d;
+            font-family: inherit; font-size: 12px; transition: background 0.15s ease, color 0.15s ease;
+        }
+        .layer-toggle button + button { border-left: 1px solid #e9ecef; }
+        .layer-toggle button.is-active { background: #34495e; color: white; }
+        .layer-toggle button:hover:not(.is-active) { background: #f8f9fa; color: #2c3e50; }
+
+        #wfs-spinner { position: absolute; bottom: 12px; right: 12px; z-index: 900; border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+        /* Shared small spinning ring — same look/animation as #export-toast's
+           own .et-spinner, just under a name that isn't export-specific.
+           Reuses @keyframes et-spin (declared once, below, for export-toast).
+           display:inline-block (not flex) so it lines up with adjacent text
+           regardless of the parent's own display — show()/hide() (store.js)
+           always toggle plain 'block'/'none', not 'flex'. */
+        .me-spin {
+            display: inline-block; vertical-align: middle; margin-right: 6px;
+            width: 13px; height: 13px; border-radius: 50%;
+            border: 2px solid #e9ecef; border-top-color: #34495e;
+            animation: et-spin 0.8s linear infinite;
+        }
+
+        /* Centered loading indicator, used for anything that leaves the map
+           looking idle for a moment: the initial département overview fetch
+           (overview.js) and loading a drawn/searched/department selection
+           (render.js's loadSelection) — both meaningfully longer waits than
+           the tiny per-click fetch #wfs-spinner covers, and easy to miss
+           tucked in a corner while the camera itself is also moving
+           (flyToBounds). Centered so it can't be missed regardless of where
+           on the map the action started. */
+        #center-spinner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 850;
+            border-radius: 10px; padding: 12px 18px; font-size: 13px; color: #495057; text-align: center;
+        }
+
+        #filter-panel {
+            position: absolute; top: 56px; right: 12px; z-index: 900; border-radius: 10px;
+            padding: 14px 16px; width: 230px; font-size: 12px;
+        }
+        .fp-title {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+            color: #6c757d; margin-bottom: 10px;
+        }
+        .fp-close-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border: none; background: none; color: #adb5bd;
+            cursor: pointer; border-radius: 4px; flex-shrink: 0; padding: 0;
+        }
+        .fp-close-btn:hover { background: #f1f3f5; color: #6c757d; }
+        .fp-row { margin-bottom: 10px; }
+        .fp-row > label:first-child { display: block; font-size: 10px; color: #6c757d; margin-bottom: 4px; }
+        .fp-vals { font-weight: 400; color: #495057; text-transform: none; letter-spacing: normal; float: right; }
+        .fp-sources { display: flex; flex-direction: column; gap: 4px; }
+        .fp-check { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; color: #2c3e50; }
+
+        /* "Show unreviewed community edits" — set apart from the ordinary
+           client-side filters above it (it triggers a real fetch + redraw,
+           not just a re-filter of what's already in memory). */
+        .fp-row-unreviewed { padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .fp-unreviewed-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+        .fp-unreviewed-count { color: #6c757d; font-weight: 400; }
+        .fp-unreviewed-note { margin: 4px 0 0; font-size: 10px; line-height: 1.4; color: #adb5bd; }
+        .fp-unreviewed-note a { color: #adb5bd; text-decoration: underline; text-underline-offset: 2px; }
+        .fp-unreviewed-note a:hover { color: #6c757d; }
+
+        /* Manual reload for the unreviewed-edits overlay — same small,
+           borderless icon-button look as .fp-close-btn. Only shown once the
+           checkbox is on (useful mid mapping-party, when new edits keep
+           landing and you don't want to wait for the next selection). */
+        .fp-icon-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; border: none; background: none; color: #adb5bd;
+            cursor: pointer; border-radius: 4px; flex-shrink: 0; padding: 0;
+        }
+        .fp-icon-btn:hover { background: #f1f3f5; color: #6c757d; }
+
+        /* Dual-handle range slider: two overlapping <input type=range>, each
+           only clickable at its own thumb (the track ignores clicks). The
+           visible line is a separate, non-interactive element behind both
+           inputs — each input's own native track is left fully transparent,
+           so neither one's (opaque) track can render on top of and hide the
+           other input's thumb. The input's own box is sized to match the
+           thumb (not the thin track), so the thumb centers on it the same
+           way in every browser. */
+        .fp-slider { position: relative; height: 22px; margin: 4px 0 2px; }
+        .fp-track-line {
+            position: absolute; top: 50%; left: 0; right: 0; height: 4px; margin-top: -2px;
+            background: #e9ecef; border-radius: 2px; pointer-events: none;
+        }
+        .fp-slider input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            position: absolute; top: 4.5px; left: 0; width: 100%; height: 13px;
+            background: transparent; margin: 0; pointer-events: none;
+        }
+        .fp-slider input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+        .fp-slider input[type="range"]::-moz-range-track { height: 4px; background: transparent; }
+        .fp-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; pointer-events: all; width: 13px; height: 13px; border-radius: 50%;
+            background: #34495e; border: 2px solid white; box-shadow: 0 0 0 1px #34495e; cursor: pointer; margin-top: 0;
+        }
+        .fp-slider input[type="range"]::-moz-range-thumb {
+            pointer-events: all; width: 13px; height: 13px; border-radius: 50%;
+            background: #34495e; border: 2px solid white; box-shadow: 0 0 0 1px #34495e; cursor: pointer;
+        }
+
+        .fp-export-row { margin-top: 4px; }
+        .fp-dropdown { position: relative; }
+        .fp-export-btn { width: 100%; text-align: left; }
+        .fp-dropdown-menu {
+            /* Opens upward, not downward: the toggle button sits near
+               bottom:12px of #map-embed-wrap, which clips overflow — a
+               menu opening below it would be cut off by that clip. */
+            position: absolute; bottom: 100%; left: 0; right: 0; margin-bottom: 6px;
+            background: white; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            border-radius: 8px; overflow: hidden; z-index: 950;
+        }
+        .fp-dropdown-item {
+            display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 12px;
+            font-family: inherit; color: #2c3e50; background: none; border: none; cursor: pointer;
+        }
+        .fp-dropdown-item:hover { background: #f8f9fa; }
+
+        /* Note shown in the download menu only when "Show unreviewed
+           community edits" (filter panel) is on — the actual toggle lives
+           there now, this is just a heads-up that the download will include
+           them too. */
+        .fp-dropdown-note {
+            margin: 0; padding: 8px 12px; font-size: 11px; line-height: 1.4; color: #6c757d;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        /* Export notification: separate from #wfs-spinner (which is also used
+           by selection/single-feature loads) so a large export doesn't block
+           or get confused with other map activity — it just runs, and this
+           pops up to say so when it's ready. */
+        #export-toast {
+            position: absolute; bottom: 12px; left: 12px; z-index: 950; border-radius: 10px;
+            padding: 10px 14px; font-size: 12px; display: none; align-items: center; gap: 8px;
+            max-width: 260px;
+        }
+        #export-toast .et-spinner {
+            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+            border: 2px solid #e9ecef; border-top-color: #34495e;
+            animation: et-spin 0.8s linear infinite;
+        }
+        #export-toast.et-done .et-spinner { display: none; }
+        #export-toast.et-error { border-color: #e0a0a0; }
+        @keyframes et-spin { to { transform: rotate(360deg); } }
+
+        /* Detection detail: a real Leaflet popup anchored to the clicked
+           installation — a "baseline" popup, right next to the system it
+           describes, rather than a fixed widget elsewhere on the map. Just
+           our own sober card styling applied to Leaflet's popup chrome. */
+        .di-popup-wrap .leaflet-popup-content-wrapper {
+            border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+        }
+        .di-popup-wrap .leaflet-popup-content { margin: 12px 14px; }
+        .di-popup-wrap .leaflet-popup-tip { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .di-popup h4 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 500; color: #2c3e50; }
+        .di-popup table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .di-popup td { padding: 4px 8px 4px 0; color: #495057; }
+        .di-popup td:first-child { color: #6c757d; }
+        .di-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .di-action-btn {
+            flex: 1; border-radius: 6px; padding: 6px 8px; font-size: 0.78rem; font-family: inherit;
+            cursor: pointer; border: 1px solid #dee2e6; background: white; color: #495057;
+        }
+        .di-action-btn:hover { background: #f8f9fa; }
+        .di-action-btn:disabled { opacity: .5; cursor: default; }
+
+        /* "Confirm"/"Dispute" on the unreviewed-edits overlay popup — same
+           layout as .di-actions above, informational only (see render.js's
+           window.voteUnreviewed). */
+        .di-vote-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f3f5; }
+        .di-vote-thanks { font-size: 0.78rem; color: #6c757d; }
+
+        /* Bottom toolbar: "Add missing installation" is always present;
+           "Download detections" (#export-controls) joins it only once a
+           selection exists. Both float over the bottom of the map as
+           compact, regular-sized buttons — not a full-width bar. */
+        #map-bottom-toolbar {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 900;
+            display: flex; align-items: center; gap: 10px;
+        }
+        #map-bottom-toolbar .fp-dropdown { position: relative; }
+        .annot-add-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+        .instr-icon { vertical-align: -3px; margin: 0 2px; color: #6c757d; }
+
+        /* Progressive disclosure: the quickstart line above is enough for
+           anyone who's used a map tool before. The fuller walkthrough lives
+           in its own section below the map — reachable by scrolling past
+           it, or with the "More info" jump link right under the quickstart
+           line, for anyone who wants it spelled out. */
+        .map-help-link-row { display: block; text-align: center; margin-top: 6px; }
+        .map-help-link-row a { font-size: 12px; color: #6c757d; text-decoration: underline; text-underline-offset: 2px; }
+        .map-help-link-row a:hover { color: #2c3e50; }
+
+        .map-help { max-width: 640px; margin: 40px auto 30px; scroll-margin-top: 20px; }
+        .map-help ul { margin: 0; padding-left: 18px; font-size: 13px; color: #495057; line-height: 1.6; }
+        .map-help li { margin-bottom: 8px; }
+        .map-help li:last-child { margin-bottom: 0; }
+        .map-version-info {
+            margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #e9ecef;
+            font-size: 12px; color: #6c757d;
+        }
+        .map-version-info a { color: #6c757d; text-decoration: underline; text-underline-offset: 2px; }
+        .map-version-info a:hover { color: #2c3e50; }
+
+        /* CTA + live contribution counter — deliberately in the page text
+           above the map, not on the map itself. */
+        .annot-cta {
+            max-width: 640px; margin: 12px auto 0; text-align: center;
+            font-size: 13px; color: #495057;
+        }
+        .annot-counter { display: block; margin-top: 4px; font-size: 12px; color: #6c757d; }
+
+        /* Annotation drawing prompt — same slot/look as #zone-editbar
+           (mutually exclusive with it in time: only one draw mode at once). */
+        #annot-editbar {
+            position: absolute; top: 78px; left: 12px; z-index: 900; border-radius: 10px;
+            padding: 8px 10px; display: flex; gap: 8px; align-items: center; font-size: 12px;
+        }
+        #annot-editbar span { color: #495057; }
+        #annot-editbar button {
+            border-radius: 6px; padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer;
+            border: 1px solid #ced4da; background: white; color: #495057;
+        }
+        #annot-editbar button:hover { background: #f8f9fa; }
+
+        /* Annotation submission form: a centered card over the map. */
+        .annot-form {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 960;
+            width: 280px; max-width: calc(100% - 32px); border-radius: 12px; padding: 18px 20px;
+        }
+        .annot-form h4 { margin: 0 0 6px; font-size: 0.95rem; font-weight: 500; color: #2c3e50; }
+        .annot-form-note { margin: 0 0 12px; font-size: 12px; color: #6c757d; line-height: 1.4; }
+        .annot-field { display: block; font-size: 11px; color: #6c757d; margin-bottom: 10px; }
+        .annot-field textarea, .annot-field input {
+            display: block; width: 100%; margin-top: 4px; padding: 6px 8px; font-size: 13px;
+            font-family: inherit; color: #2c3e50; border: 1px solid #dee2e6; border-radius: 6px; resize: vertical;
+        }
+        .annot-field-row { display: flex; gap: 10px; }
+        .annot-field-row .annot-field { flex: 1; }
+        .annot-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+        .annot-form-actions button {
+            border-radius: 6px; padding: 7px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+        }
+        #annot-cancel { border: 1px solid #ced4da; background: white; color: #495057; }
+        #annot-cancel:hover { background: #f8f9fa; }
+
+        #annot-toast, #report-toast {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950;
+            border-radius: 10px; padding: 8px 14px; font-size: 12px;
+        }
+
+        /* "Report an issue" — same icon-only style as the pencil/eraser above
+           it in #me-topbar, always visible but greyed out (via [disabled])
+           until there's a selection or a clicked installation to report
+           against. */
+        #report-issue-btn[disabled] {
+            color: #ced4da; cursor: not-allowed; box-shadow: none;
+        }
+        #report-issue-btn[disabled]:hover { background: white; }
+
+        /* Report form: same centered-card look as the annotation form. */
+        .report-form-target { margin: 0 0 10px; font-size: 12px; color: #6c757d; }
+        #report-form select {
+            display: block; width: 100%; margin-bottom: 10px; padding: 6px 8px; font-size: 13px;
+            font-family: inherit; color: #2c3e50; border: 1px solid #dee2e6; border-radius: 6px; background: white;
+        }
+
+        /* Session-limit overlay: covers the map, not the whole page — the
+           rest of the site stays usable while this is up. */
+        .annot-overlay {
+            position: absolute; inset: 0; z-index: 970;
+            background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center;
+        }
+        .annot-overlay-card { max-width: 260px; padding: 20px 24px; border-radius: 12px; text-align: center; }
+        .annot-overlay-card h4 { margin: 0 0 8px; font-size: 1rem; font-weight: 500; color: #2c3e50; }
+        .annot-overlay-card p { margin: 0 0 14px; font-size: 13px; color: #6c757d; line-height: 1.4; }
+
+        @media (max-width: 720px) {
+            #filter-panel { width: 180px; }
+            #me-search-standalone { max-width: 90%; }
+        }
+    </style>

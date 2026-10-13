@@ -1,0 +1,67 @@
+<!-- Lifetime contribution counter for the Mapper modal — a plain REST
+     call to the same Supabase RPC annotate.js uses on the map page
+     itself, so no Supabase client library needs loading on this page. -->
+<script type="module">
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from '{{ root }}static/js/map/config.js';
+
+    const IS_FR = document.documentElement.lang === 'fr';
+    const alreadyText = n => IS_FR
+        ? `Déjà ${n.toLocaleString('fr-FR')} contribution${n > 1 ? 's' : ''} !`
+        : `Already ${n.toLocaleString('fr-FR')} contribution${n === 1 ? '' : 's'}!`;
+
+    async function fetchRpcCount(fn) {
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+            method: 'POST',
+            headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: '{}'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data?.count ?? 0;
+    }
+
+    async function loadContributionCount() {
+        const el = document.getElementById('mapper-contrib-count');
+        if (!el) return;
+        try {
+            const count = await fetchRpcCount('annotation_stats');
+            if (count == null) return;
+            el.textContent = alreadyText(count);
+        } catch (e) {
+            // Silent by design — a failed fetch just leaves the line blank
+            // rather than showing an error in this modal.
+            console.error('Contribution count fetch failed:', e);
+        }
+    }
+
+    // PV Check's own tally (verifications table only — not the map's
+    // annotations) shown two places: the counter line inside its modal,
+    // and a small badge on its card icon so the number is visible even
+    // before the card is opened.
+    async function loadPvCheckCount() {
+        const textEl = document.getElementById('pvcheck-contrib-count');
+        const badgeEl = document.getElementById('pvcheck-icon-badge');
+        try {
+            const count = await fetchRpcCount('verification_stats');
+            if (count == null) return;
+            if (textEl) {
+                textEl.textContent = alreadyText(count);
+            }
+            if (badgeEl) {
+                badgeEl.textContent = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(count);
+                badgeEl.hidden = false;
+            }
+        } catch (e) {
+            // Silent by design, same as the Mapper counter above.
+            console.error('PV Check contribution count fetch failed:', e);
+        }
+    }
+
+    loadContributionCount();
+    loadPvCheckCount();
+</script>

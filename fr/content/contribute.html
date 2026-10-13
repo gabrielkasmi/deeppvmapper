@@ -1,0 +1,285 @@
+---
+layout: default
+lang: fr
+title: "Contribuer &middot; DeepPVMapper"
+description: "Comment contribuer à DeepPVMapper : corriger ou ajouter des installations PV sur la carte interactive, ou participer au pipeline de détection lui-même."
+keywords: "contribute open data solar, crowdsource photovoltaic verification, open source photovoltaic project, correct solar panel detections, community mapping solaire, contribuer cartographie panneaux solaires"
+og_description: "Aidez à annoter les détections, prenez un ticket ouvert ou rejoignez un prochain défi communautaire."
+body_class: "has-back-to-top"
+nav_active: "contribute"
+head_include: "pages/contribute/head.html"
+scripts_include: "pages/contribute/scripts.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Participer</h1>
+  </div>
+---
+    <section>
+        <div class="container">
+
+            <p style="max-width: 640px; margin: 0 auto 8px; text-align: center; color: #6c757d;">
+                Six façons d'aider, d'une tâche de cinq minutes à une pull request — choisissez celle qui
+                correspond au temps dont vous disposez et aux compétences que vous voulez mettre à profit.
+            </p>
+
+            <div class="card-grid card-grid--contrib" style="margin-top: 30px;">
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-pvswipe">
+                    <span class="contrib-status contrib-status--featured">À la une</span>
+                    <div class="persona-icon persona-icon--pvcheck">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="7" width="13" height="17" rx="2" transform="rotate(-8 9.5 15.5)"></rect>
+                            <rect x="8" y="3" width="13" height="17" rx="2"></rect>
+                        </svg>
+                        <span id="pvcheck-icon-badge" class="icon-badge" hidden></span>
+                    </div>
+                    <span class="contrib-tag">Rapide et décontracté</span>
+                    <h3>PV Check</h3>
+                    <p>Confirmez ou rejetez des détections en rafale, depuis votre téléphone — disponible dès maintenant, directement dans votre navigateur.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-maproulette">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Aucune compétence requise</span>
+                    <h3>MapRoulette</h3>
+                    <p>Des tâches de vérification guidées et courtes, sur images aériennes — il suffit de suivre la consigne.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-editmap">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Connaissance du terrain</span>
+                    <h3>Éditer sur la carte</h3>
+                    <p>Corrigez ou ajoutez vous-même des installations. Choisissez un lieu, puis survolez la zone pour voir ce qu'il y a à corriger.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-mapreports">
+                    <span class="contrib-status contrib-status--new">Nouveau</span>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                            <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Connaissance du terrain</span>
+                    <h3>Signalements</h3>
+                    <p>Des problèmes de qualité de données déjà signalés par la communauté — choisissez-en un, vérifiez l'endroit, corrigez.</p>
+                </a>
+
+                <a href="javascript:void(0);" class="hub-card contrib-card" data-modal-target="modal-coder">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Pour les développeurs</span>
+                    <h3>Tickets de code</h3>
+                    <p>Prenez un ticket ouvert et contribuez au pipeline de détection lui-même.</p>
+                </a>
+
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" class="hub-card contrib-card">
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </div>
+                    <span class="contrib-tag">Idées et questions</span>
+                    <h3>Discussions</h3>
+                    <p>Vous ne savez pas par où commencer, ou vous avez une idée ? Posez la question sur GitHub Discussions — ouvert à tous.</p>
+                </a>
+
+            </div>
+
+            <div class="contribute-way" style="margin-top: 50px;">
+                <h3>Questions</h3>
+                <p>
+                    Une question, une idée — suggestion de fonctionnalité, « quelqu'un a-t-il déjà essayé… », retour
+                    général ?
+                    <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank">Ouvrez une discussion sur GitHub</a>
+                    pour que la réponse reste visible pour la prochaine personne qui se pose la même question.
+                    Pour tout ce qui est plus privé — demandes de données, idées de collaboration —
+                    <a href="mailto:gabriel.kasmi@deeppvmapper.fr">écrivez directement à Gabriel</a>.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- One modal per contribution mode, opened by the cards above (see
+         [data-modal-target] handling in script.js). The old Enthusiast/
+         Mapper/Coder profile modals were split apart: MapRoulette and Map
+         reports each get their own focused modal instead of living as two
+         sub-blocks tucked inside "Mapper". -->
+    <div class="modal-overlay" id="modal-maproulette">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                </div>
+                <h3>MapRoulette</h3>
+                <p class="persona-modal-sub">Aucune compétence SIG requise</p>
+            </div>
+            <p>
+                Vous préférez des tâches structurées et courtes plutôt qu'une annotation libre ? Chaque défi
+                publié sur le
+                <a href="https://maproulette.org/browse/projects/64195" target="_blank">projet DeepPVMapper sur MapRoulette</a>
+                apparaît ci-dessous automatiquement — choisissez-en un et commencez à vérifier les détections sur les images aériennes.
+            </p>
+            <p id="mr-challenges-banner" class="mr-challenges-banner" style="display:none;"></p>
+            <div id="mr-challenges-list" class="issues-list">
+                <p class="issues-loading">Chargement des défis&hellip;</p>
+            </div>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://maproulette.org/browse/projects/64195" target="_blank" class="btn">Voir tous les défis sur MapRoulette &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-editmap">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <h3>Éditer sur la carte</h3>
+                <p class="persona-modal-sub">Aucun code requis</p>
+            </div>
+            <p>
+                Le moyen le plus rapide d'améliorer le registre passe par la
+                <a href="../../content/map.html">carte interactive</a> : choisissez un lieu, puis survolez la zone — la carte
+                met en évidence les détections au fur et à mesure, vous n'avez donc pas besoin de savoir à l'avance où sont les erreurs.
+            </p>
+            <ul style="padding-left: 22px; margin-bottom: 16px;">
+                <li style="margin-bottom: 8px; line-height: 1.7;">Une fausse détection ? Cliquez dessus et signalez-la.</li>
+                <li style="margin-bottom: 8px; line-height: 1.7;">Une installation manque ? Utilisez « Add installation » et dessinez son contour.</li>
+                <li style="margin-bottom: 8px; line-height: 1.7;">Un contour est faux ? Redessinez-le.</li>
+            </ul>
+            <p>
+                Les contributions sont relues puis intégrées aux prochaines versions du registre. Aucune
+                installation, aucun code — juste votre connaissance locale des toitures.
+            </p>
+            <p id="mapper-contrib-count" class="mapper-contrib-count"></p>
+            <p style="text-align: center; margin-top: 24px;">
+                <a href="../../content/map.html" class="btn">Ouvrir la carte &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-mapreports">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                        <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
+                </div>
+                <h3>Signalements</h3>
+                <p class="persona-modal-sub">Connaissance du terrain</p>
+            </div>
+            <p>
+                Vous préférez vous attaquer à quelque chose de précis plutôt qu'annoter librement ? Voici des
+                signalements de qualité de données déposés par la communauté sur
+                <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank">openpvmapper-issues</a>
+                — choisissez-en un, regardez l'endroit de la carte auquel il renvoie, et corrigez.
+            </p>
+            <div id="gh-mapper-issues-list" class="issues-list">
+                <p class="issues-loading">Chargement des tickets ouverts&hellip;</p>
+            </div>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://github.com/gabrielkasmi/openpvmapper-issues" target="_blank" class="btn">Voir tous les signalements sur GitHub &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-pvswipe">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="7" width="13" height="17" rx="2" transform="rotate(-8 9.5 15.5)"></rect>
+                        <rect x="8" y="3" width="13" height="17" rx="2"></rect>
+                    </svg>
+                </div>
+                <h3>PV Check</h3>
+                <p class="persona-modal-sub">Rapide et décontracté</p>
+            </div>
+            <p>
+                Une façon d'aider pendant vos minutes perdues, pensée pour le téléphone : faites défiler les
+                détections une à une et confirmez-les ou rejetez-les, sans naviguer sur la carte — le Tinder des panneaux
+                solaires en toiture. C'est une petite application à part, <a href="../../game/?lang=fr" target="_blank">PV Check</a>,
+                qui tourne directement dans votre navigateur.
+            </p>
+            <p id="pvcheck-contrib-count" class="mapper-contrib-count"></p>
+            <p style="text-align: center; margin-top: 24px;">
+                <a href="../../game/?lang=fr" target="_blank" class="btn">Ouvrir PV Check &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-coder">
+        <div class="modal-box">
+            <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+            <div class="persona-modal-header">
+                <div class="persona-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                </div>
+                <h3>Tickets de code</h3>
+                <p class="persona-modal-sub">Pour les développeurs</p>
+            </div>
+            <p>
+                Le plus simple pour démarrer est de prendre un ticket ouvert — ceux étiquetés <code>good first issue</code>
+                sont les meilleures portes d'entrée. Voici ce qui est ouvert actuellement :
+            </p>
+
+            <div id="gh-issues-list" class="issues-list">
+                <p class="issues-loading">Chargement des tickets ouverts&hellip;</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank" class="btn">Voir tous les tickets sur GitHub &rarr;</a>
+            </p>
+
+            <p style="text-align: center; color: #868e96; font-size: 0.88rem; margin-top: 18px;">
+                Les instructions d'installation complètes (environnement, poids des modèles, tests) se trouvent dans
+                <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a>
+                sur GitHub.
+            </p>
+
+            <div class="sub-block">
+                <h4>Signaler un bug</h4>
+                <p>
+                    Ouvrez un <a href="https://github.com/gabrielkasmi/deeppvmapper/issues" target="_blank">ticket</a> en indiquant :
+                    ce que vous avez lancé (commande exacte + configuration), ce que vous attendiez, ce qui s'est
+                    passé à la place, et votre environnement (OS, GPU, version de CUDA).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    

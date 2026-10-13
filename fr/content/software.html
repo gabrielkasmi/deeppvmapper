@@ -1,0 +1,146 @@
+---
+layout: default
+lang: fr
+title: "Logiciels &middot; DeepPVMapper"
+description: "Les logiciels open source de DeepPVMapper : démarrage rapide, pipeline de détection, paquet de caractérisation pypvroof, poids des modèles entraînés et jeu de données d'entraînement BDAPPV."
+keywords: "open source solar panel detection, photovoltaic detection pipeline, deep learning rooftop solar, pypvroof, BDAPPV dataset, open source remote sensing solar, computer vision solar panels, cartographie open source panneaux solaires"
+og_description: "Le pipeline DeepPVMapper, les modèles entraînés, le jeu de données d'entraînement et les paquets associés — tout est open source, avec un guide de démarrage rapide."
+og_image: "https://deeppvmapper.fr/static/images/assets/flowchart.webp"
+body_class: "has-back-to-top"
+nav_active: "software"
+head_include: "pages/software/head.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Logiciels open source</h1>
+
+      <div class="quick-links">
+          <a href="#quickstart" class="quick-link">Démarrage rapide</a>
+          <a href="#source-code" class="quick-link">Code source</a>
+          <div class="dropdown">
+              <span class="quick-link dropdown-btn">Paquets &#9662;</span>
+              <div class="dropdown-content">
+                  <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
+                      pypvroof
+                      <span class="dropdown-item-sub">Caractéristiques du PV en toiture par télédétection</span>
+                  </a>
+                  <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="dropdown-item">
+                      bayesian-pv-census
+                      <span class="dropdown-item-sub">Correction bayésienne des biais et audit de registres</span>
+                  </a>
+              </div>
+          </div>
+          <a href="#model-weights" class="quick-link">Modèles et données</a>
+          <a href="#demo" class="quick-link">Démo</a>
+      </div>
+  </div>
+---
+    <section>
+        <div class="container">
+
+            <h2 class="software-group-title" id="quickstart">Démarrage rapide</h2>
+            <p class="hub-intro">
+                <span style="display:block; text-align:center;">Deux façons de commencer : lancer vous-même le pipeline de détection complet, ou utiliser pypvroof seul sur des masques ou des contours que vous avez déjà.</span>
+            </p>
+
+            <div class="quickstart-block">
+                <h3>1. Lancer le pipeline de détection complet</h3>
+                <p>Clonez le dépôt et installez les dépendances. DeepPVMapper nécessite GDAL et un GPU compatible CUDA (8&nbsp;Go+ de VRAM) pour exécuter classification et segmentation à grande échelle.</p>
+                <div class="citation-box">
+                    <pre><code>git clone https://github.com/gabrielkasmi/deeppvmapper.git
+cd deeppvmapper
+pip install -r requirements.txt
+
+# Lancer le pipeline sur un seul département
+python main.py --dpt 06</code></pre>
+                </div>
+                <p><a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="text-link">Notes d'installation complètes — GDAL, CUDA, fichiers de configuration &rarr;</a></p>
+            </div>
+
+            <div class="quickstart-block">
+                <h3>2. Extraire les caractéristiques PV avec pypvroof</h3>
+                <p>Vous avez déjà des masques de segmentation ou des contours de champs ? pypvroof les transforme seul en estimations de surface, d'inclinaison, d'orientation et de puissance installée — inutile de lancer tout le pipeline.</p>
+                <div class="citation-box">
+                    <pre><code>pip install pypvroof</code></pre>
+                </div>
+                <div class="citation-box">
+                    <pre><code>import geojson
+from pypvroof import MetadataExtraction
+
+arrays = geojson.load(open("path/to/arrays.geojson"))
+params = {
+    "azimuth-method": "bounding-box",
+    "tilt-method": "lut",
+    "regression-type": "linear",
+}
+extractor = MetadataExtraction(p=params)
+characteristics = extractor.extract_all_characteristics(arrays["features"][0])</code></pre>
+                </div>
+            </div>
+
+            <h2 class="software-group-title" id="source-code">Code source</h2>
+            <div class="card-grid card-grid--narrow">
+                <a href="https://github.com/gabrielkasmi/deeppvmapper" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/badge/GitHub-Source-181717?logo=github&logoColor=white" alt="GitHub" class="hub-card-badge">
+                    <h3>DeepPVMapper — code du pipeline</h3>
+                    <p>Le pipeline complet de détection et de caractérisation : découpage en tuiles, classification, segmentation et extraction des caractéristiques — des images aériennes brutes jusqu'à un registre PV géolocalisé. Licence MIT, contributions bienvenues.</p>
+                    <span class="btn">Voir sur GitHub &rarr;</span>
+                </a>
+            </div>
+            <div class="badge-row">
+                <img src="https://img.shields.io/github/license/gabrielkasmi/deeppvmapper" alt="License">
+                <img src="https://img.shields.io/github/stars/gabrielkasmi/deeppvmapper?style=flat" alt="GitHub stars">
+                <img src="https://img.shields.io/github/last-commit/gabrielkasmi/deeppvmapper" alt="Last commit">
+            </div>
+
+            <h2 class="software-group-title" id="packages">Paquets</h2>
+            <div class="card-grid">
+
+                <a href="https://pypi.org/project/pypvroof/" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/pypi/v/pypvroof?label=PyPI&color=3775A9&logo=pypi&logoColor=white" alt="PyPI" class="hub-card-badge">
+                    <h3>pypvroof</h3>
+                    <p>Un paquet Python autonome qui extrait les caractéristiques des installations PV en toiture — surface, inclinaison, orientation et puissance installée — à partir de masques de segmentation et d'emprises de bâtiments. Utilisé en interne par DeepPVMapper, et utilisable seul sur n'importe quel jeu de détections de PV en toiture.</p>
+                    <span class="btn">Voir sur PyPI &rarr;</span>
+                </a>
+
+                <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/pypi/v/bayesian-pv-census?label=PyPI&color=3775A9&logo=pypi&logoColor=white" alt="PyPI" class="hub-card-badge">
+                    <h3>bayesian-pv-census</h3>
+                    <p>La méthodologie bayésienne de correction des biais derrière l'audit des registres, extraite sous forme de paquet autonome et indépendant du domaine : elle transforme des comptages imparfaits d'un détecteur — à partir d'un échantillon validé de précision/rappel — en intervalles de crédibilité a posteriori, puis vérifie si les valeurs déclarées d'un registre s'y trouvent.</p>
+                    <span class="btn">Voir sur PyPI &rarr;</span>
+                </a>
+
+            </div>
+
+            <h2 class="software-group-title" id="model-weights">Poids des modèles et données d'entraînement</h2>
+            <div class="card-grid">
+                <a href="https://huggingface.co/gabrielkasmi/bdappv-models" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue" alt="Hugging Face Model" class="hub-card-badge">
+                    <h3>Poids des modèles</h3>
+                    <p>Les poids entraînés des modèles de classification (Inception v3) et de segmentation (DeepLab v3) de DeepPVMapper — prêts à être intégrés au pipeline, ou à affiner sur vos propres images.</p>
+                    <span class="btn">Voir sur HuggingFace &rarr;</span>
+                </a>
+
+                <a href="https://huggingface.co/datasets/gabrielkasmi/bdappv" target="_blank" class="hub-card">
+                    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset" class="hub-card-badge">
+                    <h3>Jeu de données d'entraînement (BDAPPV)</h3>
+                    <p>Le jeu d'images aériennes annotées utilisé pour entraîner les modèles de DeepPVMapper — contours de champs PV et métadonnées d'installation sur un échantillon de toitures françaises.</p>
+                    <span class="btn">Voir sur HuggingFace &rarr;</span>
+                </a>
+            </div>
+
+            <h2 class="software-group-title" id="demo">Démo interactive</h2>
+            <div class="legacy-card">
+                <span class="legacy-tag">Plus maintenu</span>
+                <p>Un des premiers Spaces Hugging Face permettait de lancer DeepPVMapper sur une image d'exemple directement dans le navigateur. Il reste en ligne à titre de référence, mais n'est plus activement maintenu — attendez-vous à ce qu'il soit lent à démarrer et possiblement désynchronisé du pipeline et des modèles actuels.</p>
+                <p>Vous cherchez les détections elles-mêmes ? Parcourez le registre sur la page <a href="data.html">Données</a>. Vous voulez lancer l'algorithme de détection vous-même ? Récupérez le <a href="#source-code">code source</a> ci-dessus.</p>
+                <p><a href="https://huggingface.co/spaces/gabrielkasmi/deeppvmapper" target="_blank" class="text-link">Ouvrir l'ancienne démo sur Hugging Face &rarr;</a></p>
+            </div>
+
+            <div style="text-align: center; margin-top: 50px; padding-top: 40px; border-top: 1px solid #e9ecef;">
+                <p style="color: #6c757d; margin-bottom: 10px;">Vous voulez l'architecture détaillée, la configuration d'entraînement et la méthodologie du pipeline ?</p>
+                <a href="../../content/pipeline.html" class="text-link">Lire la présentation complète du pipeline (en anglais) &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    

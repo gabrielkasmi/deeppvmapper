@@ -1,0 +1,224 @@
+---
+layout: default
+lang: fr
+title: "Données &middot; DeepPVMapper"
+description: "Explorez et téléchargez le registre open data DeepPVMapper des installations PV en toiture en France — recherche, tracé de zone, filtres et export de sous-ensembles personnalisés en GeoJSON/CSV."
+keywords: "open data photovoltaïque France, cadastre solaire open data, rooftop PV dataset, solar panel dataset France, cartographie panneaux photovoltaïques, open source solar mapping, interactive solar map France, données ouvertes énergie solaire, GeoJSON CSV solar download"
+og_description: "Explorez le registre interactif — recherchez, tracez une zone, filtrez et téléchargez des sous-ensembles personnalisés des données."
+og_image: "https://deeppvmapper.fr/static/images/assets/mapping.webp"
+nav_active: "data"
+head_include: "pages/data/head.html"
+scripts_include: "pages/data/scripts.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Données</h1>
+
+      <div class="quick-links">
+          <a href="#map-section" class="quick-link">Carte interactive</a>
+          <a href="local-statistics.html" class="quick-link">Classement</a>
+          <div class="dropdown">
+              <span class="quick-link dropdown-btn">Données brutes &#9662;</span>
+              <div class="dropdown-content">
+                  <a href="https://doi.org/10.5281/zenodo.21534856" target="_blank" class="dropdown-item">
+                      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg" alt="Zenodo DOI" style="height:20px; display:block;">
+                      <span class="dropdown-item-sub">Dernière version — DOI permanent</span>
+                  </a>
+                  <a href="https://huggingface.co/datasets/gabrielkasmi/openpvmapper" target="_blank" class="dropdown-item">
+                      <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue" alt="Hugging Face Dataset" style="height:20px; display:block;">
+                  </a>
+              </div>
+          </div>
+          <div class="dropdown">
+              <span class="quick-link dropdown-btn">API &#9662;</span>
+              <div class="dropdown-content">
+                  <a href="../../content/access.html#mcp" class="dropdown-item">
+                      MCP Server
+                      <span class="dropdown-item-sub">Interrogez directement votre IA sur les données</span>
+                  </a>
+                  <a href="../../content/access.html#rest-api" class="dropdown-item">
+                      REST API
+                      <span class="dropdown-item-sub">Interrogez en direct depuis votre propre code</span>
+                  </a>
+              </div>
+          </div>
+          <a href="data-documentation.html" class="quick-link">Documentation</a>
+          <a href="../../content/known-issues.html" class="quick-link">Problèmes connus</a>
+      </div>
+  </div>
+---
+    <!-- Interactive map: the primary way in -->
+    <section id="map-section">
+        <div class="container">
+
+            <div id="me-search-standalone">
+                <div id="me-search-box" class="me-glass">
+                    <input id="city-search" type="text" placeholder="City, d&eacute;partement, r&eacute;gion&hellip;" autocomplete="off" spellcheck="false">
+                    <button class="me-icon-btn" id="search-btn" aria-label="Search">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    </button>
+                    <button class="me-icon-btn" id="clear-btn" aria-label="Clear" style="display:none">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                </div>
+                <div id="search-results" class="me-glass"></div>
+            </div>
+
+            <p class="hub-intro" style="margin-top:14px;">
+                <span style="display:block; text-align:center;">
+                    Utilisez la barre de recherche ci-dessus, ou
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    tracez une zone sur la carte, pour parcourir les détections. Utilisez
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                    pour effacer une sélection, et
+                    <svg class="instr-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 00.12-.66l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.74 8.82a.5.5 0 00.12.66l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 00-.12.66l1.92 3.32c.14.24.4.32.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5.02.61-.22l1.92-3.32a.5.5 0 00-.12-.66l-2.01-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+                    pour filtrer votre sélection, puis téléchargez-la avec le bouton en bas de la carte. Cliquez sur un marqueur pour voir son contour et ses détails ; cliquez ailleurs pour revenir en arrière.
+                </span>
+                <p class="hub-intro" style="margin-top:2px;">
+                <span style="display:block; text-align:center;">
+                    Pas d'idée de destination ? <a href="#" id="random-location-link">Cliquez ici pour aller à un endroit au hasard</a>.
+                </span>
+            </p>
+
+            <p class="annot-cta">
+                Une erreur ? Vous pouvez la corriger directement — signaler un faux positif, redessiner un contour ou ajouter une installation manquante. Pour tout le reste (détails erronés, centrale mal classée, retour général), utilisez l'icône d'avertissement <strong>Report an issue</strong> sous le crayon et la gomme, en haut à gauche de la carte.
+                <span id="annot-counter" class="annot-counter"></span>
+            </p>
+                <span class="map-help-link-row">
+                    <a href="#map-help">En savoir plus &darr;</a>
+                </span>
+            </p>
+        </div>
+
+        <div id="map-embed-wrap">
+            <div id="map"></div>
+
+            <div id="me-topbar">
+                <button id="draw-zone-btn" class="me-icon-action" data-tip="Draw an area to explore" aria-label="Draw a zone">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button id="clear-zone-btn" class="me-icon-action" data-tip="Clear the current selection" aria-label="Clear zone" style="display:none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                </button>
+                <!-- Always present (discoverable), disabled until a zone or an
+                     installation is selected — an empty report has nothing to
+                     point at. For false positives, wrong shapes, or missing
+                     installations, use the pencil/eraser above instead
+                     (annotate.js); this one is for everything else (attributes,
+                     misclassified utility-scale plants, general feedback). -->
+                <button id="report-issue-btn" class="me-icon-action" type="button" disabled data-tip="Select a zone or an installation on the map first" aria-label="Report an issue">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+                </button>
+            </div>
+
+            <div id="zone-editbar" class="me-glass" style="display:none">
+                <span>Drag to draw a rectangle&hellip;</span>
+                <button id="cancel-zone-btn">Cancel</button>
+            </div>
+
+            <div id="wfs-spinner" class="me-glass" style="display:none"><span class="me-spin"></span>Loading&hellip;</div>
+
+            <!-- Centered loading indicator — shown by overview.js (initial
+                 département overview fetch) and render.js (loading a
+                 selection). Hidden again once whichever fetch settles. -->
+            <div id="center-spinner" class="me-glass"><span class="me-spin"></span>Loading&hellip;</div>
+
+            <div class="map-corner-stack">
+                <div id="layer-toggle-mount"></div>
+                <button id="filter-toggle-btn" class="me-icon-action" title="Filters" aria-label="Toggle filters" style="display:none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 00.12-.66l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.74 8.82a.5.5 0 00.12.66l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.5.5 0 00-.12.66l1.92 3.32c.14.24.4.32.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5.02.61-.22l1.92-3.32a.5.5 0 00-.12-.66l-2.01-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+                </button>
+            </div>
+
+            <div id="filter-panel" class="me-glass" style="display:none"></div>
+
+            <div id="export-toast" class="me-glass"></div>
+
+            <!-- Add a missing installation: always available, whether or not a
+                 zone is currently selected. Download stays scoped to a selection
+                 and lives right beside it, in its own sub-container. -->
+            <div id="map-bottom-toolbar">
+                <button id="annot-add-btn" class="me-action-btn annot-add-btn" type="button">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Add missing installation
+                </button>
+                <div id="export-controls" style="display:none"></div>
+            </div>
+
+            <!-- Annotation drawing prompt (add / redraw) — same slot as
+                 #zone-editbar, mutually exclusive with it in time. -->
+            <div id="annot-editbar" class="me-glass" style="display:none">
+                <span id="annot-editbar-msg"></span>
+                <button id="annot-cancel-edit" type="button">Cancel</button>
+            </div>
+
+            <!-- Annotation submission form: comment + optional estimates. -->
+            <div id="annot-form" class="me-glass annot-form" style="display:none">
+                <h4 id="annot-form-title"></h4>
+                <p id="annot-form-note" class="annot-form-note"></p>
+                <label class="annot-field">
+                    Comment (optional)
+                    <textarea id="annot-comment" rows="2" maxlength="500" placeholder="Anything that helps review this&hellip;"></textarea>
+                </label>
+                <div class="annot-field-row">
+                    <label class="annot-field">Surface (m&sup2;)<input id="annot-surface" type="number" min="0" step="0.1"></label>
+                    <label class="annot-field">Capacity (kWp)<input id="annot-kwp" type="number" min="0" step="0.01"></label>
+                </div>
+                <div class="annot-form-actions">
+                    <button id="annot-cancel" type="button">Cancel</button>
+                    <button id="annot-submit" type="button" class="me-primary-btn">Submit</button>
+                </div>
+            </div>
+
+            <div id="annot-toast" class="me-glass" style="display:none"></div>
+
+            <!-- "Report an issue": free-form report on whatever is currently
+                 selected/shown — see report.js. Separate from the annotation
+                 form above (different backend table, different purpose). -->
+            <div id="report-form" class="me-glass annot-form" style="display:none">
+                <h4>Report an issue</h4>
+                <p id="report-form-target" class="report-form-target"></p>
+                <select id="report-category"></select>
+                <label class="annot-field">
+                    What's wrong?
+                    <textarea id="report-comment" rows="3" maxlength="1000" placeholder="Describe the problem&hellip;"></textarea>
+                </label>
+                <div class="annot-form-actions">
+                    <button id="report-cancel" type="button">Cancel</button>
+                    <button id="report-submit" type="button" class="me-primary-btn">Submit</button>
+                </div>
+            </div>
+
+            <div id="report-toast" class="me-glass" style="display:none"></div>
+
+            <div id="limit-overlay" class="annot-overlay" style="display:none">
+                <div class="me-glass annot-overlay-card">
+                    <h4>Session limit reached</h4>
+                    <p>You've submitted a lot of edits in this session &mdash; thank you! Reload the page to keep contributing.</p>
+                    <button id="limit-reload" type="button" class="me-primary-btn">Reload</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="map-help" class="map-help">
+                <h3 class="subsection">Comment utiliser cette carte</h3>
+                <ul>
+                    <li>Recherchez une commune, un département ou une région par son nom — la recherche se résout sur la limite administrative exacte, pas seulement sur un rectangle approximatif.</li>
+                    <li>Ou cliquez sur l'icône crayon et tracez un rectangle sur la carte pour parcourir une zone personnalisée.</li>
+                    <li>Les détections s'affichent en grappes. Zoomez, ou cliquez sur un marqueur, pour faire apparaître le contour exact de l'installation sur le toit et une fenêtre avec ses détails (surface, puissance, première observation). Cliquez ailleurs sur la carte pour revenir à la vue en grappes.</li>
+                    <li>Cliquez sur l'icône gomme pour effacer la sélection en cours.</li>
+                    <li>Cliquez sur l'icône engrenage pour filtrer la sélection par puissance, année ou source, ou pour masquer les détections signalées comme faux positifs — les curseurs ne proposent que des valeurs réellement présentes dans les données.</li>
+                    <li>Téléchargez la sélection courante (filtrée) en GeoJSON ou CSV avec le bouton en bas de la carte.</li>
+                    <li>Basculez entre le fond de plan routier et l'imagerie satellite avec le sélecteur en haut à droite.</li>
+                    <li>Une erreur ? Cliquez sur une installation pour ouvrir sa fenêtre, puis utilisez <strong>False positive</strong> si ce n'est pas réellement une installation PV, ou <strong>Redraw</strong> pour tracer un contour corrigé par-dessus l'original estompé. Les deux s'appliquent immédiatement à votre vue et sont soumis à relecture.</li>
+                    <li>Une installation manque complètement ? Cliquez sur <strong>Add missing installation</strong> en bas de la carte, puis tracez son contour directement sur la carte (cliquez pour placer chaque coin, cliquez de nouveau sur le premier point pour fermer la forme).</li>
+                    <li>Pour toute modification, vous pouvez ajouter un commentaire facultatif et une estimation de surface/puissance avant de soumettre — rien n'est supprimé du jeu de données officiel sur votre seule parole ; les modifications sont relues avant d'être intégrées.</li>
+                    <li>Un problème qui n'est ni un faux positif, ni un mauvais contour, ni une installation manquante — par exemple des attributs incorrects, ou une centrale au sol étiquetée à tort comme installation en toiture ? Sélectionnez une zone ou cliquez sur une installation, puis utilisez l'icône d'avertissement <strong>Report an issue</strong> (sous le crayon et la gomme, en haut à gauche de la carte) pour le décrire.</li>
+                    <li>Curieux de voir ce que la communauté a déjà signalé ? Cochez <strong>Show unreviewed community edits</strong> dans le panneau de filtres (icône engrenage). Les nouvelles installations et corrections de contour apparaissent avec un contour orange en pointillés ; les faux positifs signalés (pas encore retirés des données officielles) apparaissent avec un contour rouge en pointillés. Cliquez sur l'un d'eux pour voir les détails et, si vous le souhaitez, marquez-le <strong>Looks right</strong> ou <strong>Looks wrong</strong> — cela n'approuve ni ne supprime rien en soi, cela donne simplement une information supplémentaire à la personne qui relira la modification. La puissance, la surface et l'année ne sont pas garanties pour ces éléments — DeepPVMapper ne les calcule pas pour les contours soumis par la communauté tant qu'un mainteneur n'a pas relu la modification. Le bouton de rechargement à côté de la case relance la requête pour la sélection courante sans attendre une nouvelle sélection — pratique si vous éditez en direct avec d'autres personnes. Les téléchargements excluent toujours les faux positifs signalés, que cette case soit cochée ou non.</li>
+                </ul>
+                <p id="map-version-info" class="map-version-info"></p>
+            </div>
+        </div>
+    </section>
+
+    

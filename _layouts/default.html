@@ -1,0 +1,79 @@
+{%- comment -%}
+  Shared page frame for the hand-written pages. Everything page-specific lives in the
+  page's front matter (title, description, nav_active, header_html, ...) or in
+  _includes/pages/<slug>/. `root` is the relative prefix back to the site root
+  (computed from the page URL), so the same layout works at any depth (/fr/content/...).
+{%- endcomment -%}
+{%- assign _depth = page.path | split: '/' | size | minus: 1 -%}
+{%- capture root -%}{%- if _depth > 0 -%}{%- for i in (1.._depth) -%}../{%- endfor -%}{%- endif -%}{%- endcapture -%}
+{%- assign _canonical = page.canonical_url | default: site.canonical_host | append: page.url -%}
+{%- if page.canonical_url -%}{%- assign _canonical = page.canonical_url -%}{%- endif -%}
+{%- assign _lang = page.lang | default: site.lang | default: 'en' -%}
+{%- assign _t = site.data.i18n[_lang] -%}
+{%- assign _has_alt = false -%}
+{%- if _lang == 'fr' -%}
+  {%- assign _en_path = page.path | remove_first: 'fr/' -%}{%- assign _fr_path = page.path -%}{%- assign _has_alt = true -%}
+{%- elsif page.fr_available -%}
+  {%- assign _en_path = page.path -%}{%- assign _fr_path = 'fr/' | append: page.path -%}{%- assign _has_alt = true -%}
+{%- else -%}
+  {%- comment -%} No French version of this page: the switcher still shows, and FR leads to the French home. {%- endcomment -%}
+  {%- assign _en_path = page.path -%}{%- assign _fr_path = 'fr/index.html' -%}{%- assign _has_alt = true -%}{%- assign _alt_fallback = true -%}
+{%- endif -%}
+<!DOCTYPE html>
+<html lang="{{ _lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+
+    <meta name="description" content="{{ page.description }}">
+    {%- if page.keywords %}
+    <meta name="keywords" content="{{ page.keywords }}">
+    {%- endif %}
+    <meta name="author" content="Gabriel Kasmi">
+    {%- if _lang == 'fr' %}
+    <meta property="og:locale" content="fr_FR">
+    {%- endif %}
+    <meta property="og:type" content="{{ page.og_type | default: 'website' }}">
+    <meta property="og:url" content="{{ page.og_url | default: _canonical }}">
+    <meta property="og:title" content="{{ page.og_title | default: page.title }}">
+    <meta property="og:description" content="{{ page.og_description | default: page.description }}">
+    {%- unless page.og_image == "" %}
+    <meta property="og:image" content="{{ page.og_image | default: site.default_og_image }}">
+    {%- endunless %}
+    <link rel="canonical" href="{{ _canonical }}">
+{%- if _has_alt and _alt_fallback != true %}
+    <link rel="alternate" hreflang="en" href="{{ site.canonical_host }}/{{ _en_path | remove: 'index.html' }}">
+    <link rel="alternate" hreflang="fr" href="{{ site.canonical_host }}/{{ _fr_path | remove: 'index.html' }}">
+    <link rel="alternate" hreflang="x-default" href="{{ site.canonical_host }}/{{ _en_path | remove: 'index.html' }}">
+{%- endif %}
+
+    <link rel="icon" type="image/x-icon" href="{{ root }}static/images/favicon.ico">
+    <link rel="stylesheet" href="{{ root }}static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {%- if page.head_include %}
+    {% include {{ page.head_include }} %}
+    {%- endif %}
+</head>
+<body{% if page.body_class %} class="{{ page.body_class }}"{% endif %}>
+
+    <header class="{{ page.header_class | default: 'header header--compact' }}">
+        <div class="header-background"></div>
+        {% include nav.html %}
+        {{ page.header_html }}
+    </header>
+
+{{ content }}
+
+    {% include footer.html %}
+    {%- if page.before_scripts_include %}
+    {% include {{ page.before_scripts_include }} %}
+    {%- endif %}
+
+    <script>try{localStorage.setItem('dpm_lang','{{ _lang }}')}catch(e){}</script>
+    <script src="{{ root }}static/js/script.js"></script>
+    {%- if page.scripts_include %}
+    {% include {{ page.scripts_include }} %}
+    {%- endif %}
+</body>
+</html>

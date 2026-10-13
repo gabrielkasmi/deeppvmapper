@@ -22,3 +22,11 @@ scripts/france_detections.geojson
 
 # Supabase CLI local state (project link, cached versions) — not portable, not secret-free
 supabase/.temp/
+
+# Jekyll build output / caches
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+.bundle/
+vendor/

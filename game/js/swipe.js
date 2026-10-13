@@ -8,6 +8,7 @@
 // Le skip a disparu : un souci de contenu se règle via "Unsure", un souci
 // d'image (cassée, obstruée, illisible) se règle via "Comment" (report).
 
+import { t } from './i18n.js';
 import { S, $, show, hide, toast, getSupabase } from './store.js';
 import { cardImageUrl, preloadImage } from './image.js';
 import { fetchNextBatch, maybePrefetch, recordDecision, undoLastDecision, flushPendingNow } from './campaign.js';
@@ -32,11 +33,11 @@ export async function initSwipe() {
     $('#install-nudge-accept').addEventListener('click', async () => {
         hide($('#install-nudge'));
         const shown = await triggerInstall();
-        if (!shown && isIOS()) toast('Tap the Share icon, then "Add to Home Screen".', 4500);
+        if (!shown && isIOS()) toast(t('toast.iosInstall', 'Tap the Share icon, then "Add to Home Screen".'), 4500);
     });
     $('#install-nudge-dismiss').addEventListener('click', () => hide($('#install-nudge')));
     $('#notify-submit').addEventListener('click', () =>
-        toast('Coming soon — in the meantime, secure your account from the menu (☰).'));
+        toast(t('swipe.notifySoon', 'Coming soon — in the meantime, secure your account from the menu (☰).')));
 
     document.addEventListener('keydown', onKeydown);
     wireDrag($('#card-current'));
@@ -145,10 +146,10 @@ async function submitReport(mode) {
     if (!card) { closeReportForm(); return; }
 
     const comment = $('#report-comment').value.trim().slice(0, 500);
-    if (!comment) { toast('Add a short description first.'); return; }
+    if (!comment) { toast(t('report.needText', 'Add a short description first.')); return; }
 
     const now = Date.now();
-    if (now - lastReportAt < REPORT_MIN_INTERVAL_MS) { toast('Easy — one report every few seconds.'); return; }
+    if (now - lastReportAt < REPORT_MIN_INTERVAL_MS) { toast(t('report.rate', 'Easy — one report every few seconds.')); return; }
     lastReportAt = now;
 
     const sb = getSupabase();
@@ -170,7 +171,7 @@ async function submitReport(mode) {
         animateAway('fly-down');
         afterDecision({ skipUndo: true });
     } else {
-        toast('Thanks — noted for review.');
+        toast(t('report.thanks', 'Thanks — noted for review.'));
     }
 }
 

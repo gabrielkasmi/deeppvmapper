@@ -16,6 +16,8 @@
 // — original is ~3.7MB, this is ~62KB. Re-simplify from that source if the
 // borders ever need to look sharper.
 
+import { t, fmt } from './i18n.js';
+
 const GEOJSON_URL = 'data/departements.geojson';
 const SCALE = 60; // arbitrary — just keeps the SVG's viewBox in a friendly ~600-unit range
 
@@ -89,7 +91,7 @@ export async function renderDeptMap(container, rows) {
         features = await loadFeatures();
     } catch (err) {
         console.error('departements.geojson failed to load:', err);
-        container.innerHTML = '<p class="menu-dept-error">Map outline failed to load — try reopening this tab.</p>';
+        container.innerHTML = `<p class="menu-dept-error">${t('dept.outlineFailed', 'Map outline failed to load — try reopening this tab.')}</p>`;
         return;
     }
 
@@ -110,20 +112,23 @@ export async function renderDeptMap(container, rows) {
     const paths = features.map(f => {
         const row = byDept[f.properties.code];
         const share = row ? Number(row.vote_share_pct) || 0 : 0;
-        const t = Math.min(1, share / maxShare);
-        const fill = lerpColor(t, COLOR_EMPTY, COLOR_MAX);
+        const ratio = Math.min(1, share / maxShare);
+        const fill = lerpColor(ratio, COLOR_EMPTY, COLOR_MAX);
         const d = geometryToPath(f.geometry, bounds);
+        const code = f.properties.code;
         const title = row
-            ? `${f.properties.code} — ${row.pct}% of the active batch (${Number(row.votes_cast).toLocaleString()} / ${Number(row.votes_target).toLocaleString()} votes) — ${row.vote_share_pct}% of the active batch's votes so far`
-            : `${f.properties.code} — no votes yet`;
+            ? t('dept.title', "{code} — {pct}% of the active batch ({cast} / {target} votes) — {share}% of the active batch's votes so far",
+                { code, pct: row.pct, cast: fmt(row.votes_cast), target: fmt(row.votes_target), share: row.vote_share_pct })
+            : t('dept.none', '{code} — no votes yet', { code });
         return `<path d="${d}" fill="${fill}" stroke="#12171d" stroke-width="0.6"><title>${title}</title></path>`;
     }).join('');
 
     const note = hasShare ? '' :
-        '<p class="menu-dept-error">No département data yet for the votes cast so far — see the browser console for details.</p>';
+        `<p class="menu-dept-error">${t('dept.noData', 'No département data yet for the votes cast so far — see the browser console for details.')}</p>`;
+    const ariaLabel = t('dept.aria', 'Map of metropolitan France, départements colored by share of community verification votes cast so far');
 
     container.innerHTML =
         `<svg viewBox="0 0 ${bounds.width.toFixed(1)} ${bounds.height.toFixed(1)}" role="img" ` +
-        `aria-label="Map of metropolitan France, départements colored by share of community verification votes cast so far">` +
+        `aria-label="${ariaLabel}">` +
         paths + `</svg>` + note;
 }

@@ -1,0 +1,39 @@
+# Jekyll config for deeppvmapper.fr
+#
+# The site is still plain static HTML: only the pages that start with a `---` front-matter
+# block (index.html and content/*.html, except content/map.html) go through Jekyll and the
+# shared layout in _layouts/default.html. Every other file (generated département / région /
+# commune pages, game/, static/, sitemap.xml, ...) is copied to the output untouched.
+
+title: DeepPVMapper
+description: >-
+  An open-source, community-driven dataset of rooftop photovoltaic systems across France.
+lang: en
+
+# `url` is only informative here: canonical / og:url tags use `canonical_host` so that they
+# stay pointing at production even under `jekyll serve` (which rewrites site.url to localhost).
+url: "https://deeppvmapper.fr"
+canonical_host: "https://deeppvmapper.fr"
+default_og_image: "https://deeppvmapper.fr/static/images/teaser.webp"
+baseurl: ""
+
+# Not part of the website. (Jekyll already skips Gemfile*, node_modules, vendor, _site, ...)
+exclude:
+  - "Claude outputs"
+  - scripts/__pycache__
+
+# GitHub Pages turns on a few "convenience" plugins that would also render the repo's Markdown
+# files (README.md, NOTES.md, DATA_ACCESS.md, game/README.md) into HTML pages. Keep them as
+# the raw files they are today.
+optional_front_matter:
+  enabled: false
+readme_index:
+  enabled: false
+titles_from_headings:
+  enabled: false
+relative_links:
+  enabled: false
+
+# GitHub Pages' default theme (Primer) would otherwise emit an unused assets/css/style.css into
+# the output. The site ships its own CSS (static/css/style.css) and layout, so no theme.
+theme: null

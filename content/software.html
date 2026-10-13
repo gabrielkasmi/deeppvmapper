@@ -1,148 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Software &middot; DeepPVMapper</title>
+---
+layout: default
+fr_available: true
+title: "Software &middot; DeepPVMapper"
+description: "Open-source software behind DeepPVMapper: quickstart instructions, the detection pipeline, the pypvroof characterization package, trained model weights, and the BDAPPV training dataset."
+keywords: "open source solar panel detection, photovoltaic detection pipeline, deep learning rooftop solar, pypvroof, BDAPPV dataset, open source remote sensing solar, computer vision solar panels, cartographie open source panneaux solaires"
+og_description: "The DeepPVMapper pipeline, trained models, the training dataset, and the packages built around them — all open source, with a quickstart to get running."
+og_image: "https://deeppvmapper.fr/static/images/assets/flowchart.webp"
+body_class: "has-back-to-top"
+nav_active: "software"
+head_include: "pages/software/head.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Open-Source Software</h1>
 
-    <meta name="description" content="Open-source software behind DeepPVMapper: quickstart instructions, the detection pipeline, the pypvroof characterization package, trained model weights, and the BDAPPV training dataset.">
-    <meta name="keywords" content="open source solar panel detection, photovoltaic detection pipeline, deep learning rooftop solar, pypvroof, BDAPPV dataset, open source remote sensing solar, computer vision solar panels, cartographie open source panneaux solaires">
-    <meta name="author" content="Gabriel Kasmi">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://deeppvmapper.fr/content/software.html">
-    <meta property="og:title" content="Software &middot; DeepPVMapper">
-    <meta property="og:description" content="The DeepPVMapper pipeline, trained models, the training dataset, and the packages built around them — all open source, with a quickstart to get running.">
-    <meta property="og:image" content="https://deeppvmapper.fr/static/images/assets/flowchart.webp">
-    <link rel="canonical" href="https://deeppvmapper.fr/content/software.html">
-
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        .software-group-title {
-            margin-top: 60px;
-        }
-        .software-group-title:first-of-type {
-            margin-top: 0;
-        }
-        .card-grid--narrow {
-            max-width: 460px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .quickstart-block {
-            max-width: 800px;
-            margin: 0 auto 36px auto;
-        }
-        .quickstart-block:last-child {
-            margin-bottom: 0;
-        }
-        .quickstart-block h3 {
-            font-size: 1.1rem;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-        .quickstart-block p {
-            color: #6c757d;
-            margin-bottom: 14px;
-        }
-        .quickstart-block .citation-box {
-            margin: 0 0 12px 0;
-            max-width: none;
-            padding: 20px 24px;
-        }
-        .quickstart-block .citation-box + p {
-            margin-bottom: 0;
-            font-size: 0.88rem;
-        }
-        .legacy-card {
-            max-width: 700px;
-            margin: 24px auto 0 auto;
-            background-color: #f8f9fa;
-            border: 1px dashed #ced4da;
-            border-radius: 10px;
-            padding: 24px 28px;
-            text-align: center;
-        }
-        .legacy-card .legacy-tag {
-            display: inline-block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #868e96;
-            background: #e9ecef;
-            border-radius: 4px;
-            padding: 3px 9px;
-            margin-bottom: 12px;
-        }
-        .legacy-card p {
-            color: #495057;
-            font-size: 0.92rem;
-            line-height: 1.6;
-        }
-        .legacy-card p + p {
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body class="has-back-to-top">
-
-    <header class="header header--compact">
-        <div class="header-background"></div>
-        <nav class="topnav topnav--overlay">
-            <div class="container topnav-inner">
-                <a href="../index.html" class="topnav-logo topnav-logo--home" aria-label="DeepPVMapper — Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
-                                                                <div class="topnav-links">
-                                                                    <a href="about.html" class="topnav-link">About</a>
-                                                                    <a href="data.html" class="topnav-link">Data</a>
-                                                                    <a href="software.html" class="topnav-link is-active">Software</a>
-                                                                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                                                                    <a href="outlook.html" class="topnav-link">Use Cases</a>
-                                                                    <span class="topnav-break" aria-hidden="true"></span>
-                                                                    <div class="dropdown">
-                                                                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
-                                                                        <div class="dropdown-content">
-                                                                            <a href="pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
-                                                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="dropdown">
-                                                                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
-                                                                        <div class="dropdown-content">
-                                                                            <a href="publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
-                                                                            <a href="in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-            </div>
-        </nav>
-        <div class="container">
-            <h1 class="title">Open-Source Software</h1>
-
-            <div class="quick-links">
-                <a href="#quickstart" class="quick-link">Quickstart</a>
-                <a href="#source-code" class="quick-link">Source Code</a>
-                <div class="dropdown">
-                    <span class="quick-link dropdown-btn">Packages &#9662;</span>
-                    <div class="dropdown-content">
-                        <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
-                            pypvroof
-                            <span class="dropdown-item-sub">Rooftop PV characteristics from remote sensing</span>
-                        </a>
-                        <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="dropdown-item">
-                            bayesian-pv-census
-                            <span class="dropdown-item-sub">Bayesian bias-correction &amp; registry auditing</span>
-                        </a>
-                    </div>
-                </div>
-                <a href="#model-weights" class="quick-link">Model Weights &amp; Data</a>
-                <a href="#demo" class="quick-link">Demo</a>
-            </div>
-        </div>
-    </header>
-
+      <div class="quick-links">
+          <a href="#quickstart" class="quick-link">Quickstart</a>
+          <a href="#source-code" class="quick-link">Source Code</a>
+          <div class="dropdown">
+              <span class="quick-link dropdown-btn">Packages &#9662;</span>
+              <div class="dropdown-content">
+                  <a href="https://pypi.org/project/pypvroof/" target="_blank" class="dropdown-item">
+                      pypvroof
+                      <span class="dropdown-item-sub">Rooftop PV characteristics from remote sensing</span>
+                  </a>
+                  <a href="https://pypi.org/project/bayesian-pv-census/" target="_blank" class="dropdown-item">
+                      bayesian-pv-census
+                      <span class="dropdown-item-sub">Bayesian bias-correction &amp; registry auditing</span>
+                  </a>
+              </div>
+          </div>
+          <a href="#model-weights" class="quick-link">Model Weights &amp; Data</a>
+          <a href="#demo" class="quick-link">Demo</a>
+      </div>
+  </div>
+---
     <section>
         <div class="container">
 
@@ -252,36 +143,4 @@ characteristics = extractor.extract_all_characteristics(arrays["features"][0])</
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-contact">
-                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M4 4h16v16H4z" stroke="none"/>
-                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                        <path d="m22 6-10 7L2 6"></path>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-                    </svg>
-                </a>
-                <a href="https://bsky.app/profile/deeppvmapper.bsky.social" target="_blank" aria-label="Bluesky">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.14-.02.278-.036.415-.056-.137.022-.275.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.81 9.498 7.823 4.308 4.557-5.073 1.082-6.498-2.83-7.078a8.741 8.741 0 0 1-.415-.056c.14.02.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.789.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24-2.752 1.942-5.711 5.881-6.798 7.995z"/>
-                    </svg>
-                </a>
-            </div>
-            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
-        </div>
-    </footer>
-
-    <script src="../static/js/script.js"></script>
-</body>
-</html>
+    

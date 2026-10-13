@@ -1,0 +1,85 @@
+---
+layout: default
+lang: fr
+title: "Cas d'usage · DeepPVMapper"
+description: "À quoi servent DeepPVMapper et OpenPVMapper : l'audit des registres, l'estimation de la production PV, les études socio-économiques d'adoption et les projets de cartographie externes. Descriptions en anglais."
+body_class: "has-back-to-top"
+nav_active: "outlook"
+head_include: "pages/outlook/head.html"
+scripts_include: "pages/outlook/scripts.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Cas d'usage</h1>
+  </div>
+---
+    <!-- Use cases -->
+    <section class="abstract" style="padding-top: 30px;">
+        <div class="container">
+            <div class="filter-bar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <input type="text" id="work-filter" placeholder="Filtrer par mot-clé&hellip;">
+            </div>
+
+            <p class="lang-notice" style="max-width: 760px; margin: 0 auto 28px; text-align: center; color: #6c757d; font-size: 0.95rem; line-height: 1.6; padding: 10px 16px; border: 1px solid #e9ecef; border-radius: 8px; background: #f8f9fa;">
+                <strong>Note :</strong> les titres, résumés et descriptions des travaux présentés ci-dessous sont
+                en anglais (langue des publications). Seule l'interface de cette page est traduite.
+            </p>
+
+            <h2 class="use-case-row-title">Audit des registres</h2>
+            <div class="use-case-row use-case-row--1">
+                <!-- Only card that navigates to a real page instead of opening
+                     the popup — justified by volume, this is a full page, not
+                     a 200-word summary like the others. -->
+                <a href="../../content/main-results.html" class="work-card has-image"
+                   style="background-image: url('../../static/images/assets/registry-discrepancy-map.webp');"
+                   data-keywords="registry audit rni rte bias bayesian reliability truncation"
+                   data-title="nationally consistent, locally incomplete: a bayesian remote-sensing audit of rooftop photovoltaic registries">
+                    <span class="work-date">2026</span>
+                    <h3 class="work-title">Nationally Consistent, Locally Incomplete: A Bayesian Remote-Sensing Audit of Rooftop Photovoltaic Registries</h3>
+                    <div class="work-keywords">
+                        <span class="keyword-chip">registry audit</span>
+                        <span class="keyword-chip">rni</span>
+                        <span class="keyword-chip">rte</span>
+                        <span class="keyword-chip">bias</span>
+                    </div>
+                </a>
+            </div>
+
+            <h2 class="use-case-row-title">Impact socio-économique</h2>
+            <div class="use-case-row use-case-row--2" id="row-socioeconomic"></div>
+
+            <h2 class="use-case-row-title">Estimation de la production PV en toiture</h2>
+            <div class="use-case-row use-case-row--3" id="row-estimation"></div>
+
+            <h2 class="use-case-row-title">Autres</h2>
+            <div class="use-case-row use-case-row--4" id="row-more"></div>
+
+            <p class="no-results" id="no-results"></p>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <button class="modal-nav" id="modal-prev" aria-label="Précédent">&larr;</button>
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <p class="modal-meta" id="modal-meta"></p>
+                    <h3 id="modal-title"></h3>
+                    <div class="modal-keywords" id="modal-keywords"></div>
+                </div>
+                <button class="modal-close" id="modal-close" aria-label="Fermer">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <a id="modal-link" href="javascript:void(0);" target="_blank" class="btn">Lire la publication</a>
+                <a id="modal-xai-link" href="javascript:void(0);" target="_blank" class="btn" style="display:none;">Méthode XAI →</a>
+            </div>
+        </div>
+        <button class="modal-nav" id="modal-next" aria-label="Suivant">&rarr;</button>
+    </div>
+
+    <!-- Footer -->
+    

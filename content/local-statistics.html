@@ -1,103 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard &middot; DeepPVMapper</title>
-
-    <meta name="description" content="Which région, département or city has the most rooftop solar? Rankings by estimated installed capacity across DeepPVMapper's PV registry, with a direct link into the interactive map for each.">
-    <meta name="author" content="Gabriel Kasmi">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://deeppvmapper.fr/content/local-statistics.html">
-    <meta property="og:title" content="Leaderboard &middot; DeepPVMapper">
-    <meta property="og:description" content="Rankings by estimated installed capacity — régions, départements and cities — across DeepPVMapper's rooftop PV registry.">
-    <link rel="canonical" href="https://deeppvmapper.fr/content/local-statistics.html">
-
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        .rankings-tabs {
-            display: flex; justify-content: center; gap: 8px; margin: 8px 0 20px;
-            flex-wrap: wrap;
-        }
-        .rankings-tab {
-            font: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer;
-            padding: 8px 20px; border-radius: 6px; border: 1px solid #dee2e6;
-            background: #fff; color: #34495e;
-        }
-        .rankings-tab.is-active { background: #34495e; border-color: #34495e; color: #fff; }
-        .ranking-panel {
-            display: none; max-width: 720px; margin: 0 auto; max-height: 560px;
-            overflow-y: auto; border: 1px solid #e9ecef; border-radius: 8px;
-        }
-        .ranking-panel.is-active { display: block; }
-        .ranking-note {
-            text-align: center; font-size: 0.85rem; color: #6c757d; margin: -8px 0 14px;
-        }
-        .ranking-item {
-            display: flex; align-items: center; gap: 14px; padding: 10px 18px;
-            text-decoration: none; color: inherit; border-bottom: 1px solid #f1f3f5;
-        }
-        .ranking-item:last-child { border-bottom: none; }
-        .ranking-item:hover { background: #f8f9fa; }
-        .ranking-rank {
-            flex: none; width: 28px; height: 28px; border-radius: 50%;
-            background: #e9ecef; color: #34495e; font-weight: 700; font-size: 0.85rem;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .ranking-item.rank-1 .ranking-rank { background: #f4c95d; color: #5c4400; }
-        .ranking-item.rank-2 .ranking-rank { background: #d8dce3; color: #3a3f47; }
-        .ranking-item.rank-3 .ranking-rank { background: #e3b088; color: #5a3313; }
-        .ranking-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
-        .ranking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ranking-sub { font-size: 0.8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ranking-value {
-            flex: none; font-weight: 700; color: #34495e; font-variant-numeric: tabular-nums;
-            font-size: 0.92rem; text-align: right;
-        }
-    </style>
-</head>
-<body>
-    <header class="header header--compact">
-        <div class="header-background"></div>
-        <nav class="topnav topnav--overlay">
-            <div class="container topnav-inner">
-                <a href="../index.html" class="topnav-logo topnav-logo--home" aria-label="DeepPVMapper — Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
-                                                                <div class="topnav-links">
-                                                                    <a href="about.html" class="topnav-link">About</a>
-                                                                    <a href="data.html" class="topnav-link">Data</a>
-                                                                    <a href="software.html" class="topnav-link">Software</a>
-                                                                    <a href="contribute.html" class="topnav-link">Contribute</a>
-                                                                    <a href="outlook.html" class="topnav-link">Use Cases</a>
-                                                                    <span class="topnav-break" aria-hidden="true"></span>
-                                                                    <div class="dropdown">
-                                                                        <span class="topnav-link dropdown-btn">Docs &#9662;</span>
-                                                                        <div class="dropdown-content">
-                                                                            <a href="pipeline.html" class="dropdown-item">DeepPVMapper<span class="dropdown-item-sub">Detection architecture &amp; deployment</span></a>
-                                                                            <a href="openpvmapper.html" class="dropdown-item">OpenPVMapper<span class="dropdown-item-sub">Multi-source database methodology</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="dropdown">
-                                                                        <span class="topnav-link dropdown-btn">Publications &#9662;</span>
-                                                                        <div class="dropdown-content">
-                                                                            <a href="publications.html" class="dropdown-item">Papers &amp; Preprints<span class="dropdown-item-sub">Peer-reviewed papers, preprints &amp; posters</span></a>
-                                                                            <a href="in-press.html" class="dropdown-item">Press Coverage<span class="dropdown-item-sub">Popular-science &amp; media coverage</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-            </div>
-        </nav>
-        <div class="container">
-            <h1 class="title">Leaderboard</h1>
-            <div class="quick-links">
-                <a href="data.html" class="quick-link">&larr; Back to Data</a>
-                <a href="data.html#map-section" class="quick-link">Interactive map</a>
-            </div>
-        </div>
-    </header>
-
+---
+layout: default
+fr_available: true
+title: "Leaderboard &middot; DeepPVMapper"
+description: "Which région, département or city has the most rooftop solar? Rankings by estimated installed capacity across DeepPVMapper's PV registry, with a direct link into the interactive map for each."
+og_description: "Rankings by estimated installed capacity — régions, départements and cities — across DeepPVMapper's rooftop PV registry."
+og_image: ""
+nav_active: ""
+head_include: "pages/local-statistics/head.html"
+scripts_include: "pages/local-statistics/scripts.html"
+header_html: |2-
+  <div class="container">
+      <h1 class="title">Leaderboard</h1>
+      <div class="quick-links">
+          <a href="data.html" class="quick-link">&larr; Back to Data</a>
+          <a href="data.html#map-section" class="quick-link">Interactive map</a>
+      </div>
+  </div>
+---
     <section id="rankings">
         <div class="container">
             <p class="hub-intro">
@@ -991,52 +910,409 @@
             <div class="ranking-panel" id="ranking-cities">
                 <p class="ranking-note">Top 50 shown &mdash; every city with its own page is ranked, but only the leaders are listed here.</p>
                 <!-- RANKING_CITIES_START -->
-
+                <a class="ranking-item rank-1" href="cities/33122.html">
+                    <span class="ranking-rank">1</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cestas</span>
+                        <span class="ranking-sub">Gironde · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">292.3 MWp</span>
+                </a>
+                <a class="ranking-item rank-2" href="cities/04094.html">
+                    <span class="ranking-rank">2</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gréoux-les-Bains</span>
+                        <span class="ranking-sub">Alpes-de-Haute-Provence · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">126.4 MWp</span>
+                </a>
+                <a class="ranking-item rank-3" href="cities/13039.html">
+                    <span class="ranking-rank">3</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Fos-sur-Mer</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">61.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13047.html">
+                    <span class="ranking-rank">4</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Istres</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">60.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/33063.html">
+                    <span class="ranking-rank">5</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Bordeaux</span>
+                        <span class="ranking-sub">Gironde · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">57.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31555.html">
+                    <span class="ranking-rank">6</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Toulouse</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">46.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/34032.html">
+                    <span class="ranking-rank">7</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Béziers</span>
+                        <span class="ranking-sub">Hérault · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">45.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/15083.html">
+                    <span class="ranking-rank">8</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Jussac</span>
+                        <span class="ranking-sub">Cantal · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">36.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/40217.html">
+                    <span class="ranking-rank">9</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Parentis-en-Born</span>
+                        <span class="ranking-sub">Landes · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">33.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/81048.html">
+                    <span class="ranking-rank">10</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cagnac-les-Mines</span>
+                        <span class="ranking-sub">Tarn · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">32.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66136.html">
+                    <span class="ranking-rank">11</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Perpignan</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">31.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84007.html">
+                    <span class="ranking-rank">12</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Avignon</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">31.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/72003.html">
+                    <span class="ranking-rank">13</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Allonnes</span>
+                        <span class="ranking-sub">Sarthe · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">29.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/18050.html">
+                    <span class="ranking-rank">14</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Chapelle-Saint-Ursin</span>
+                        <span class="ranking-sub">Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">27.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/83023.html">
+                    <span class="ranking-rank">15</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Brignoles</span>
+                        <span class="ranking-sub">Var · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">26.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/79329.html">
+                    <span class="ranking-rank">16</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Thouars</span>
+                        <span class="ranking-sub">Deux-Sèvres · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">25.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/87075.html">
+                    <span class="ranking-rank">17</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Isle</span>
+                        <span class="ranking-sub">Haute-Vienne · Nouvelle-Aquitaine</span>
+                    </span>
+                    <span class="ranking-value">25.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/81099.html">
+                    <span class="ranking-rank">18</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gaillac</span>
+                        <span class="ranking-sub">Tarn · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">22.8 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/46083.html">
+                    <span class="ranking-rank">19</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cressensac-Sarrazac</span>
+                        <span class="ranking-sub">Lot · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">22.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/75056.html">
+                    <span class="ranking-rank">20</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Paris</span>
+                        <span class="ranking-sub">Paris · Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">22.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13097.html">
+                    <span class="ranking-rank">21</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Saint-Martin-de-Crau</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">21.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66088.html">
+                    <span class="ranking-rank">22</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Ille-sur-Têt</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">21.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13055.html">
+                    <span class="ranking-rank">23</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Marseille</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">21.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/32256.html">
+                    <span class="ranking-rank">24</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mirande</span>
+                        <span class="ranking-sub">Gers · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">20.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/30189.html">
+                    <span class="ranking-rank">25</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Nîmes</span>
+                        <span class="ranking-sub">Gard · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">19.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/12270.html">
+                    <span class="ranking-rank">26</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sévérac d'Aveyron</span>
+                        <span class="ranking-sub">Aveyron · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">18.4 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/60057.html">
+                    <span class="ranking-rank">27</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Beauvais</span>
+                        <span class="ranking-sub">Oise · Hauts-de-France</span>
+                    </span>
+                    <span class="ranking-value">18.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41136.html">
+                    <span class="ranking-rank">28</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mer</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">18.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/66195.html">
+                    <span class="ranking-rank">29</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Le Soler</span>
+                        <span class="ranking-sub">Pyrénées-Orientales · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">17.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/77284.html">
+                    <span class="ranking-rank">30</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Meaux</span>
+                        <span class="ranking-sub">Seine-et-Marne · Île-de-France</span>
+                    </span>
+                    <span class="ranking-value">16.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/04116.html">
+                    <span class="ranking-rank">31</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Les Mées</span>
+                        <span class="ranking-sub">Alpes-de-Haute-Provence · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">16.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/58059.html">
+                    <span class="ranking-rank">32</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">La Charité-sur-Loire</span>
+                        <span class="ranking-sub">Nièvre · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">16.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/71499.html">
+                    <span class="ranking-rank">33</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sanvignes-les-Mines</span>
+                        <span class="ranking-sub">Saône-et-Loire · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">15.7 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/03101.html">
+                    <span class="ranking-rank">34</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Domérat</span>
+                        <span class="ranking-sub">Allier · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">15.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84129.html">
+                    <span class="ranking-rank">35</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Sorgues</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">15.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/34172.html">
+                    <span class="ranking-rank">36</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Montpellier</span>
+                        <span class="ranking-sub">Hérault · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">14.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/13103.html">
+                    <span class="ranking-rank">37</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Salon-de-Provence</span>
+                        <span class="ranking-sub">Bouches-du-Rhône · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">14.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41280.html">
+                    <span class="ranking-rank">38</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Villefranche-sur-Cher</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">14.6 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/89263.html">
+                    <span class="ranking-rank">39</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Monéteau</span>
+                        <span class="ranking-sub">Yonne · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">14.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/71230.html">
+                    <span class="ranking-rank">40</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Gueugnon</span>
+                        <span class="ranking-sub">Saône-et-Loire · Bourgogne-Franche-Comté</span>
+                    </span>
+                    <span class="ranking-value">14.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/41269.html">
+                    <span class="ranking-rank">41</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Vendôme</span>
+                        <span class="ranking-sub">Loir-et-Cher · Centre-Val de Loire</span>
+                    </span>
+                    <span class="ranking-value">13.9 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49244.html">
+                    <span class="ranking-rank">42</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Mauges-sur-Loire</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">13.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/69273.html">
+                    <span class="ranking-rank">43</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Corbas</span>
+                        <span class="ranking-sub">Rhône · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">13.2 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31424.html">
+                    <span class="ranking-rank">44</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Plaisance-du-Touch</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">12.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/15012.html">
+                    <span class="ranking-rank">45</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Arpajon-sur-Cère</span>
+                        <span class="ranking-sub">Cantal · Auvergne-Rhône-Alpes</span>
+                    </span>
+                    <span class="ranking-value">12.5 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/22113.html">
+                    <span class="ranking-rank">46</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Lannion</span>
+                        <span class="ranking-sub">Côtes-d'Armor · Bretagne</span>
+                    </span>
+                    <span class="ranking-value">12.3 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49023.html">
+                    <span class="ranking-rank">47</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Beaupréau-en-Mauges</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">12.1 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/49092.html">
+                    <span class="ranking-rank">48</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Chemillé-en-Anjou</span>
+                        <span class="ranking-sub">Maine-et-Loire · Pays de la Loire</span>
+                    </span>
+                    <span class="ranking-value">12.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/84035.html">
+                    <span class="ranking-rank">49</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Cavaillon</span>
+                        <span class="ranking-sub">Vaucluse · Provence-Alpes-Côte d'Azur</span>
+                    </span>
+                    <span class="ranking-value">12.0 MWp</span>
+                </a>
+                <a class="ranking-item" href="cities/31069.html">
+                    <span class="ranking-rank">50</span>
+                    <span class="ranking-main">
+                        <span class="ranking-name">Blagnac</span>
+                        <span class="ranking-sub">Haute-Garonne · Occitanie</span>
+                    </span>
+                    <span class="ranking-value">11.9 MWp</span>
+                </a>
                 <!-- RANKING_CITIES_END -->
             </div>
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-contact">
-                <a href="mailto:gabriel.kasmi@deeppvmapper.fr" aria-label="Email">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M4 4h16v16H4z" stroke="none"/>
-                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                        <path d="m22 6-10 7L2 6"></path>
-                    </svg>
-                </a>
-                <a href="https://www.linkedin.com/in/gabriel-kasmi/" target="_blank" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/gabrielkasmi/deeppvmapper/discussions" target="_blank" aria-label="GitHub Discussions">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 0.297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.469-2.38 1.236-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-                    </svg>
-                </a>
-                <a href="https://bsky.app/profile/deeppvmapper.bsky.social" target="_blank" aria-label="Bluesky">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.14-.02.278-.036.415-.056-.137.022-.275.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.81 9.498 7.823 4.308 4.557-5.073 1.082-6.498-2.83-7.078a8.741 8.741 0 0 1-.415-.056c.14.02.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.789.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24-2.752 1.942-5.711 5.881-6.798 7.995z"/>
-                    </svg>
-                </a>
-            </div>
-            <p>Maintained by Gabriel Kasmi. This work is licensed under <a href="https://github.com/gabrielkasmi/deeppvmapper/blob/main/LICENSE" target="_blank">MIT</a>.</p>
-        </div>
-    </footer>
-
-    <script src="../static/js/script.js"></script>
-    <script>
-        document.querySelectorAll('.rankings-tab').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.rankings-tab').forEach(function (b) { b.classList.remove('is-active'); });
-                document.querySelectorAll('.ranking-panel').forEach(function (p) { p.classList.remove('is-active'); });
-                btn.classList.add('is-active');
-                document.getElementById('ranking-' + btn.dataset.panel).classList.add('is-active');
-            });
-        });
-    </script>
-</body>
-</html>
+    
