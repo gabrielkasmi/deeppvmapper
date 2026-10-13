@@ -22,10 +22,9 @@ header_html: |2-
                     keep track of: in France, rooftop installations account for more than 99% of all
                     grid-connected PV systems. DeepPVMapper sets out to close that gap, combining geospatial
                     data, remote sensing, and crowdsourcing into a registry that aims to be as complete and
-                    accurate as possible. Everything it produces is released openly, kept interoperable with
-                    OpenStreetMap, and reproducible end to end by anyone who wants to check the work or adapt
-                    it. The <a href="data.html">Data</a> and <a href="software.html">Software</a> pages cover
-                    what the project produces and how to use it; this page is about where it came from.
+                    accurate as possible. The <a href="data.html">Data</a> and <a href="software.html">Software</a>
+                    pages cover what the project produces and how to use it; this page is about why it exists
+                    and where it came from.
                 </p>
             </div>
         </div>
@@ -34,7 +33,51 @@ header_html: |2-
     <section>
         <div class="container">
             <div class="project-prose">
-                <h2>Inception: a PhD carried out at RTE and Mines Paris</h2>
+                <h2>Why an open registry</h2>
+                <p>
+                    <strong>Rooftop PV is a blind spot.</strong> Distributed PV, a category dominated by rooftop
+                    systems, makes up a large and fast-growing share of the solar capacity installed worldwide,
+                    yet nobody knows precisely how much of it there is. Small and self-consumed systems are hard
+                    to track, even in mature markets, and official figures can be far off. Rooftop PV deserves a
+                    focus of its own, not one line in a broader solar inventory.
+                </p>
+                <p>
+                    <strong>The map should be free.</strong> The value of such a registry comes from people using
+                    it and combining it with their own workflows. Putting it behind a paywall only adds barriers,
+                    so everything &mdash; from the training data to the final registry &mdash; is released openly,
+                    kept interoperable with OpenStreetMap and reproducible end to end. The aim is not to impose yet
+                    another standard, but to provide an interoperable basis that users can adapt to their own
+                    formats. The sole goal is to detect PV systems visible from openly available imagery and
+                    describe their technical characteristics &mdash; never to know who owns them.
+                </p>
+                <p>
+                    <strong>The model proposes, people verify.</strong> Machine learning does the heavy lifting,
+                    but it makes mistakes, and what holds back adoption is less the accuracy of a detector than
+                    the lack of a way to measure it. Rather than claiming to represent a definitive ground truth,
+                    DeepPVMapper combines remote sensing with crowdsourced verification
+                    (<a href="contribute.html">PV Check</a>, MapRoulette) to provide the best available
+                    information, and to improve it continuously. Verified detections are documented as such in
+                    each release and feed back into the training data of future models.
+                </p>
+                <p>
+                    <strong>An ecosystem, beyond France.</strong> DeepPVMapper is one initiative among others,
+                    such as EarthPV and TraceTheSun. It focuses on France and tries to &ldquo;industrialize&rdquo;
+                    the map; the long-term hope is that the experience gained benefits other countries, with
+                    their own detections hosted alongside the French ones. Access is open through direct
+                    download, an API and an MCP server, on one condition: no harmful use or scams (see the
+                    <a href="legal.html#acceptable-use">acceptable use policy</a>).
+                </p>
+                <p style="text-align: center; margin-top: 24px;">
+                    <a href="https://gabrielkasmi.github.io/blog/2026/10/10/rooftop-solar-needs-an-open-registry/" target="_blank" class="btn">Read the full manifesto: Rooftop Solar Needs an Open Registry &rarr;</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="project-prose">
+                <h2>Where it came from</h2>
                 <p>
                     DeepPVMapper grew out of a CIFRE PhD thesis &mdash; a French industrial research contract
                     pairing an academic institution with a company &mdash; conducted between
@@ -52,81 +95,32 @@ header_html: |2-
                     (<a href="https://www.iea.org/reports/conditions-and-requirements-for-the-technical-feasibility-of-a-power-system-with-a-high-share-of-renewables-in-france-towards-2050" target="_blank">RTE &amp; IEA, 2021</a>)
                     &mdash; showed that the risk of contingencies induced by rooftop PV could increase sharply
                     by 2050, driven by the lack of <em>observability</em> of these small, distributed
-                    installations. The initial goal was to characterize rooftop PV systems in a systematic way
-                    and feed that improved characterization into regional power-forecasting models.
-                </p>
-                <p>
-                    The first step was to assemble training data and adapt an existing detection approach
-                    &mdash; building on <a href="https://www.cell.com/joule/fulltext/S2542-4351(18)30570-1" target="_blank">DeepSolar</a>
+                    installations. The first step was to assemble training data and adapt an existing detection
+                    approach &mdash; building on <a href="https://www.cell.com/joule/fulltext/S2542-4351(18)30570-1" target="_blank">DeepSolar</a>
                     (Yu et al., 2018) and <a href="https://doi.org/10.1016/j.apenergy.2021.118469" target="_blank">3D-PV-Locator</a>
-                    (Mayer et al., 2022) &mdash; to the French context. That work led to the detection algorithm
+                    (Mayer et al., 2022) &mdash; to the French context, which led to the detection algorithm
                     DeepPVMapper and the training dataset BDAPPV.
                 </p>
                 <p>
-                    The thesis also gave an extensive treatment to the mapping algorithm&rsquo;s sensitivity to
-                    distribution shift &mdash; how much its performance degrades once applied outside its
-                    training conditions. That line of work led to a new feature-attribution method,
-                    <a href="https://gabrielkasmi.github.io/wam/" target="_blank">WAM</a>, presented at ICML
-                    2025, and to several follow-up studies on this same sensitivity in the specific case of
-                    remote-sensing-based PV detection
+                    The thesis also examined how much the algorithm&rsquo;s performance degrades outside its
+                    training conditions, leading to a new feature-attribution method,
+                    <a href="https://gabrielkasmi.github.io/wam/" target="_blank">WAM</a> (ICML 2025), and to
+                    follow-up studies on remote-sensing-based PV detection
                     (<a href="https://www.cambridge.org/core/journals/environmental-data-science/article/spacescale-exploration-of-the-poor-reliability-of-deep-learning-models-the-case-of-the-remote-sensing-of-rooftop-photovoltaic-systems/3415C8A022E481B7C955FE284D4DC0E5" target="_blank">Environmental Data Science, 2025</a>).
-                    The short version: PV classifiers are, more often than not, fancy grid detectors.
+                    It also showed that better forecasts and reduced contingency risk come from resolving the
+                    uncertainty around installed capacity itself: in France, aggregate capacity is tracked fairly
+                    well nationally, but significant imbalances remain locally. Getting there required a new
+                    Bayesian methodology &mdash; see the <a href="main-results.html">Registry Audit</a>.
                 </p>
                 <p>
-                    Coming back to the motivating question: better forecasts and reduced contingency risk for
-                    rooftop PV don&rsquo;t come from a better forecasting model &mdash; they come from
-                    resolving the uncertainty around installed capacity itself. It turns out that, in France,
-                    aggregate installed capacity is tracked fairly well at the national level, but significant
-                    imbalances remain at the local scale. Reaching that conclusion required a new methodology,
-                    grounded in Bayesian statistics, to turn remote-sensing detections into a genuine estimate
-                    of installed rooftop PV capacity &mdash; see the <a href="main-results.html">Registry
-                    Audit</a>.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
-            <div class="project-prose">
-                <h2>From thesis to a reference registry</h2>
-                <p>
-                    By the time the thesis was completed, 38 French d&eacute;partements had been mapped
-                    &mdash; roughly 175,000&nbsp;km&sup2; &mdash; making DeepPVMapper, at the time, the world&rsquo;s
-                    second-largest database of its kind after the U.S.-focused DeepSolar, and the most
-                    geographically detailed.
-                </p>
-                <p>
-                    As the rest of France was mapped, other research groups introduced their own rooftop PV
-                    detections &mdash; notably <a href="https://www.sciencedirect.com/science/article/pii/S0306261925003605" target="_blank">FRPV</a>
-                    (Thebault et al., 2025). Those detections were consolidated with DeepPVMapper&rsquo;s into
+                    By the end of the thesis, 38 French d&eacute;partements had been mapped (roughly
+                    175,000&nbsp;km&sup2;). As the rest of France was mapped, other groups introduced their own
+                    detections, notably <a href="https://www.sciencedirect.com/science/article/pii/S0306261925003605" target="_blank">FRPV</a>
+                    (Thebault et al., 2025). They were consolidated with DeepPVMapper&rsquo;s into
                     <a href="https://arxiv.org/abs/2607.25153" target="_blank">OpenPVMapper</a>, which aims to
-                    be a reference registry of rooftop PV installations in France &mdash; combining detectors
-                    this way measurably improves precision. The registry is updated as new imagery becomes
-                    available, and its quality keeps improving through crowdsourcing &mdash; see
-                    <a href="contribute.html">Contribute</a> for how to help.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
-            <div class="project-prose">
-                <h2>Current vision</h2>
-                <p>
-                    As mentioned above, rooftop PV assets are growing rapidly and present specific challenges when it
-                    comes to mapping them. DeepPVMapper and the OpenPVMapper database aim to provide a curated dataset
-                    specifically designed to address these challenges.
-                </p>
-                <p>
-                    Rather than claiming to represent a definitive ground truth, our goal is to provide the best available
-                    information on rooftop PV, by combining remote sensing with crowdsourced data and human validation.
-                    This approach allows us to continuously improve the registry as new information becomes available.
-                </p>
-                <p>
-                    All of it &mdash; from the training data to the final registry &mdash; remains openly accessible.
-                    Have a suggestion, or want to contribute? <a href="contribute.html">Get in touch</a>.
+                    be a reference registry of rooftop PV installations in France. It is updated as new imagery
+                    becomes available and keeps improving through crowdsourcing &mdash; have a suggestion, or
+                    want to help? <a href="contribute.html">Get in touch</a>.
                 </p>
                 <div class="citation-box" style="margin-top: 40px;">
                     <pre><code>@phdthesis{kasmi2024enhancing,
@@ -140,4 +134,4 @@ header_html: |2-
         </div>
     </section>
 
-    
+
