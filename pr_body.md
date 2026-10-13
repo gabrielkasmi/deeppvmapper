@@ -78,7 +78,9 @@ Evaluated on both splits with `eval.py` at `--batch-size 8`:
 Against the published baseline (DeepLabV3-ResNet101, `ign`, test: IoU 0.735 /
 F1 0.844, n=1239) this is **at parity on both headline keys** — the same test
 split, the same foreground-only definitions — with 3.71 M parameters versus the
-baseline's ~60 M. Summaries committed as `experiments/results/segformer-full.json`
+baseline's ~60 M. One alignment gap remains: the baseline scores at its native
+400², while these numbers come from our 416² eval, so the two are close but not
+resolution-matched. Summaries committed as `experiments/results/segformer-full.json`
 (val) and `segformer-full-test.json` (test), with previews under
 `experiments/results/previews/segformer-full{,-test}/`.
 
@@ -184,18 +186,34 @@ per-batch mean-of-means there) and no significance testing was done.
 - re-report against the baseline once the maintainers' pooled-metric recompute
   lands, so the comparison is exactly like-for-like,
 - upload final weights + a model card (limitations, intended use, privacy
-  notice) to Hugging Face, pending license confirmation,
+  notice) to Hugging Face, now that the licenses are settled (MIT code, CC-BY
+  weights),
 - happy to add a minimal CI workflow (flake8 + `train.py --dry-run` on
   synthetic data, no dataset download) once the approach is confirmed.
 
-## Questions for maintainers
+## Maintainer feedback — adopted
 
-1. Any preference among the SegFormer / DeepLab / U-Net families to prioritize?
-2. Should final benchmarks be reported on `val`, `test`, or both? Is the
-   cross-provider shift protocol (train google → test ign) in scope?
-3. Given the ~0.2–0.5% foreground coverage, is **object-level (instance) F1** the
-   metric the project wants to optimize and report, rather than mIoU?
-4. Is `ign` the right default provider (vs `google`, which the paper baselines
-   use)? I picked `ign` for the Etalab 2.0 license — Google imagery carries
-   redistribution restrictions that matter when we publish weights.
-5. Preferred license for final weights/code — CC-BY, MIT, or both?
+@gabrielkasmi answered the original questions on 2026-09-28 (comment above), and
+the full run is the direct result of that guidance:
+
+- **SegFormer-B0 first** for a full-budget run (best metrics at ~8× fewer params;
+  both ConvNeXt-Tiny decoders still underfit at 3 epochs) — done. DeepLabV3+ is
+  the next fair full-budget candidate, being architecturally closest to
+  production.
+- **`pixelF1` / `instanceF1` rather than `mIoU`** — `selection_metric` is now
+  `val_pixelF1`.
+- **Gradient accumulation + AMP** to clear the 4 GB ceiling; production used
+  `batch 4 × accum 8`, and the full run now does exactly that (effective 32, fp16).
+- **Final numbers on `test`, foreground-only `iouPV` / `pixelF1`** — the table
+  above reports val + test, and the baseline line is the test-split comparison.
+- **416² rather than 512²** — now the default (`image_size: 416`); the 512² quick
+  runs are labelled ranking-only.
+- **`ign` stays the default / deployment target**; Google training is fine to
+  explore, but whatever ships is tested on IGN.
+- **MIT** for code, **CC-BY** for weights.
+
+Still open on our side: the baseline bar may move — upstream is recomputing
+0.735 / 0.844 with pooled TP/FP/FN (our approach) rather than mean-of-means — and
+the reference code + checkpoints at
+[`bdappv-models/train`](https://huggingface.co/gabrielkasmi/bdappv-models/tree/main/train)
+have not been pointed at our checkpoint yet.
