@@ -3,21 +3,23 @@ Refs #11
 ## Summary
 
 Adds the training scaffold and the first real architecture comparison for the
-new candidate segmentation backbones on BDAPPV. Quick runs on a 5% subset of
-the canonical split give a clear early answer:
+new candidate segmentation backbones on BDAPPV.
+
+The headline is the first full-scale run: SegFormer-B0 on the **full canonical
+split** (50 epochs, 416², effective batch 32), benchmarked on the held-out
+**test** split at **iouPV 0.7445 / pixelF1 0.8535 (n=1239)** — marginally ahead
+of the published DeepLabV3-ResNet101 baseline (0.735 / 0.844) at 3.71 M
+parameters:
+
+> **First full-scale result: SegFormer-B0 matches the production baseline on the
+> canonical test split with ~16× fewer parameters.**
+
+Before that run existed, quick runs on a 5% subset ranked the three candidates
+and pointed the same way:
 
 > **SegFormer-B0 wins on every metric at ~8× fewer parameters** than the
 > ConvNeXt-Tiny candidates — mIoU 0.681 vs 0.646/0.563, instance F1 0.223 vs
 > 0.033/0.055, and 5–8× faster inference.
-
-The mini runs ranked the architectures but were never meant to be quoted as
-figures. Extending SegFormer-B0 to the **full canonical split** (50 epochs, 416²,
-effective batch 32) and benchmarking it on the held-out **test** split puts it
-at **iouPV 0.7445 / pixelF1 0.8535 (n=1239)** — marginally ahead of the
-published DeepLabV3-ResNet101 baseline (0.735 / 0.844) at 3.71 M parameters:
-
-> **First full-scale result: SegFormer-B0 matches the production baseline on the
-> canonical test split with ~16× fewer parameters.**
 
 This PR also unblocks the scaffold itself: as committed it could not open the
 dataset at all (see *Findings*).
@@ -60,21 +62,6 @@ output; `pr_body.md` and `CHANGELOG.md` are write-ups. No weights are committed
 
 ## Results
 
-Quick runs, `ign` provider, 5% of the canonical split (254 train / 68 val
-positives), 3 epochs, batch 3, seed 42, RTX 3050 Laptop (4 GB). Identical data,
-seed and hyperparameters for all three models, so the columns are comparable.
-
-| Model | Params (M) | val_mIoU | val_pixelF1 | val_instanceF1 | FPS (512²) | s/epoch |
-|---|---|---|---|---|---|---|
-| **SegFormer-B0** | **3.71** | **0.681** | **0.536** | **0.223** | **51.0** | **78** |
-| DeepLabV3+ (ConvNeXt-Tiny) | 29.31 | 0.563 | 0.233 | 0.055 | 11.1 | 163 |
-| U-Net (ConvNeXt-Tiny) | 31.93 | 0.646 | 0.458 | 0.033 | 6.1 | 187 |
-
-Qualitative previews (input | ground truth | prediction) for all three models
-are in `experiments/results/previews/`. SegFormer over-segments (~2× GT area),
-DeepLabV3+ under-segments (~0.3–0.8×) — visible in both the previews and the
-metrics. Full metrics are in `experiments/results/*.json`.
-
 ### Full run — SegFormer-B0, canonical split
 
 `runs/segformer-full/`: full canonical split (5089 train / 1357 val), 416²,
@@ -100,6 +87,28 @@ per batch whereas `SegMetrics` pools TP/FP/FN over the split (pooled is the
 sounder statistic, but the two are not exactly like-for-like), the released
 segmenter is additionally initialised from Mayer et al. (2022) PV checkpoints
 with cosine annealing and early stopping, and this is one backbone, one seed.
+
+### Architecture ranking — quick runs (not benchmark figures)
+
+These ranked the three backbones before the full run above existed. `ign`
+provider, 5% of the canonical split (254 train / 68 val positives), 3 epochs,
+batch 3, seed 42, RTX 3050 Laptop (4 GB). Identical data, seed and
+hyperparameters for all three models, so the columns are comparable — but 3
+epochs over 254 images only ranks architectures; it is not a benchmark. They were
+run under the scaffold's earlier defaults (512², `selection_metric: val_mIoU`) and
+were deliberately not re-run at 416²/`val_pixelF1`, since that would not move any
+final number.
+
+| Model | Params (M) | val_mIoU | val_pixelF1 | val_instanceF1 | FPS (512²) | s/epoch |
+|---|---|---|---|---|---|---|
+| **SegFormer-B0** | **3.71** | **0.681** | **0.536** | **0.223** | **51.0** | **78** |
+| DeepLabV3+ (ConvNeXt-Tiny) | 29.31 | 0.563 | 0.233 | 0.055 | 11.1 | 163 |
+| U-Net (ConvNeXt-Tiny) | 31.93 | 0.646 | 0.458 | 0.033 | 6.1 | 187 |
+
+Qualitative previews (input | ground truth | prediction) for all three models
+are in `experiments/results/previews/`. SegFormer over-segments (~2× GT area),
+DeepLabV3+ under-segments (~0.3–0.8×) — visible in both the previews and the
+metrics. Full metrics are in `experiments/results/*.json`.
 
 ## Findings worth knowing
 
