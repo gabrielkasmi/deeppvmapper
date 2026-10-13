@@ -1,0 +1,2 @@
+# Prediction previews (input | GT | prediction PNGs) land here per run:
+# experiments/results/previews/<run-name>/*.png

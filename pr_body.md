@@ -1,0 +1,219 @@
+Refs #11
+
+## Summary
+
+Adds the training scaffold and the first real architecture comparison for the
+new candidate segmentation backbones on BDAPPV.
+
+The headline is the first full-scale run: SegFormer-B0 on the **full canonical
+split** (50 epochs, 416², effective batch 32), benchmarked on the held-out
+**test** split at **iouPV 0.7445 / pixelF1 0.8535 (n=1239)** — marginally ahead
+of the published DeepLabV3-ResNet101 baseline (0.735 / 0.844) at 3.71 M
+parameters:
+
+> **First full-scale result: SegFormer-B0 matches the production baseline on the
+> canonical test split with ~16× fewer parameters.**
+
+Before that run existed, quick runs on a 5% subset ranked the three candidates
+and pointed the same way:
+
+> **SegFormer-B0 wins on every metric at ~8× fewer parameters** than the
+> ConvNeXt-Tiny candidates — mIoU 0.681 vs 0.646/0.563, instance F1 0.223 vs
+> 0.033/0.055, and 5–8× faster inference.
+
+This PR also unblocks the scaffold itself: as committed it could not open the
+dataset at all (see *Findings*).
+
+## What's in here
+
+| Path | What it is |
+|---|---|
+| `train.py`, `eval.py` | training / evaluation entry points |
+| `configs/{train,model}.yaml` | run config + model zoo (5 backbones) |
+| `scripts/prepare_bdappv.py` | **new** — materializes the dataset layout the loader expects |
+| `scripts/run_quick.sh`, `scripts/upload_results.sh` | quick-run wrapper, artifact upload |
+| `experiments/README.md`, `experiments/results/` | protocol, metrics JSON, preview PNGs |
+| `requirements-train.txt` | training-only deps, kept separate from the pipeline's |
+
+**Reviewer's guide:** the code changes are `scripts/prepare_bdappv.py`,
+`configs/train.yaml`, `train.py`, `eval.py`, `scripts/run_quick.sh` and
+`requirements-train.txt`. Everything under `experiments/results/` is generated
+output; `pr_body.md` and `CHANGELOG.md` are write-ups. No weights are committed
+— `.gitignore` covers `runs/`, `models/`, `*.pth`, `*.ckpt`, `logs/`.
+
+## Design notes
+
+- **Dataset / provider**: BDAPPV via HF snapshot. Default is `ign` — matches the
+  pipeline's IGN 20 cm imagery and the Etalab 2.0 license; Google imagery
+  carries redistribution restrictions that matter when we later publish weights.
+  Switchable via `configs/train.yaml`.
+- **Split**: the canonical department-based train/val/test split, read from the
+  Parquet shards' `split` column. The dataset card asks not to re-split; a
+  seeded random fallback exists but warns loudly, since it breaks comparability
+  with published results.
+- **Checkpoints** are state-dict + model-spec dicts (no full-model pickles),
+  ready for the loader in #7 to consume via `pretrained_hf_id` (placeholder in
+  `configs/model.yaml`).
+- **Metrics**: mIoU, pixel F1, and instance-level F1 (connected components
+  matched one-to-one at IoU ≥ 0.5). The issue draft mentions `val_buildingF1`;
+  BDAPPV masks are PV-only (no building channel), so this PR reports
+  `val_instanceF1` as the object-level metric — happy to rename if maintainers
+  prefer.
+
+## Results
+
+### Full run — SegFormer-B0, canonical split
+
+`runs/segformer-full/`: full canonical split (5089 train / 1357 val), 416²,
+`batch_size 4 × grad_accum_steps 8` (effective batch 32), AMP fp16, 50 epochs,
+`selection_metric: val_pixelF1`. Best checkpoint = **epoch 47**; the curve
+saturated around epoch 30–35 and then bounced in a 0.81–0.83 `val_pixelF1` band.
+Evaluated on both splits with `eval.py` at `--batch-size 8`:
+
+| Split | n | iouPV | pixelF1 | instanceF1 | mIoU | FPS (416²) |
+|---|---|---|---|---|---|---|
+| val | 1357 | 0.7037 | 0.8261 | 0.8135 | 0.8509 | 20.9 |
+| test | 1239 | **0.7445** | **0.8535** | 0.8549 | 0.8714 | 42.7 |
+
+Against the published baseline (DeepLabV3-ResNet101, `ign`, test: IoU 0.735 /
+F1 0.844, n=1239) this is **at parity on both headline keys** — the same test
+split, the same foreground-only definitions — with 3.71 M parameters versus the
+baseline's ~60 M. One alignment gap remains: the baseline scores at its native
+400², while these numbers come from our 416² eval, so the two are close but not
+resolution-matched. Summaries committed as `experiments/results/segformer-full.json`
+(val) and `segformer-full-test.json` (test), with previews under
+`experiments/results/previews/segformer-full{,-test}/`.
+
+Read that as *promising, not conclusive*: the published figures average IoU/F1
+per batch whereas `SegMetrics` pools TP/FP/FN over the split (pooled is the
+sounder statistic, but the two are not exactly like-for-like), the released
+segmenter is additionally initialised from Mayer et al. (2022) PV checkpoints
+with cosine annealing and early stopping, and this is one backbone, one seed.
+
+### Architecture ranking — quick runs (not benchmark figures)
+
+These ranked the three backbones before the full run above existed. `ign`
+provider, 5% of the canonical split (254 train / 68 val positives), 3 epochs,
+batch 3, seed 42, RTX 3050 Laptop (4 GB). Identical data, seed and
+hyperparameters for all three models, so the columns are comparable — but 3
+epochs over 254 images only ranks architectures; it is not a benchmark. They were
+run under the scaffold's earlier defaults (512², `selection_metric: val_mIoU`) and
+were deliberately not re-run at 416²/`val_pixelF1`, since that would not move any
+final number.
+
+| Model | Params (M) | val_mIoU | val_pixelF1 | val_instanceF1 | FPS (512²) | s/epoch |
+|---|---|---|---|---|---|---|
+| **SegFormer-B0** | **3.71** | **0.681** | **0.536** | **0.223** | **51.0** | **78** |
+| DeepLabV3+ (ConvNeXt-Tiny) | 29.31 | 0.563 | 0.233 | 0.055 | 11.1 | 163 |
+| U-Net (ConvNeXt-Tiny) | 31.93 | 0.646 | 0.458 | 0.033 | 6.1 | 187 |
+
+Qualitative previews (input | ground truth | prediction) for all three models
+are in `experiments/results/previews/`. SegFormer over-segments (~2× GT area),
+DeepLabV3+ under-segments (~0.3–0.8×) — visible in both the previews and the
+metrics. Full metrics are in `experiments/results/*.json`.
+
+## Findings worth knowing
+
+**1. The dataset card and the Hub disagree, and the card is the wrong one.**
+BDAPPV is documented as `img/` + `mask/` + `annotations.csv`. The Hub actually
+serves **Parquet shards with the PNG bytes inline** and no CSV at all, so
+`list_pairs()` raised `FileNotFoundError` and `split_from_annotations()` had
+nothing to read. `scripts/prepare_bdappv.py` extracts the documented layout from
+the shards, taking the canonical department-based split from their `split`
+column (`validation` → `val`). It is idempotent, so it can be re-run as more
+shards arrive.
+
+**2. `val_mIoU` is a poor `selection_metric` for this dataset.** PV installations
+cover only **0.2–0.5% of pixels**, and every model scores `iouBG ≈ 0.994` — so
+mIoU is mostly background, and it can hand `best.pth` to a near-empty
+prediction. DeepLabV3+ is the visible case: its mIoU (0.563) looks far closer to
+U-Net's (0.646) than its pixel F1 (0.233 vs 0.458) does, because it
+under-segments. `pixelF1` / `instanceF1` are the discriminative metrics here.
+
+**3. Batch size is a hardware floor, not a tuned hyperparameter.** Batch 8
+overcommits 4 GB for the ConvNeXt-Tiny decoders — and Windows spills to shared
+memory *silently* rather than raising OOM, so it looks like it worked. Measured
+peaks at 512²: DeepLabV3+ 6250 MiB, U-Net 6336 MiB against ~3306 MiB actually
+free. Batch 4 leaves only 64–112 MiB of headroom, and batch 1 is impossible
+because the decoders' BatchNorm raises on a single sample. Hence 3, held
+constant across models.
+
+## Reproduce
+
+```bash
+# 1. snapshot (ign train + validation, ~4.1 GB) — shards named explicitly,
+#    because `--include` with several patterns is easily misparsed
+hf download gabrielkasmi/bdappv --repo-type dataset --local-dir data/bdappv \
+    ign/train-0000{0..6}-of-00007.parquet \
+    ign/validation-0000{0..1}-of-00002.parquet
+
+# 2. materialize img/ + mask/ + annotations.csv  (-> train 5089 / val 1357)
+python scripts/prepare_bdappv.py --provider ign
+
+# 3. per model: train + evaluate
+python train.py --config configs/train.yaml --model segformer \
+    --subset 0.05 --run-name segformer-mini
+python eval.py --checkpoint runs/segformer-mini/checkpoints/best.pth \
+    --out experiments/results/segformer-mini.json \
+    --previews-dir experiments/results/previews/segformer-mini
+```
+
+`bash scripts/run_quick.sh {segformer,deeplab,unet,all}` wraps step 3 for all
+three models. (On Windows the `bash` on PATH is the WSL launcher, which cannot
+use a Windows venv, and calling MSYS2's `bash.exe` directly leaves `/usr/bin`
+off PATH — `experiments/README.md` documents the working invocation.)
+
+## Scope and caveats
+
+The **quick-run** table is 3 epochs over 254 images: enough to rank
+architectures, **not** to report benchmark numbers, and it is labelled as such
+throughout. Both ConvNeXt-Tiny decoders are still clearly underfit at that
+budget, so the gap between them and SegFormer there is a data/epochs limit at
+least as much as an architectural verdict — I would not conclude from it that
+they are worse backbones. Only SegFormer-B0 has since been taken to the full
+canonical split, so the architecture ranking is still not settled *at
+convergence*.
+
+Even the full run is one backbone, one seed and one epoch budget (50, saturated
+around epoch 35). The test-split comparison against the baseline is encouraging
+but modest — the two evaluation protocols differ (pooled TP/FP/FN here vs
+per-batch mean-of-means there) and no significance testing was done.
+
+## Next steps
+
+- extend DeepLabV3+ and U-Net to full-scale training on the canonical split, so
+  the architecture ranking reflects convergence rather than the quick-run budget,
+- re-report against the baseline once the maintainers' pooled-metric recompute
+  lands, so the comparison is exactly like-for-like,
+- upload final weights + a model card (limitations, intended use, privacy
+  notice) to Hugging Face, now that the licenses are settled (MIT code, CC-BY
+  weights),
+- happy to add a minimal CI workflow (flake8 + `train.py --dry-run` on
+  synthetic data, no dataset download) once the approach is confirmed.
+
+## Maintainer feedback — adopted
+
+@gabrielkasmi answered the original questions on 2026-09-28 (comment above), and
+the full run is the direct result of that guidance:
+
+- **SegFormer-B0 first** for a full-budget run (best metrics at ~8× fewer params;
+  both ConvNeXt-Tiny decoders still underfit at 3 epochs) — done. DeepLabV3+ is
+  the next fair full-budget candidate, being architecturally closest to
+  production.
+- **`pixelF1` / `instanceF1` rather than `mIoU`** — `selection_metric` is now
+  `val_pixelF1`.
+- **Gradient accumulation + AMP** to clear the 4 GB ceiling; production used
+  `batch 4 × accum 8`, and the full run now does exactly that (effective 32, fp16).
+- **Final numbers on `test`, foreground-only `iouPV` / `pixelF1`** — the table
+  above reports val + test, and the baseline line is the test-split comparison.
+- **416² rather than 512²** — now the default (`image_size: 416`); the 512² quick
+  runs are labelled ranking-only.
+- **`ign` stays the default / deployment target**; Google training is fine to
+  explore, but whatever ships is tested on IGN.
+- **MIT** for code, **CC-BY** for weights.
+
+Still open on our side: the baseline bar may move — upstream is recomputing
+0.735 / 0.844 with pooled TP/FP/FN (our approach) rather than mean-of-means — and
+the reference code + checkpoints at
+[`bdappv-models/train`](https://huggingface.co/gabrielkasmi/bdappv-models/tree/main/train)
+have not been pointed at our checkpoint yet.
