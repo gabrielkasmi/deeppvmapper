@@ -10,6 +10,15 @@ the canonical split give a clear early answer:
 > ConvNeXt-Tiny candidates — mIoU 0.681 vs 0.646/0.563, instance F1 0.223 vs
 > 0.033/0.055, and 5–8× faster inference.
 
+The mini runs ranked the architectures but were never meant to be quoted as
+figures. Extending SegFormer-B0 to the **full canonical split** (50 epochs, 416²,
+effective batch 32) and benchmarking it on the held-out **test** split puts it
+at **iouPV 0.7445 / pixelF1 0.8535 (n=1239)** — marginally ahead of the
+published DeepLabV3-ResNet101 baseline (0.735 / 0.844) at 3.71 M parameters:
+
+> **First full-scale result: SegFormer-B0 matches the production baseline on the
+> canonical test split with ~16× fewer parameters.**
+
 This PR also unblocks the scaffold itself: as committed it could not open the
 dataset at all (see *Findings*).
 
@@ -66,6 +75,32 @@ are in `experiments/results/previews/`. SegFormer over-segments (~2× GT area),
 DeepLabV3+ under-segments (~0.3–0.8×) — visible in both the previews and the
 metrics. Full metrics are in `experiments/results/*.json`.
 
+### Full run — SegFormer-B0, canonical split
+
+`runs/segformer-full/`: full canonical split (5089 train / 1357 val), 416²,
+`batch_size 4 × grad_accum_steps 8` (effective batch 32), AMP fp16, 50 epochs,
+`selection_metric: val_pixelF1`. Best checkpoint = **epoch 47**; the curve
+saturated around epoch 30–35 and then bounced in a 0.81–0.83 `val_pixelF1` band.
+Evaluated on both splits with `eval.py` at `--batch-size 8`:
+
+| Split | n | iouPV | pixelF1 | instanceF1 | mIoU | FPS (416²) |
+|---|---|---|---|---|---|---|
+| val | 1357 | 0.7037 | 0.8261 | 0.8135 | 0.8509 | 20.9 |
+| test | 1239 | **0.7445** | **0.8535** | 0.8549 | 0.8714 | 42.7 |
+
+Against the published baseline (DeepLabV3-ResNet101, `ign`, test: IoU 0.735 /
+F1 0.844, n=1239) this is **at parity on both headline keys** — the same test
+split, the same foreground-only definitions — with 3.71 M parameters versus the
+baseline's ~60 M. Summaries committed as `experiments/results/segformer-full.json`
+(val) and `segformer-full-test.json` (test), with previews under
+`experiments/results/previews/segformer-full{,-test}/`.
+
+Read that as *promising, not conclusive*: the published figures average IoU/F1
+per batch whereas `SegMetrics` pools TP/FP/FN over the split (pooled is the
+sounder statistic, but the two are not exactly like-for-like), the released
+segmenter is additionally initialised from Mayer et al. (2022) PV checkpoints
+with cosine annealing and early stopping, and this is one backbone, one seed.
+
 ## Findings worth knowing
 
 **1. The dataset card and the Hub disagree, and the card is the wrong one.**
@@ -119,23 +154,26 @@ off PATH — `experiments/README.md` documents the working invocation.)
 
 ## Scope and caveats
 
-These are deliberately **quick** runs. 3 epochs over 254 images is enough to
-rank architectures, **not** to report benchmark numbers, and they are labelled
-as such throughout. Both ConvNeXt-Tiny decoders are still clearly underfit at
-this budget, so the gap between them and SegFormer here is a data/epochs limit
-at least as much as an architectural verdict — I would not conclude from this
-that they are worse backbones. Full-scale training on the canonical split is the
-next step, and I would re-run with a better `selection_metric` before quoting
-any final figures.
+The **quick-run** table is 3 epochs over 254 images: enough to rank
+architectures, **not** to report benchmark numbers, and it is labelled as such
+throughout. Both ConvNeXt-Tiny decoders are still clearly underfit at that
+budget, so the gap between them and SegFormer there is a data/epochs limit at
+least as much as an architectural verdict — I would not conclude from it that
+they are worse backbones. Only SegFormer-B0 has since been taken to the full
+canonical split, so the architecture ranking is still not settled *at
+convergence*.
+
+Even the full run is one backbone, one seed and one epoch budget (50, saturated
+around epoch 35). The test-split comparison against the baseline is encouraging
+but modest — the two evaluation protocols differ (pooled TP/FP/FN here vs
+per-batch mean-of-means there) and no significance testing was done.
 
 ## Next steps
 
-- switch `selection_metric` off `val_mIoU` (to `val_pixelF1` or
-  `val_instanceF1`) and re-run the three models,
-- full-scale training for the most promising backbone(s) on the canonical
-  department-based split, with an epoch budget large enough that the
-  ConvNeXt-Tiny decoders actually converge,
-- produce final benchmarks vs the Inception/DeepLab baselines on BDAPPV,
+- extend DeepLabV3+ and U-Net to full-scale training on the canonical split, so
+  the architecture ranking reflects convergence rather than the quick-run budget,
+- re-report against the baseline once the maintainers' pooled-metric recompute
+  lands, so the comparison is exactly like-for-like,
 - upload final weights + a model card (limitations, intended use, privacy
   notice) to Hugging Face, pending license confirmation,
 - happy to add a minimal CI workflow (flake8 + `train.py --dry-run` on

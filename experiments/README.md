@@ -158,13 +158,32 @@ amp              : true   # fp16 autocast + GradScaler (CUDA only)
 metrics are not perturbed by fp16 rounding. Accumulation does not change what
 BatchNorm sees — it still normalises over `batch_size` samples per step.
 
+### Full run result (SegFormer-B0, canonical split)
+
+The one full run completed so far — `runs/segformer-full/`, SegFormer-B0 at
+416², full canonical split (5089 train / 1357 val), `batch_size 4 ×
+grad_accum_steps 8` (effective 32), AMP fp16, 50 epochs — selected epoch 47 on
+`val_pixelF1` and was then evaluated on both splits with `eval.py`. Committed
+summaries: [`experiments/results/segformer-full.json`](results/segformer-full.json)
+(val) and [`segformer-full-test.json`](results/segformer-full-test.json) (test).
+
+| Split | n | iouPV | pixelF1 | instanceF1 | mIoU | FPS (416²) |
+|---|---|---|---|---|---|---|
+| val | 1357 | 0.7037 | 0.8261 | 0.8135 | 0.8509 | 20.9 |
+| test | 1239 | 0.7445 | 0.8535 | 0.8549 | 0.8714 | 42.7 |
+
+The curve saturated around epoch 30–35 and then bounced inside a 0.81–0.83
+`val_pixelF1` band; the extra epochs bought nothing. Wall-clock was dominated by
+laptop sleep, not compute (awake epochs ~215 s).
+
 ### Benchmarking against the production baseline
 
 Report on the **test** split (val is for model selection), using the
 foreground-only `iouPV` / `pixelF1` keys — those are what line up with the
 published baseline (DeepLabV3-ResNet101, `ign`: **IoU 0.735 / F1 0.844**,
 n=1239). The test shards (`ign/test-*`, ~0.69 GB) are not part of the quick-run
-download; fetch them and re-run `scripts/prepare_bdappv.py` first.
+download; fetch them and re-run `scripts/prepare_bdappv.py` first (the
+`segformer-full-test.json` numbers above were produced that way).
 
 ```bash
 python eval.py --checkpoint runs/segformer-full/checkpoints/best.pth \
@@ -173,14 +192,17 @@ python eval.py --checkpoint runs/segformer-full/checkpoints/best.pth \
     --previews-dir experiments/results/previews/segformer-full-test
 ```
 
-Two caveats on comparability with that baseline. The published figures come
-from `train/evaluate.py`, which averages per-batch IoU/F1 ratios, whereas
-`SegMetrics` pools TP/FP/FN across the whole split and computes each ratio once
-— the pooled form is the statistically sounder one, and the maintainers are
-recomputing the baseline rather than this scaffold adopting mean-of-means. And
-the released segmenter is initialised from Mayer et al. (2022) PV checkpoints,
-with cosine annealing, `weight_decay 1e-4` and early stopping on val, none of
-which this scaffold does yet.
+On that split SegFormer-B0 lands **marginally ahead of the baseline** — iouPV
+0.7445 / pixelF1 0.8535 against 0.735 / 0.844 — at 3.71 M parameters. Read that
+as promising rather than conclusive; two caveats on comparability. The published
+figures come from `train/evaluate.py`, which averages per-batch IoU/F1 ratios,
+whereas `SegMetrics` pools TP/FP/FN across the whole split and computes each
+ratio once — the pooled form is the statistically sounder one, and the
+maintainers are recomputing the baseline rather than this scaffold adopting
+mean-of-means. And the released segmenter is initialised from Mayer et al.
+(2022) PV checkpoints, with cosine annealing, `weight_decay 1e-4` and early
+stopping on val, none of which this scaffold does yet. One backbone, one seed,
+no significance testing.
 
 ## Protocol notes
 

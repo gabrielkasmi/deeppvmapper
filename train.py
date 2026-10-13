@@ -68,6 +68,14 @@ def parse_args():
                         help='fraction of each split to use, e.g. 0.05')
     parser.add_argument('--epochs', type=int, default=None,
                         help='number of training epochs (default: config value)')
+    parser.add_argument('--batch-size', type=int, default=None,
+                        help='micro-batch size (default: config value)')
+    parser.add_argument('--grad-accum-steps', type=int, default=None,
+                        help='gradient accumulation steps; effective batch = '
+                             'batch_size * grad_accum_steps (default: config value)')
+    parser.add_argument('--amp', action='store_true', default=None,
+                        help='fp16 autocast + GradScaler for the training step '
+                             '(CUDA only; default: config value)')
     parser.add_argument('--device', default=None,
                         help='cuda | cpu (default: config value, CPU fallback)')
     parser.add_argument('--seed', type=int, default=None,
@@ -210,6 +218,12 @@ def main():
         cfg['subset'] = args.subset
     if args.epochs is not None:
         cfg['epochs'] = args.epochs
+    if args.batch_size is not None:
+        cfg['batch_size'] = args.batch_size
+    if args.grad_accum_steps is not None:
+        cfg['grad_accum_steps'] = args.grad_accum_steps
+    if args.amp is not None:
+        cfg['amp'] = args.amp
     cfg['dry_run'] = args.dry_run
 
     model_name = args.model or cfg.get('model') or 'segformer'

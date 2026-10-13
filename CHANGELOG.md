@@ -18,6 +18,14 @@ All notable changes to this project will be documented in this file.
 - First real quick-run results (`experiments/results/*.json` + previews) for
   SegFormer-B0, DeepLabV3+ (ConvNeXt-Tiny) and U-Net (ConvNeXt-Tiny), replacing
   the placeholder results table in the PR body.
+- Full-run result for SegFormer-B0 on the canonical split
+  (`experiments/results/segformer-full.json` + `segformer-full-test.json` and
+  previews): val pixelF1 0.8261, test iouPV 0.7445 / pixelF1 0.8535 — at parity
+  with the published DeepLabV3-ResNet101 baseline (0.735 / 0.844) at 3.71 M
+  parameters.
+- `train.py`: `--batch-size`, `--grad-accum-steps` and `--amp` CLI overrides, so
+  the micro-batch, accumulation window and mixed-precision setting can be set
+  per run without editing `configs/train.yaml`.
 
 ### Changed
 - `configs/train.yaml`: `batch_size` 8 → 3. Batch 8 overcommits 4 GB of VRAM for
@@ -33,6 +41,14 @@ All notable changes to this project will be documented in this file.
   the corrected download sizes (~4.1 GB for ign train + validation, not the
   ~2.5 GB previously stated), the VRAM/batch-size constraint, and how to invoke
   `run_quick.sh` on Windows.
+- `configs/train.yaml`: `image_size` default 512 → 416 (the smallest multiple of
+  32 that covers BDAPPV's native 400 px), and `selection_metric` `val_mIoU` →
+  `val_pixelF1` — PV covers only 0.2–0.5% of pixels, so mIoU is dominated by
+  background and can award `best.pth` to a near-empty prediction.
+- `train.py` training step gained AMP (fp16 autocast + `GradScaler`, CUDA only)
+  and gradient accumulation (`grad_accum_steps`): the production effective batch
+  of 32 becomes 4 × 8 inside 4 GB of VRAM, without raising the hardware-bound
+  micro-batch.
 
 ## [1.0] - 2026-06-17
 
