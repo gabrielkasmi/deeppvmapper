@@ -1712,3 +1712,17 @@ a.hub-card:hover {
     background: rgba(255, 255, 255, 0.92);
     color: #2c3e50;
 }
+
+/* Language suggestion banner (static/js/lang-pref.js) */
+.lang-banner {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    z-index: 2000; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px;
+    max-width: calc(100% - 32px); padding: 12px 16px;
+    background: #fff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); font-size: 0.95rem;
+}
+.lang-banner .lang-banner-go { padding: 6px 14px; font-size: 0.9rem; cursor: pointer; }
+.lang-banner .lang-banner-stay {
+    background: none; border: 0; padding: 6px 4px; color: inherit; font: inherit; font-size: 0.9rem;
+    text-decoration: underline; cursor: pointer;
+}

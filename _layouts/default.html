@@ -48,6 +48,7 @@
     <link rel="alternate" hreflang="x-default" href="{{ site.canonical_host }}/{{ _en_path | remove: 'index.html' }}">
 {%- endif %}
 
+    <script>try{var _p=localStorage.getItem('dpm_pref');if((_p==='fr'||_p==='en')&&_p!=='{{ _lang }}'{% if _alt_fallback %}&&false{% endif %}){location.replace(_p==='fr'?'{{ root }}{{ _fr_path }}'+location.search+location.hash:'{{ root }}{{ _en_path }}'+location.search+location.hash)}}catch(e){}</script>
     <link rel="icon" type="image/x-icon" href="{{ root }}static/images/favicon.ico">
     <link rel="stylesheet" href="{{ root }}static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -70,8 +71,9 @@
     {% include {{ page.before_scripts_include }} %}
     {%- endif %}
 
-    <script>try{localStorage.setItem('dpm_lang','{{ _lang }}')}catch(e){}</script>
+    <script>window.DPVM_LANG={noAlt:{% if _alt_fallback %}true{% else %}false{% endif %}};try{var _q=localStorage.getItem('dpm_pref');localStorage.setItem('dpm_lang',(_q==='fr'||_q==='en')?_q:'{{ _lang }}')}catch(e){}</script>
     <script src="{{ root }}static/js/script.js"></script>
+    <script src="{{ root }}static/js/lang-pref.js"></script>
     {%- if page.scripts_include %}
     {% include {{ page.scripts_include }} %}
     {%- endif %}

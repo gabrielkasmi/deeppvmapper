@@ -542,10 +542,10 @@
     var param = null;
     try { param = new win.URLSearchParams(win.location.search).get('lang'); } catch (e) {}
     var stored = null, ok = true;
-    try { stored = win.localStorage.getItem(KEY); } catch (e) { ok = false; }
+    try { stored = win.localStorage.getItem('dpm_pref') || win.localStorage.getItem(KEY); } catch (e) { ok = false; }
     var lang = (param === 'fr' || param === 'en') ? param : (stored === 'fr' || stored === 'en') ? stored : def;
     if (param === 'fr' || param === 'en') {
-      try { win.localStorage.setItem(KEY, param); } catch (e) { ok = false; }
+      try { win.localStorage.setItem(KEY, param); win.localStorage.setItem('dpm_pref', param); } catch (e) { ok = false; }
       try {  // drop ?lang= from the address bar
         var p = new win.URLSearchParams(win.location.search); p.delete('lang');
         var q = p.toString();
@@ -594,5 +594,15 @@
 
   root.DPVMLang = { trString: trString, kindOf: kindOf, translateDocument: translateDocument, frenchify: frenchify,
                     restoreEnglish: restoreEnglish, run: run };
-  if (root.document && !root.__DPVM_LANG_NO_AUTORUN) run(root);
+  if (root.document && !root.__DPVM_LANG_NO_AUTORUN) {
+    run(root);
+    try {   // language preference + suggestion banner (lang-pref.js sits next to this script)
+      var me = root.document.querySelector('script[src*="page-lang.js"]');
+      if (me) {
+        var sc = root.document.createElement('script');
+        sc.src = me.getAttribute('src').replace('page-lang.js', 'lang-pref.js');
+        root.document.body.appendChild(sc);
+      }
+    } catch (e) {}
+  }
 })(typeof window !== 'undefined' ? window : this);
