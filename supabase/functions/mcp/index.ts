@@ -4,7 +4,7 @@
 // at the repo root) as MCP tools, so an LLM/agent can query real French
 // rooftop-solar detection data instead of guessing.
 //
-// See DEPLOY.md in this folder for local testing and deployment steps.
+// Deployed as a Supabase Edge Function; the MCP endpoint is /functions/v1/mcp/mcp.
 
 import { McpServer, StreamableHttpTransport } from 'mcp-lite'
 import { z } from 'zod'
@@ -25,7 +25,125 @@ const DATA_QUALITY_NOTE =
   'Data quality note: this is a detection dataset, not an exhaustive inventory ' +
   '(estimated recall ~0.6). A missing detection does not mean no PV installation ' +
   'exists there. kwp, surface, tilt and azimuth are model estimates, not surveyed values. ' +
+  'In this server, quality_filter=true keeps only detections identified by 2 or more ' +
+  'sources (see source_encoding in get_data_quality_reference). ' +
   'Call get_data_quality_reference for the full picture before assessing fitness for a specific use case.'
+
+// Source catalog for the `sources` field (DATA_ACCESS.md §11).
+// `sources` answers "where do we have this installation?": each listed code is a dataset/process
+// that contains it. Example: "0,1" = present in both DeepPVMapper and FRPV.
+// Users ask by NAME, so every source has a key, a name and aliases that resolve to its code.
+const SOURCES_MEANING =
+  'The `sources` field answers "where do we have this installation?": each listed code is a ' +
+  'dataset or process that contains it. Example: "0,1" = present in both DeepPVMapper (DPVM) and ' +
+  'FRPV; "0,2" = present in DeepPVMapper and OpenStreetMap.'
+
+const SOURCE_CATALOG = [
+  {
+    code: '0',
+    key: 'dpvm',
+    name: 'DeepPVMapper (DPVM)',
+    aliases: ['dpvm', 'deeppvmapper', 'deep pv mapper', 'kasmi', 'kasmi et al', 'kasmi et al.', 'pipeline'],
+    origin:
+      'Detections produced by the DeepPVMapper aerial-imagery pipeline (Kasmi et al.), run on the ' +
+      'latest IGN imagery available at the time of the registry release (July 2026 for the current ' +
+      'release; this will change with future releases). Source code: ' +
+      'https://github.com/gabrielkasmi/deeppvmapper — PhD thesis: https://theses.fr/2024UPSLM027',
+  },
+  {
+    code: '1',
+    key: 'frpv',
+    name: 'FRPV reference dataset (Thébault et al.)',
+    aliases: [
+      'frpv',
+      'thebault',
+      'thébault',
+      'thebault et al',
+      'thebault et al.',
+      'thebaud',
+      'thebaud et al',
+      'applied energy',
+      'comprehensive building-wise rooftop photovoltaic system detection',
+    ],
+    origin:
+      'Building-wise rooftop PV detections from Thébault et al. (2025), "A comprehensive ' +
+      'building-wise rooftop photovoltaic system detection in heterogeneous urban and rural areas: ' +
+      'application to French territories", Applied Energy 388, 125630. ' +
+      'https://www.sciencedirect.com/science/article/pii/S0306261925003605 (the publisher page may ' +
+      'sit behind a human check).',
+  },
+  {
+    code: '2',
+    key: 'osm',
+    name: 'OpenStreetMap (OSM)',
+    aliases: ['osm', 'openstreetmap', 'open street map'],
+    origin:
+      'PV installations mapped in OpenStreetMap, taken from the latest OSM data available at the ' +
+      'time of the registry release (July 2026 for the current release; this will change with ' +
+      'future releases).',
+  },
+  {
+    code: '3',
+    key: 'manual',
+    name: 'Manual correction',
+    aliases: [
+      'manual',
+      'manual correction',
+      'manual corrections',
+      'correction',
+      'manual validation',
+      'precision sample',
+      'precision samples',
+      'annotation',
+      'annotations',
+      'annotator',
+      'annotators',
+    ],
+    origin:
+      'Manually validated samples (the precision samples) built when constructing the validation set ' +
+      'of the DeepPVMapper evaluation paper (https://arxiv.org/abs/2609.16294). In future this ' +
+      'source will also include contributions from annotators submitted through the map annotation tools.',
+  },
+  {
+    code: '4',
+    key: 'recall_sample',
+    name: 'Recall sample',
+    aliases: ['recall', 'recall sample', 'recall samples', 'recall annotation', 'recall_sample'],
+    origin:
+      'Manually validated recall samples built when constructing the validation set of the same ' +
+      'paper (https://arxiv.org/abs/2609.16294): installations recovered during a targeted ' +
+      'recall-annotation pass.',
+  },
+]
+
+const SOURCE_LABELS: Record<string, string> = Object.fromEntries(
+  SOURCE_CATALOG.map((s) => [s.code, `${s.name} [${s.key}]`]),
+)
+
+// Accepts a code (0-4, number or string) or a name/key/alias, case-insensitively.
+function resolveSource(input: number | string) {
+  const norm = String(input).trim().toLowerCase()
+  const hit = SOURCE_CATALOG.find(
+    (s) =>
+      s.code === norm ||
+      s.key === norm ||
+      s.name.toLowerCase() === norm ||
+      s.aliases.some((a) => a.toLowerCase() === norm),
+  )
+  if (!hit) {
+    const valid = SOURCE_CATALOG.map((s) => `${s.key} (${s.code})`).join(', ')
+    throw new Error(`Unknown source "${input}". Valid sources: ${valid}. Call get_source_reference for aliases.`)
+  }
+  return hit
+}
+
+function decodeSources(sources: unknown) {
+  if (typeof sources !== 'string' || sources.length === 0) return []
+  return sources.split(',').map((c) => {
+    const s = SOURCE_CATALOG.find((x) => x.code === c.trim())
+    return { code: c.trim(), key: s?.key ?? null, name: s?.name ?? 'unknown source code', origin: s?.origin ?? null }
+  })
+}
 
 async function callRest(path: string, params: [string, string][]) {
   const url = new URL(`${API_URL}/rest/v1/${path}`)
@@ -124,7 +242,7 @@ function computeQualitySummary(rows: QualityRow[]) {
 
 const mcp = new McpServer({
   name: 'deeppvmapper',
-  version: '0.1.0',
+  version: '0.2.0',
   schemaAdapter: (schema) => z.toJSONSchema(schema as z.ZodType),
 })
 
@@ -157,21 +275,22 @@ mcp.tool('get_data_quality_reference', {
         'rnb_id',
       ],
       recommended_quality_threshold: { field: 'frpv_proba', operator: '>=', value: 0.1 },
+      quality_filter_in_this_server:
+        'quality_filter=true keeps only detections identified by 2 or more sources (sources ' +
+        'lists at least two codes). It is separate from the contract-recommended frpv_proba >= 0.1 ' +
+        'threshold, available as min_frpv_proba.',
       confidence_signals: {
         cross_validated:
           'sources field lists 2+ distinct source codes (see source_encoding) — detection ' +
-          'confirmed by independent methods, not just the automated pipeline alone.',
+          'present in more than one source, not just the automated pipeline alone.',
         persistent:
           'n_vintages >= 2 — detected independently across multiple years of imagery, reducing ' +
           'the chance of a one-off artifact.',
       },
-      source_encoding: {
-        '0': 'DPVM — DeepPVMapper aerial-imagery detection pipeline',
-        '1': 'FRPV — match against the FRPV reference dataset',
-        '2': 'OSM — OpenStreetMap contribution',
-        '3': 'Manual correction — submitted through map annotation tools',
-        '4': 'Recall sample — recovered during a targeted recall-annotation pass',
-      },
+      sources_meaning: SOURCES_MEANING,
+      source_encoding: Object.fromEntries(
+        SOURCE_CATALOG.map((s) => [s.code, `${s.name} [${s.key}] — ${s.origin}`]),
+      ),
       license: 'CC BY 4.0 (data), MIT (code) — commercial use permitted with attribution.',
       suitable_for: [
         'Exploratory research and academic analysis',
@@ -271,19 +390,84 @@ const DetectionFilterFields = {
   cross_validated: z
     .boolean()
     .optional()
-    .describe(
-      'If true, only include detections confirmed by at least two independent sources (e.g. the ' +
-        'automated DeepPVMapper pipeline plus OpenStreetMap or the FRPV reference dataset), not just ' +
-        'a single pipeline. This is a stronger confidence signal than min_vintages.',
-    ),
+    .describe('Alias of quality_filter, kept for backward compatibility.'),
   quality_filter: z
     .boolean()
     .optional()
-    .default(true)
+    .default(false)
     .describe(
-      'If true (default), only include detections with frpv_proba >= 0.1, the threshold ' +
-        'recommended in the data contract for a good precision/recall trade-off.',
+      'If true, only include detections identified by 2 OR MORE sources' +
+        '(the `sources` field lists at least two codes, e.g. "0,1" = DeepPVMapper pipeline + FRPV ' +
+        'reference, "0,2" = pipeline + OpenStreetMap). Default false: all detections are included, ' +
+        'including those found by a single source (typically the automated pipeline alone).',
     ),
+  sources_include: z
+    .array(z.union([z.number().int().min(0).max(4), z.string()]))
+    .optional()
+    .describe(
+      'Only include detections present in ALL of these sources. Accepts names or codes, ' +
+        'case-insensitive: dpvm/deeppvmapper/kasmi (0), frpv/thebault (1), osm/openstreetmap (2), ' +
+        'manual/annotation (3), recall (4). Examples: ["osm"] = detections that are in ' +
+        'OpenStreetMap; ["dpvm","frpv"] = present in both DeepPVMapper and FRPV. ' +
+        'See get_source_reference for what each source is and where it comes from.',
+    ),
+  min_frpv_proba: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe(
+      'Minimum frpv_proba. The data contract recommends 0.1 as a precision/recall trade-off. ' +
+        'Note: detections with a null frpv_proba (no FRPV comparison available) are excluded when ' +
+        'this is set; null does not mean probability 0.',
+    ),
+  has_rnb_id: z
+    .boolean()
+    .optional()
+    .describe(
+      'true = only detections matched to an RNB building identifier (rnb_id not null); ' +
+        'false = only detections without one.',
+    ),
+  has_frpv_proba: z
+    .boolean()
+    .optional()
+    .describe(
+      'true = only detections that have an FRPV comparison (frpv_proba not null); false = only ' +
+        'those without one. A null frpv_proba means "no comparison available", not probability 0.',
+    ),
+  false_positive_status: z
+    .enum(['flagged', 'not_flagged', 'unrecorded'])
+    .optional()
+    .describe(
+      'flagged = false_positive is true; not_flagged = false_positive is false; unrecorded = ' +
+        'false_positive is null (no status recorded — NOT a confirmed true positive).',
+    ),
+  min_surface: z.number().optional().describe('Minimum estimated PV array area, in m².'),
+  max_surface: z.number().optional().describe('Maximum estimated PV array area, in m².'),
+  min_tilt: z.number().optional().describe('Minimum estimated tilt from horizontal, in degrees.'),
+  max_tilt: z.number().optional().describe('Maximum estimated tilt from horizontal, in degrees.'),
+  min_azimuth: z
+    .number()
+    .optional()
+    .describe('Minimum estimated azimuth, degrees clockwise from true north (180 = south).'),
+  max_azimuth: z
+    .number()
+    .optional()
+    .describe('Maximum estimated azimuth, degrees clockwise from true north (180 = south).'),
+  min_first_seen: z
+    .number()
+    .int()
+    .optional()
+    .describe('Earliest imagery year of first detection, lower bound (e.g. 2018). Not an installation date.'),
+  max_first_seen: z.number().int().optional().describe('Upper bound on first_seen imagery year.'),
+  min_last_seen: z.number().int().optional().describe('Lower bound on last_seen imagery year.'),
+  max_last_seen: z.number().int().optional().describe('Upper bound on last_seen imagery year.'),
+  max_vintages: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe('Maximum number of imagery vintages (e.g. 1 = seen in a single year only).'),
 }
 
 function buildDetectionFilterParams(args: {
@@ -294,6 +478,22 @@ function buildDetectionFilterParams(args: {
   min_vintages?: number
   cross_validated?: boolean
   quality_filter?: boolean
+  sources_include?: Array<number | string>
+  min_frpv_proba?: number
+  has_rnb_id?: boolean
+  has_frpv_proba?: boolean
+  false_positive_status?: 'flagged' | 'not_flagged' | 'unrecorded'
+  min_surface?: number
+  max_surface?: number
+  min_tilt?: number
+  max_tilt?: number
+  min_azimuth?: number
+  max_azimuth?: number
+  min_first_seen?: number
+  max_first_seen?: number
+  min_last_seen?: number
+  max_last_seen?: number
+  max_vintages?: number
 }): [string, string][] {
   const params: [string, string][] = []
   if (args.dpt) params.push(['dpt', `eq.${args.dpt}`])
@@ -303,8 +503,31 @@ function buildDetectionFilterParams(args: {
   if (args.min_vintages !== undefined) params.push(['n_vintages', `gte.${args.min_vintages}`])
   // sources is a comma-separated list of source codes (see DATA_ACCESS.md §11), e.g. "0,1".
   // A comma in the string means at least two distinct sources are listed.
-  if (args.cross_validated) params.push(['sources', 'like.*,*'])
-  if (args.quality_filter) params.push(['frpv_proba', 'gte.0.1'])
+  if (args.quality_filter || args.cross_validated) params.push(['sources', 'like.*,*'])
+  // Repeated keys are ANDed by PostgREST: every listed code must appear in `sources`.
+  for (const s of args.sources_include ?? []) params.push(['sources', `like.*${resolveSource(s).code}*`])
+  if (args.min_frpv_proba !== undefined) params.push(['frpv_proba', `gte.${args.min_frpv_proba}`])
+  if (args.has_rnb_id === true) params.push(['rnb_id', 'not.is.null'])
+  if (args.has_rnb_id === false) params.push(['rnb_id', 'is.null'])
+  if (args.has_frpv_proba === true) params.push(['frpv_proba', 'not.is.null'])
+  if (args.has_frpv_proba === false) params.push(['frpv_proba', 'is.null'])
+  if (args.false_positive_status === 'flagged') params.push(['false_positive', 'eq.true'])
+  if (args.false_positive_status === 'not_flagged') params.push(['false_positive', 'eq.false'])
+  if (args.false_positive_status === 'unrecorded') params.push(['false_positive', 'is.null'])
+  const ranges: Array<[string, string, number | undefined]> = [
+    ['surface', 'gte', args.min_surface],
+    ['surface', 'lte', args.max_surface],
+    ['tilt', 'gte', args.min_tilt],
+    ['tilt', 'lte', args.max_tilt],
+    ['azimuth', 'gte', args.min_azimuth],
+    ['azimuth', 'lte', args.max_azimuth],
+    ['first_seen', 'gte', args.min_first_seen],
+    ['first_seen', 'lte', args.max_first_seen],
+    ['last_seen', 'gte', args.min_last_seen],
+    ['last_seen', 'lte', args.max_last_seen],
+    ['n_vintages', 'lte', args.max_vintages],
+  ]
+  for (const [col, op, v] of ranges) if (v !== undefined) params.push([col, `${op}.${v}`])
   return params
 }
 
@@ -332,7 +555,7 @@ mcp.tool('search_detections', {
       const params: [string, string][] = [
         [
           'select',
-          'id,surface,kwp,tilt,azimuth,first_seen,last_seen,n_vintages,sources,frpv_proba,dpt,insee',
+          'id,surface,kwp,tilt,azimuth,first_seen,last_seen,n_vintages,sources,frpv_proba,dpt,insee,rnb_id',
         ],
         ['limit', String(args.limit)],
         ...buildDetectionFilterParams(args),
@@ -625,11 +848,477 @@ mcp.tool('get_community_activity_in_area', {
   },
 })
 
+// --- Counting helpers & overview tools --------------------------------------
+
+// Exact match count via PostgREST `Prefer: count=exact`, fetching a single row only.
+async function countDetections(filters: [string, string][]): Promise<number | null> {
+  const { totalCount } = await callRestWithCount('detections', [['select', 'id'], ...filters], 0)
+  return totalCount
+}
+
+function pct(part: number | null, whole: number | null): number | null {
+  if (part === null || whole === null || whole === 0) return null
+  return Math.round((part / whole) * 1000) / 10
+}
+
+type FilterArgs = Parameters<typeof buildDetectionFilterParams>[0]
+
+const CountSchema = z.object({
+  ...DetectionFilterFields,
+  breakdown_rnb_id: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'If true, also return how many of the matching detections do / do not have an rnb_id ' +
+        '(ignores has_rnb_id for this breakdown).',
+    ),
+})
+
+mcp.tool('count_detections', {
+  description:
+    'Count detections matching a set of filters, exactly, without downloading rows (fast, no row ' +
+    'cap). Use this for "how many ..." questions, e.g. "how many installations have an RNB id?" ' +
+    '-> has_rnb_id=true; "how many are identified by 2+ sources?" -> quality_filter=true; ' +
+    '"how many come from OpenStreetMap?" -> sources_include=[2]. Returns the matching count, the ' +
+    'unfiltered registry total and the percentage. Counts are DETECTED systems, not an inventory. ' +
+    DATA_QUALITY_NOTE,
+  inputSchema: CountSchema,
+  handler: async (args: z.infer<typeof CountSchema>) => {
+    try {
+      const filters = buildDetectionFilterParams(args as FilterArgs)
+      const { has_rnb_id: _ignored, ...withoutRnb } = args as FilterArgs & { breakdown_rnb_id?: boolean }
+      const baseFilters = buildDetectionFilterParams(withoutRnb as FilterArgs)
+      const [matched, registryTotal, withRnb, withoutRnbCount] = await Promise.all([
+        countDetections(filters),
+        countDetections([]),
+        args.breakdown_rnb_id ? countDetections([...baseFilters, ['rnb_id', 'not.is.null']]) : null,
+        args.breakdown_rnb_id ? countDetections([...baseFilters, ['rnb_id', 'is.null']]) : null,
+      ])
+      return textContent({
+        matched_count: matched,
+        registry_total_count: registryTotal,
+        pct_of_registry: pct(matched, registryTotal),
+        ...(args.breakdown_rnb_id
+          ? {
+              rnb_id_breakdown: {
+                with_rnb_id: withRnb,
+                without_rnb_id: withoutRnbCount,
+                pct_with_rnb_id: pct(withRnb, (withRnb ?? 0) + (withoutRnbCount ?? 0)),
+              },
+            }
+          : {}),
+        filters_applied: filters.map(([k, v]) => `${k}=${v}`),
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+const SourceBreakdownSchema = z.object({
+  dpt: z.string().optional().describe('French département code, e.g. "33". Omit for all of France.'),
+})
+
+mcp.tool('get_source_breakdown', {
+  description:
+    'Break down detections by source code (0=DPVM pipeline, 1=FRPV reference, 2=OSM, 3=manual ' +
+    'correction, 4=recall sample), for one département or all of France, with human-readable ' +
+    'labels. A detection can carry several sources, so per-source counts overlap and do not add ' +
+    'up to the total. Also returns how many detections are identified by 2+ sources (the ' +
+    'meaning of quality_filter). ' + DATA_QUALITY_NOTE,
+  inputSchema: SourceBreakdownSchema,
+  handler: async (args: z.infer<typeof SourceBreakdownSchema>) => {
+    try {
+      const base: [string, string][] = args.dpt ? [['dpt', `eq.${args.dpt}`]] : []
+      const codes = Object.keys(SOURCE_LABELS)
+      const [total, multi, ...perSource] = await Promise.all([
+        countDetections(base),
+        countDetections([...base, ['sources', 'like.*,*']]),
+        ...codes.map((c) => countDetections([...base, ['sources', `like.*${c}*`]])),
+      ])
+      return textContent({
+        scope: args.dpt ? `département ${args.dpt}` : 'France (all départements)',
+        total_detections: total,
+        identified_by_2plus_sources: { count: multi, pct: pct(multi, total) },
+        by_source: codes.map((c, i) => ({
+          code: c,
+          label: SOURCE_LABELS[c],
+          count: perSource[i],
+          pct_of_total: pct(perSource[i], total),
+        })),
+        note: 'Per-source counts overlap: a detection with sources "0,1" is counted under both 0 and 1.',
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+const DetectionDetailsSchema = z.object({
+  id: z.number().int().describe('Registry identifier of the detection (the `id` field).'),
+})
+
+mcp.tool('get_detection_details', {
+  description:
+    'Get the full record of one detection by id: technical characteristics (surface, kwp, tilt, ' +
+    'azimuth — model estimates), imagery years, sources decoded into plain labels, frpv_proba, ' +
+    'false-positive flag, rnb_id and location codes, plus simple confidence signals. ' + DATA_QUALITY_NOTE,
+  inputSchema: DetectionDetailsSchema,
+  handler: async (args: z.infer<typeof DetectionDetailsSchema>) => {
+    try {
+      const rows = (await callRest('detections', [
+        [
+          'select',
+          'id,surface,kwp,tilt,azimuth,first_seen,last_seen,n_vintages,sources,frpv_proba,' +
+            'false_positive,false_positive_source,insee,dpt,rnb_id',
+        ],
+        ['id', `eq.${args.id}`],
+        ['limit', '1'],
+      ])) as Array<Record<string, unknown>>
+      if (rows.length === 0) return textContent({ found: false, id: args.id })
+      const r = rows[0]
+      const decoded = decodeSources(r.sources)
+      return textContent({
+        found: true,
+        ...r,
+        sources_decoded: decoded,
+        confidence_signals: {
+          n_sources: decoded.length,
+          identified_by_2plus_sources: decoded.length >= 2,
+          detected_in_2plus_vintages: typeof r.n_vintages === 'number' && r.n_vintages >= 2,
+          has_rnb_id: r.rnb_id !== null && r.rnb_id !== undefined,
+          flagged_false_positive: r.false_positive === true,
+        },
+        note: 'kwp, surface, tilt, azimuth and frpv_proba are model estimates. A null false_positive is not a confirmation.',
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+const DepartmentProfileSchema = z.object({
+  dpt: z.string().describe('French département code, e.g. "33".'),
+})
+
+mcp.tool('get_department_profile', {
+  description:
+    'One-call profile of a département: installed capacity and national rank, yearly trend ' +
+    '(by first-seen imagery year), source mix, share identified by 2+ sources, and share matched ' +
+    'to an RNB building id. Cross-references the pre-computed department statistics with live ' +
+    'counts. ' + DATA_QUALITY_NOTE,
+  inputSchema: DepartmentProfileSchema,
+  handler: async (args: z.infer<typeof DepartmentProfileSchema>) => {
+    try {
+      const base: [string, string][] = [['dpt', `eq.${args.dpt}`]]
+      const codes = Object.keys(SOURCE_LABELS)
+      const [capacity, yearly, total, multi, withRnb, ...perSource] = await Promise.all([
+        callRpc('dept_capacity_stats', {}) as Promise<Array<Record<string, unknown>>>,
+        callRpc('dept_yearly_stats', {}) as Promise<Array<Record<string, unknown>>>,
+        countDetections(base),
+        countDetections([...base, ['sources', 'like.*,*']]),
+        countDetections([...base, ['rnb_id', 'not.is.null']]),
+        ...codes.map((c) => countDetections([...base, ['sources', `like.*${c}*`]])),
+      ])
+      return textContent({
+        dpt: args.dpt,
+        capacity_and_rank: capacity.find((r) => r.dpt === args.dpt) ?? null,
+        yearly_stats: yearly.filter((r) => r.dpt === args.dpt),
+        live_counts: {
+          total_detections: total,
+          identified_by_2plus_sources: { count: multi, pct: pct(multi, total) },
+          with_rnb_id: { count: withRnb, pct: pct(withRnb, total) },
+          by_source: codes.map((c, i) => ({
+            code: c,
+            label: SOURCE_LABELS[c],
+            count: perSource[i],
+            pct_of_total: pct(perSource[i], total),
+          })),
+        },
+        note: 'Yearly figures reflect first-seen imagery year, not commissioning date. Per-source counts overlap.',
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+const FieldCoverageSchema = z.object({
+  dpt: z.string().optional().describe('French département code. Omit for all of France.'),
+})
+
+mcp.tool('get_field_coverage', {
+  description:
+    'Completeness report: for each optional field of the registry (rnb_id, frpv_proba, ' +
+    'false_positive, false_positive_source), how many detections have it filled in and what ' +
+    'percentage. Answers "how many installations have an RNB id / an FRPV comparison / a ' +
+    'false-positive flag?" in one call, for France or one département. For a single filtered count ' +
+    'use count_detections instead. Null means "not available/recorded", never "0" or "confirmed ok". ' +
+    DATA_QUALITY_NOTE,
+  inputSchema: FieldCoverageSchema,
+  handler: async (args: z.infer<typeof FieldCoverageSchema>) => {
+    try {
+      const base: [string, string][] = args.dpt ? [['dpt', `eq.${args.dpt}`]] : []
+      const nn = (f: string): [string, string][] => [...base, [f, 'not.is.null']]
+      const [total, rnb, frpv, fp, fpSrc, fpTrue] = await Promise.all([
+        countDetections(base),
+        countDetections(nn('rnb_id')),
+        countDetections(nn('frpv_proba')),
+        countDetections(nn('false_positive')),
+        countDetections(nn('false_positive_source')),
+        countDetections([...base, ['false_positive', 'eq.true']]),
+      ])
+      const row = (field: string, n: number | null, meaning: string) => ({
+        field,
+        filled: n,
+        missing: n === null || total === null ? null : total - n,
+        pct_filled: pct(n, total),
+        meaning,
+      })
+      return textContent({
+        scope: args.dpt ? `département ${args.dpt}` : 'France (all départements)',
+        total_detections: total,
+        fields: [
+          row('rnb_id', rnb, 'Matched to a building in the national building repository (RNB).'),
+          row('frpv_proba', frpv, 'An FRPV reference comparison was available (null = none, not probability 0).'),
+          row('false_positive', fp, 'A false-positive status is recorded (null = nothing recorded, not "confirmed true").'),
+          row('false_positive_source', fpSrc, 'The origin of the false-positive flag is recorded.'),
+        ],
+        flagged_false_positive: { count: fpTrue, pct: pct(fpTrue, total) },
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+const DEFAULT_BINS: Record<string, number[]> = {
+  kwp: [0, 3, 6, 9, 36, 100, 250, 1000],
+  surface: [0, 20, 40, 60, 100, 250, 1000],
+  tilt: [0, 10, 20, 30, 40, 50, 90],
+  azimuth: [0, 45, 90, 135, 180, 225, 270, 315, 360],
+  n_vintages: [1, 2, 3, 4, 5],
+  first_seen: [],
+  last_seen: [],
+}
+
+const FieldDistributionSchema = z.object({
+  field: z
+    .enum(['kwp', 'surface', 'tilt', 'azimuth', 'n_vintages', 'first_seen', 'last_seen'])
+    .describe('Numeric field to describe.'),
+  dpt: z.string().optional().describe('French département code. Omit for all of France.'),
+  bin_edges: z
+    .array(z.number())
+    .min(2)
+    .max(25)
+    .optional()
+    .describe(
+      'Custom ascending bin edges; each bin is [edge_i, edge_i+1) and the last is closed. ' +
+        'Ignored for first_seen / last_seen, which are counted per year (use min_year / max_year).',
+    ),
+  min_year: z.number().int().optional().describe('For first_seen / last_seen: first year to count.'),
+  max_year: z.number().int().optional().describe('For first_seen / last_seen: last year to count.'),
+  quality_filter: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe('If true, restrict to detections identified by 2+ sources.'),
+})
+
+mcp.tool('get_field_distribution', {
+  description:
+    'Histogram of a numeric field (kwp, surface, tilt, azimuth, n_vintages, first_seen, ' +
+    'last_seen) with exact counts per bin, for France or one département. Answers "how are ' +
+    'installations distributed by size / tilt / orientation / year?". kwp, surface, tilt and ' +
+    'azimuth are model estimates. first_seen/last_seen are imagery years, not installation dates. ' +
+    DATA_QUALITY_NOTE,
+  inputSchema: FieldDistributionSchema,
+  handler: async (args: z.infer<typeof FieldDistributionSchema>) => {
+    try {
+      const base: [string, string][] = []
+      if (args.dpt) base.push(['dpt', `eq.${args.dpt}`])
+      if (args.quality_filter) base.push(['sources', 'like.*,*'])
+
+      if (args.field === 'first_seen' || args.field === 'last_seen') {
+        const from = args.min_year ?? 2010
+        const to = args.max_year ?? new Date().getFullYear()
+        if (to - from > 40) throw new Error('min_year/max_year span is limited to 40 years.')
+        const years = Array.from({ length: to - from + 1 }, (_, i) => from + i)
+        const counts = await Promise.all(years.map((y) => countDetections([...base, [args.field, `eq.${y}`]])))
+        const total = await countDetections(base)
+        return textContent({
+          field: args.field,
+          scope: args.dpt ? `département ${args.dpt}` : 'France',
+          total_detections: total,
+          per_year: years.map((y, i) => ({ year: y, count: counts[i], pct: pct(counts[i], total) })),
+          note: 'Imagery years, not installation or commissioning dates.',
+        })
+      }
+
+      const edges = args.bin_edges ?? DEFAULT_BINS[args.field]
+      const bins = edges.slice(0, -1).map((lo, i) => ({ lo, hi: edges[i + 1], last: i === edges.length - 2 }))
+      const [total, ...counts] = await Promise.all([
+        countDetections(base),
+        ...bins.map((b) =>
+          countDetections([
+            ...base,
+            [args.field, `gte.${b.lo}`],
+            [args.field, `${b.last ? 'lte' : 'lt'}.${b.hi}`],
+          ]),
+        ),
+      ])
+      const binned = counts.reduce((s, c) => s + (c ?? 0), 0)
+      return textContent({
+        field: args.field,
+        scope: args.dpt ? `département ${args.dpt}` : 'France',
+        total_detections: total,
+        bins: bins.map((b, i) => ({
+          range: `${b.lo} to ${b.hi}${b.last ? ' (inclusive)' : ' (exclusive)'}`,
+          count: counts[i],
+          pct: pct(counts[i], total),
+        })),
+        outside_bins: total === null ? null : total - binned,
+      })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+mcp.tool('get_field_reference', {
+  description:
+    'Field-by-field documentation of a detection record: type, unit, nullability, whether it is ' +
+    'observed or a model estimate, how to read it, and which tool filters or reports it. Call this ' +
+    'when the user asks what a field means or how reliable it is.',
+  inputSchema: z.object({}),
+  handler: () =>
+    textContent({
+      fields: {
+        id: { type: 'integer', kind: 'structural', meaning: 'Registry identifier. Quote it when reporting an issue about a detection.', tools: ['get_detection_details'] },
+        geom: { type: 'geometry (EPSG:4326)', kind: 'structural', meaning: 'Footprint of the detected PV array (not necessarily of the building). Polygon or multipolygon.', tools: ['get_detections_in_bbox'] },
+        surface: { type: 'float, m²', kind: 'model estimate', meaning: 'Estimated area of the PV array.', filters: ['min_surface', 'max_surface'], tools: ['get_field_distribution'] },
+        kwp: { type: 'float, kWp', kind: 'model estimate', meaning: 'Estimated installed DC capacity. Do not use as a precise per-site figure.', filters: ['min_kwp', 'max_kwp'], tools: ['aggregate_detection_capacity', 'get_field_distribution'] },
+        tilt: { type: 'integer, degrees', kind: 'model estimate', meaning: 'Panel tilt from horizontal.', filters: ['min_tilt', 'max_tilt'], tools: ['get_field_distribution'] },
+        azimuth: { type: 'integer, degrees', kind: 'model estimate', meaning: 'Orientation clockwise from true north (180 = south).', filters: ['min_azimuth', 'max_azimuth'], tools: ['get_field_distribution'] },
+        first_seen: { type: 'integer, year', kind: 'observed (imagery)', meaning: 'Earliest imagery year in which it was detected. NOT an installation or commissioning date.', filters: ['min_first_seen', 'max_first_seen'], tools: ['get_department_yearly_stats', 'get_field_distribution'] },
+        last_seen: { type: 'integer, year', kind: 'observed (imagery)', meaning: 'Most recent imagery year in which it was detected.', filters: ['min_last_seen', 'max_last_seen'], tools: ['get_field_distribution'] },
+        n_vintages: { type: 'integer', kind: 'observed (imagery)', meaning: 'Number of distinct imagery years detecting it. 2+ = persistent, less likely a one-off artifact.', filters: ['min_vintages', 'max_vintages'], tools: ['get_field_distribution'] },
+        sources: { type: 'comma-separated codes', kind: 'provenance', meaning: '0=DPVM pipeline, 1=FRPV, 2=OSM, 3=manual correction, 4=recall sample. Several codes = identified by several sources.', filters: ['quality_filter (2+ sources)', 'sources_include'], tools: ['get_source_breakdown', 'count_detections'] },
+        frpv_proba: { type: 'float [0,1], nullable', kind: 'model estimate', meaning: 'Probability tied to an FRPV reference match. Null = no comparison available, not 0. Contract-recommended threshold: >= 0.1.', filters: ['min_frpv_proba', 'has_frpv_proba'], tools: ['get_field_coverage'] },
+        false_positive: { type: 'boolean, nullable', kind: 'flag', meaning: 'Flagged as a false positive. Null = no status recorded, NOT a confirmed true positive.', filters: ['false_positive_status'], tools: ['get_field_coverage'] },
+        false_positive_source: { type: 'string, nullable', kind: 'flag', meaning: 'Where the false-positive flag came from.', tools: ['get_field_coverage'] },
+        insee: { type: 'string', kind: 'structural', meaning: 'INSEE commune code.', filters: ['insee'] },
+        dpt: { type: 'string', kind: 'structural', meaning: 'Département code.', filters: ['dpt'] },
+        rnb_id: { type: 'string, nullable', kind: 'structural', meaning: 'Matching building id in the national building repository (RNB), when available.', filters: ['has_rnb_id'], tools: ['count_detections', 'get_field_coverage', 'get_detection_details'] },
+      },
+      note: 'quality_filter (this server) = identified by 2 or more sources. It is separate from the contract-recommended frpv_proba >= 0.1 threshold, available as min_frpv_proba.',
+    }),
+})
+
+const SourceReferenceSchema = z.object({
+  source: z
+    .string()
+    .optional()
+    .describe('A source name, alias or code (e.g. "frpv", "OpenStreetMap", "kasmi", "3"). Omit to list all.'),
+})
+
+mcp.tool('get_source_reference', {
+  description:
+    'Explain the data sources behind the registry\'s `sources` field: for each source, its code, ' +
+    'short key, name, accepted aliases, and where the data comes from (with references: code, ' +
+    'thesis, papers). Use it for questions like "what is FRPV?", "where does the OSM data come ' +
+    'from?", "what is a manual correction?". ' + SOURCES_MEANING,
+  inputSchema: SourceReferenceSchema,
+  handler: (args: z.infer<typeof SourceReferenceSchema>) => {
+    try {
+      const list = args.source ? [resolveSource(args.source)] : SOURCE_CATALOG
+      return textContent({ sources_meaning: SOURCES_MEANING, sources: list })
+    } catch (err) {
+      return errorContent(err)
+    }
+  },
+})
+
+mcp.tool('get_started', {
+  description:
+    'START HERE. Call this first when the user is new, asks what this server can do, or asks ' +
+    'a vague question about DeepPVMapper. Returns a plain-language introduction, example ' +
+    'questions, which tool answers which kind of question, a glossary and the main caveats. ' +
+    'Reply to the user in their own language.',
+  inputSchema: z.object({}),
+  handler: () =>
+    textContent({
+      what_this_is:
+        'DeepPVMapper / OpenPVMapper is an open registry of rooftop photovoltaic (solar panel) ' +
+        'installations detected from aerial imagery across metropolitan France. Each detection ' +
+        'has a location, an estimated surface and capacity (kWp), orientation, the imagery years ' +
+        'it was seen in, and which sources identified it.',
+      important_caveats: [
+        'It is a detection dataset, not a complete inventory: estimated recall is ~0.6, so many real installations are missing. No detection does not mean no panels.',
+        'surface, kwp, tilt and azimuth are model estimates, not measurements.',
+        'first_seen / last_seen are imagery years, not installation or commissioning dates.',
+        'Not suitable on its own for site-specific commercial, regulatory or financial decisions.',
+      ],
+      example_questions: [
+        'What is the installed PV capacity in Gironde (33)?',
+        'Which 10 départements have the most installed capacity?',
+        'How has PV deployment grown in Hérault over the years?',
+        'How many detections are confirmed by 2 or more sources?',
+        'How many installations have an RNB building id? (and how complete is each field?)',
+        'How are installations distributed by size, tilt or orientation?',
+        'How many detections have been flagged as false positives?',
+        'How many detections come from OpenStreetMap in the Nord?',
+        'Show me the details of detection 12345.',
+        'Give me a profile of département 31.',
+        'What has the community flagged in this area that is not yet in the registry?',
+      ],
+      which_tool_for_what: {
+        'Where do I start / what can you do?': 'get_started',
+        'How much can I trust this data?': 'get_data_quality_reference',
+        'Capacity or system count per département (pre-computed)': 'get_department_capacity_stats',
+        'Growth over time per département': 'get_department_yearly_stats',
+        'One-call overview of a département': 'get_department_profile',
+        'How many ... (exact counts with filters)': 'count_detections',
+        'Which sources identified the data': 'get_source_breakdown',
+        'What is FRPV / OSM / DPVM / a manual correction, and where does it come from?': 'get_source_reference',
+        'How complete is each optional field (rnb_id, frpv_proba, false_positive)': 'get_field_coverage',
+        'Distribution by size / tilt / azimuth / year / vintages': 'get_field_distribution',
+        'What does this field mean?': 'get_field_reference',
+        'Total kWp for a filtered subset': 'aggregate_detection_capacity',
+        'List individual detections': 'search_detections',
+        'Everything about one detection': 'get_detection_details',
+        'Detections in a map area': 'get_detections_in_bbox',
+        'Pending, unverified community edits': 'get_community_activity / get_community_activity_in_area',
+      },
+      glossary: {
+        kWp: 'Kilowatt-peak: nominal DC capacity of a PV installation.',
+        'département / dpt': 'French administrative area, identified by a code such as "33" (Gironde) or "2A".',
+        INSEE: 'Official code identifying a French commune.',
+        'imagery vintage': 'A year of aerial imagery. n_vintages = number of distinct years the installation was detected in.',
+        sources: SOURCES_MEANING + ' Names: DeepPVMapper/DPVM (0), FRPV/Thébault et al. (1), OpenStreetMap/OSM (2), manual correction (3), recall sample (4). See get_source_reference for where each comes from.',
+        'quality_filter': 'In this server: keep only detections identified by 2 or more sources.',
+        frpv_proba: 'Model probability tied to a match with the FRPV reference dataset; null means no comparison was available (not 0).',
+        rnb_id: 'Identifier of the matching building in the French national building repository (RNB), when available.',
+      },
+      license_and_attribution:
+        'Data: CC BY 4.0, commercial use allowed with attribution "DeepPVMapper — Gabriel Kasmi" (https://deeppvmapper.fr). ' +
+        'Please do not use the data to identify or target individuals or households. ' +
+        'For country-scale processing use the bulk releases (Zenodo, Hugging Face) rather than this live API.',
+      links: {
+        website: 'https://deeppvmapper.fr',
+        zenodo: 'https://zenodo.org/records/19188878',
+        huggingface: 'https://huggingface.co/datasets/gabrielkasmi/openpvmapper',
+        discussions: 'https://github.com/gabrielkasmi/deeppvmapper/discussions/19',
+      },
+    }),
+})
+
 // --- HTTP wiring (Supabase Edge Functions pattern) -------------------------
 //
 // Supabase routes a request to this function at /functions/v1/<function-name>/*.
 // The function is named "mcp" (see supabase/config.toml), so the final MCP
-// endpoint is /functions/v1/mcp/mcp — see DEPLOY.md for the full URL.
+// endpoint is /functions/v1/mcp/mcp (full URL: https://<project-ref>.supabase.co/functions/v1/mcp/mcp).
 
 const transport = new StreamableHttpTransport()
 const httpHandler = transport.bind(mcp)

@@ -3,7 +3,7 @@
   "name": "io.github.gabrielkasmi/deeppvmapper",
   "title": "DeepPVMapper",
   "description": "Open registry of 1.14M+ rooftop-solar detections across France, queryable by natural language.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "websiteUrl": "https://deeppvmapper.fr",
   "repository": {
     "url": "https://github.com/gabrielkasmi/deeppvmapper",
