@@ -1,0 +1,17 @@
+# Supabase config for the deeppvmapper project's Edge Functions.
+# This repo only manages the "mcp" function; the database/API itself is the
+# existing project (see DATA_ACCESS.md) — do not run `supabase db reset` etc.
+# from here.
+project_id = "deeppvmapper"
+
+[api]
+enabled = true
+port = 54321
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+deno_version = 2
+
+[functions.mcp]
+verify_jwt = false
