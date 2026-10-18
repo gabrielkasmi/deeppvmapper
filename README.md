@@ -3,7 +3,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
 [![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
-[![HF Space](https://img.shields.io/badge/🤗%20Space-Interactive%20demo-orange)](https://huggingface.co/spaces/gabrielkasmi/deeppvmapper)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19188878.svg)](https://doi.org/10.5281/zenodo.19188878)
 [![gabrielkasmi/deeppvmapper MCP server](https://glama.ai/mcp/servers/gabrielkasmi/deeppvmapper/badges/score.svg)](https://glama.ai/mcp/servers/gabrielkasmi/deeppvmapper)
 
@@ -12,9 +11,6 @@ Large-scale rooftop PV detection pipeline for France. Classifies IGN aerial tile
 **[🗺️ Explore the map and results →](https://gabrielkasmi.github.io/deeppvmapper)**  
 
 Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of his PhD at Mines Paris-PSL (2020–2024).
-
-![DeepPVMapper — detected rooftop PV installations](assets/map.webp)
-
 ---
 
 ## MCP Server
