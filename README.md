@@ -8,9 +8,9 @@
 
 Large-scale rooftop PV detection pipeline for France. Classifies IGN aerial tiles with InceptionV3, segments positive patches with FCN/DeepLab, and extracts panel characteristics (surface, tilt, azimuth, installed capacity) via [pypvroof](https://pypi.org/project/pypvroof/).
 
-**[🗺️ Explore the map and results →](https://gabrielkasmi.github.io/deeppvmapper)**  
-
+**[🗺️ Official project page](https://deeppvmapper.fr)**  
 Work carried out by [Gabriel Kasmi](https://gabrielkasmi.github.io) as part of his PhD at Mines Paris-PSL (2020–2024).
+
 ---
 
 ## MCP Server
