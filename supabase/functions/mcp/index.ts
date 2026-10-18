@@ -17,9 +17,17 @@ import { Hono } from 'hono'
 // access to the read-only public resources described in that contract.
 // Override with `supabase secrets set` if the project or key ever changes.
 
-const API_URL = Deno.env.get('DEEPPVMAPPER_API_URL') ?? 'https://zelhliylrlktnasircwp.supabase.co'
+// This file runs under Deno (Supabase Edge Functions) and, via stdio.ts, under Node (used by the
+// Glama build). `readEnv` hides the difference.
+// deno-lint-ignore no-explicit-any
+const runtime = globalThis as any
+function readEnv(name: string): string | undefined {
+  return runtime.Deno?.env?.get(name) ?? runtime.process?.env?.[name]
+}
+
+const API_URL = readEnv('DEEPPVMAPPER_API_URL') ?? 'https://zelhliylrlktnasircwp.supabase.co'
 const API_KEY =
-  Deno.env.get('DEEPPVMAPPER_API_KEY') ?? 'sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi'
+  readEnv('DEEPPVMAPPER_API_KEY') ?? 'sb_publishable_rKz4rtTA3hpRxPgN3C3yAg_bbT5iTBi'
 
 const DATA_QUALITY_NOTE =
   'Data quality note: this is a detection dataset, not an exhaustive inventory ' +
@@ -240,7 +248,7 @@ function computeQualitySummary(rows: QualityRow[]) {
 
 // --- MCP server -----------------------------------------------------------
 
-const mcp = new McpServer({
+export const mcp = new McpServer({
   name: 'deeppvmapper',
   version: '0.2.0',
   schemaAdapter: (schema) => z.toJSONSchema(schema as z.ZodType),
@@ -1168,7 +1176,7 @@ mcp.tool('get_field_distribution', {
           ]),
         ),
       ])
-      const binned = counts.reduce((s, c) => s + (c ?? 0), 0)
+      const binned = counts.reduce<number>((s, c) => s + (c ?? 0), 0)
       return textContent({
         field: args.field,
         scope: args.dpt ? `département ${args.dpt}` : 'France',
@@ -1321,7 +1329,7 @@ mcp.tool('get_started', {
 // endpoint is /functions/v1/mcp/mcp (full URL: https://<project-ref>.supabase.co/functions/v1/mcp/mcp).
 
 const transport = new StreamableHttpTransport()
-const httpHandler = transport.bind(mcp)
+export const httpHandler = transport.bind(mcp)
 
 const app = new Hono()
 const mcpApp = new Hono()
@@ -1341,4 +1349,6 @@ mcpApp.all('/mcp', async (c) => {
 // Mount prefix must match the function name for Supabase's routing.
 app.route('/mcp', mcpApp)
 
-Deno.serve(app.fetch)
+// Only start the HTTP server under Deno. When this module is imported by stdio.ts (Node), the
+// server is driven over stdin/stdout instead.
+if (runtime.Deno?.serve) runtime.Deno.serve(app.fetch)
