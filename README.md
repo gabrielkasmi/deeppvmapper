@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![HF Models](https://img.shields.io/badge/🤗%20Models-bdappv--models-orange)](https://huggingface.co/gabrielkasmi/bdappv-models)
 [![HF Dataset](https://img.shields.io/badge/🤗%20Dataset-bdappv-orange)](https://huggingface.co/datasets/gabrielkasmi/bdappv)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19188878.svg)](https://doi.org/10.5281/zenodo.19188878)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21534856.svg)](https://doi.org/10.5281/zenodo.21534856)
 [![DeepPVMapper MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/io.github.gabrielkasmi/deeppvmapper/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.gabrielkasmi/deeppvmapper)
 
 Large-scale rooftop PV detection pipeline for France. Classifies IGN aerial tiles with InceptionV3, segments positive patches with FCN/DeepLab, and extracts panel characteristics (surface, tilt, azimuth, installed capacity) via [pypvroof](https://pypi.org/project/pypvroof/).
