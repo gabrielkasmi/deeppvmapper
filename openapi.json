@@ -1,0 +1,204 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenPVMapper Public Data API",
+    "version": "0.1",
+    "description": "Public, read-only registry of georeferenced photovoltaic installation detections in metropolitan France (mainland + Corsica), served by PostgREST over Supabase. Model-derived attributes (surface, kwp, tilt, azimuth, frpv_proba) are estimates, not surveyed measurements. Estimated pipeline recall is ~0.6: absence of a detection is not evidence of absence of an installation. Data licensed CC BY 4.0 — attribute as 'DeepPVMapper — Gabriel Kasmi' with a link to https://deeppvmapper.fr."
+  },
+  "servers": [
+    { "url": "https://zelhliylrlktnasircwp.supabase.co/rest/v1" }
+  ],
+  "paths": {
+    "/detections": {
+      "get": {
+        "operationId": "list_detections",
+        "summary": "Query individual PV detection records",
+        "description": "Returns records from the DeepPVMapper detection registry, with PostgREST-style filtering, column selection, ordering and pagination. Use explicit 'select' and pagination for large queries; prefer the spatial endpoints for geographic extraction with geometry returned as GeoJSON.",
+        "parameters": [
+          { "name": "select", "in": "query", "schema": { "type": "string" }, "description": "Comma-separated columns to return, e.g. 'id,surface,kwp,dpt'." },
+          { "name": "id", "in": "query", "schema": { "type": "string" }, "description": "Filter on id, e.g. 'eq.123'." },
+          { "name": "dpt", "in": "query", "schema": { "type": "string" }, "description": "Filter on département code, e.g. 'eq.33'." },
+          { "name": "insee", "in": "query", "schema": { "type": "string" }, "description": "Filter on INSEE commune code, e.g. 'eq.33063'." },
+          { "name": "kwp", "in": "query", "schema": { "type": "string" }, "description": "Filter on estimated capacity in kWp, e.g. 'gt.9'." },
+          { "name": "surface", "in": "query", "schema": { "type": "string" }, "description": "Filter on estimated PV array surface in m2, e.g. 'gt.20'." },
+          { "name": "tilt", "in": "query", "schema": { "type": "string" }, "description": "Filter on estimated tilt in degrees." },
+          { "name": "azimuth", "in": "query", "schema": { "type": "string" }, "description": "Filter on estimated azimuth in degrees, clockwise from true north." },
+          { "name": "first_seen", "in": "query", "schema": { "type": "string" }, "description": "Filter on earliest imagery vintage year, e.g. 'gte.2020'." },
+          { "name": "last_seen", "in": "query", "schema": { "type": "string" }, "description": "Filter on most recent imagery vintage year." },
+          { "name": "n_vintages", "in": "query", "schema": { "type": "string" }, "description": "Filter on number of distinct imagery vintages detecting the installation." },
+          { "name": "sources", "in": "query", "schema": { "type": "string" }, "description": "Filter on comma-separated source codes (0=DPVM, 1=FRPV, 2=OSM, 3=manual correction, 4=recall sample), e.g. 'eq.0,1' or 'like.*1*'." },
+          { "name": "frpv_proba", "in": "query", "schema": { "type": "string" }, "description": "Filter on FRPV match probability [0,1], nullable. Recommended threshold for a precision/recall balance: 'gte.0.1'." },
+          { "name": "false_positive", "in": "query", "schema": { "type": "string" }, "description": "Filter on false-positive flag, nullable boolean, e.g. 'eq.true' or 'is.null'." },
+          { "name": "rnb_id", "in": "query", "schema": { "type": "string" }, "description": "Filter on matching RNB building identifier, nullable." },
+          { "name": "order", "in": "query", "schema": { "type": "string" }, "description": "Sort order, e.g. 'kwp.desc'." },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" }, "description": "Max rows to return — always set this explicitly, the registry has ~655k+ rows." },
+          { "name": "offset", "in": "query", "schema": { "type": "integer" }, "description": "Row offset for pagination." }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of detection records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "description": "Registry identifier" },
+                      "geom": { "type": "object", "description": "Detected PV footprint geometry, EPSG:4326 (polygon or multipolygon)" },
+                      "surface": { "type": "number", "description": "Estimated PV array area (m2, model-derived estimate)" },
+                      "kwp": { "type": "number", "description": "Estimated installed DC capacity (kWp, model-derived estimate)" },
+                      "tilt": { "type": "integer", "description": "Estimated panel tilt from horizontal (degrees, estimate)" },
+                      "azimuth": { "type": "integer", "description": "Estimated orientation, clockwise from true north (degrees, estimate)" },
+                      "first_seen": { "type": "integer", "description": "Earliest imagery vintage year the installation was detected in — observed presence, not installation date" },
+                      "last_seen": { "type": "integer", "description": "Most recent imagery vintage year the installation was detected in" },
+                      "n_vintages": { "type": "integer", "description": "Number of distinct imagery vintages independently detecting the installation; usable as a persistence/confidence signal" },
+                      "sources": { "type": "string", "description": "Comma-separated source codes: 0=DPVM, 1=FRPV, 2=OSM, 3=manual correction, 4=recall sample" },
+                      "frpv_proba": { "type": "number", "nullable": true, "description": "Probability of an FRPV reference-data match, [0,1]. Null means no FRPV comparison was available — NOT a probability of zero." },
+                      "false_positive": { "type": "boolean", "nullable": true, "description": "False-positive flag. Null means no false-positive status recorded — NOT a confirmed true positive." },
+                      "false_positive_source": { "type": "string", "nullable": true, "description": "Source of the false-positive flag" },
+                      "insee": { "type": "string", "description": "INSEE commune identifier" },
+                      "dpt": { "type": "string", "description": "French département code" },
+                      "rnb_id": { "type": "string", "nullable": true, "description": "Matching RNB (Répertoire National des Bâtiments) building identifier, when available" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/get_detections_bbox": {
+      "post": {
+        "operationId": "get_detections_bbox",
+        "summary": "Query detections within a geographic bounding box",
+        "description": "Returns detections intersecting a bounding box as a GeoJSON Feature array. Intended primarily for map/viewport queries. Response properties are a reduced attribute set (surface, kwp, year=first_seen) intended for spatial visualization, not full detail.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["min_lon", "min_lat", "max_lon", "max_lat"],
+                "properties": {
+                  "min_lon": { "type": "number", "description": "Minimum longitude (WGS84)" },
+                  "min_lat": { "type": "number", "description": "Minimum latitude (WGS84)" },
+                  "max_lon": { "type": "number", "description": "Maximum longitude (WGS84)" },
+                  "max_lat": { "type": "number", "description": "Maximum latitude (WGS84)" },
+                  "max_count": { "type": "integer", "description": "Maximum number of returned detections. Default 2000." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "GeoJSON Feature array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string", "enum": ["Feature"] },
+                      "geometry": { "type": "object" },
+                      "properties": {
+                        "type": "object",
+                        "properties": {
+                          "surface": { "type": "number" },
+                          "kwp": { "type": "number" },
+                          "year": { "type": "integer", "description": "Corresponds to first_seen" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/get_detections_in_zone": {
+      "post": {
+        "operationId": "get_detections_in_zone",
+        "summary": "Query detections within an arbitrary GeoJSON geometry",
+        "description": "Returns detections spatially contained within a supplied GeoJSON geometry (exact filtering, unlike the bounding-box endpoint). Useful with administrative boundaries or arbitrary study-area polygons. Response is a GeoJSON Feature array.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["zone_geometry"],
+                "properties": {
+                  "zone_geometry": { "type": "object", "description": "GeoJSON Geometry (e.g. Polygon) defining the query zone, WGS84" },
+                  "max_count": { "type": "integer", "description": "Maximum number of returned detections. Default 300000." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "GeoJSON Feature array",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } }
+          }
+        }
+      }
+    },
+    "/rpc/dept_capacity_stats": {
+      "post": {
+        "operationId": "dept_capacity_stats",
+        "summary": "Département-level capacity and system-count aggregates",
+        "description": "Pre-computed aggregate: for each of ~94-96 French départements, the number of detected systems, total estimated capacity, and its capacity rank versus other départements.",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": {} } } } },
+        "responses": {
+          "200": {
+            "description": "Array of per-département aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "dpt": { "type": "string" },
+                      "n_systems": { "type": "integer" },
+                      "total_kwp": { "type": "number" },
+                      "rank_by_capacity": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/dept_yearly_stats": {
+      "post": {
+        "operationId": "dept_yearly_stats",
+        "summary": "Département-level system counts and capacity by year",
+        "description": "Pre-computed aggregate: system counts and total capacity broken down by département and first_seen imagery-vintage year.",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": {} } } } },
+        "responses": {
+          "200": { "description": "Array of per-département, per-year aggregates", "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } } }
+        }
+      }
+    },
+    "/rpc/dept_source_stats": {
+      "post": {
+        "operationId": "dept_source_stats",
+        "summary": "Département-level system counts by detection source",
+        "description": "Pre-computed aggregate: system counts broken down by département and detection source (see the source-code table: 0=DPVM, 1=FRPV, 2=OSM, 3=manual correction, 4=recall sample).",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": {} } } } },
+        "responses": {
+          "200": { "description": "Array of per-département, per-source aggregates", "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } } }
+        }
+      }
+    }
+  }
+}
