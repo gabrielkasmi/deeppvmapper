@@ -1,0 +1,82 @@
+# Training configuration — candidate segmentation backbones on BDAPPV (refs #11).
+# Defaults are quick-run sized (3 epochs, full data, subset overridable by
+# --subset / scripts/run_quick.sh); full-run guidance in experiments/README.md.
+
+# -------- Run --------
+# run_name : output directory under runs/ (default: the model name).
+#            Also settable with --run-name.
+run_name:
+
+seed   : 42
+device : 'cuda'          # falls back to CPU if CUDA is unavailable
+
+# -------- Data --------
+# Snapshot of the Hugging Face dataset gabrielkasmi/bdappv (see experiments/README.md):
+#   hf download gabrielkasmi/bdappv --repo-type dataset --local-dir data/bdappv
+data_dir        : 'data/bdappv'
+annotations_file : 'annotations.csv'
+
+# Provider config: 'ign' matches the pipeline's IGN 20 cm imagery and the
+# permissive Etalab 2.0 license; 'google' matches the BDAPPV paper baselines
+# (28.4k images, Google Earth Engine ToS restricts redistribution of weights).
+data_provider   : 'ign'
+
+# Canonical department-based split shipped with the dataset (annotations.csv).
+# Do not re-split — published BDAPPV results depend on this split.
+split_mode      : 'annotations'    # 'annotations' | 'random' (fallback only)
+val_fraction    : 0.2              # used only when split_mode: random
+
+# BDAPPV images are 400x400 px. 416 is the smallest multiple of 32 that covers
+# them (SegFormer's encoder stages require a multiple of 32), so this upsamples
+# by ~4% instead of ~28% at 512 — cheaper in VRAM, and closer to the native
+# 400 px the production baseline is evaluated at (DeepLabV3-ResNet101:
+# IoU 0.735 / F1 0.844, foreground-only, official IGN test split, n=1239).
+image_size      : 416
+
+# Fraction of each split used (quick runs: 0.05 via --subset). Same seed +
+# fraction => identical subsets across candidate models, so runs stay
+# comparable.
+subset          : 1.0
+
+# -------- Model --------
+model         : 'segformer'         # key into configs/model.yaml; also --model
+models_config : 'configs/model.yaml'
+pretrained    : True                # download ImageNet encoder weights
+
+# -------- Training --------
+epochs        : 3
+# 3 keeps the ConvNeXt-Tiny decoders (DeepLabV3+/U-Net) inside 4 GB of VRAM
+# without spilling to shared memory: measured peaks at 512x512 are 2430 MiB
+# (DeepLabV3+), 2469 MiB (U-Net), 1239 MiB (SegFormer-B0). Batch 4 peaks at
+# 3193/3242 MiB against ~3306 MiB free, and batch 1 is impossible — the
+# decoders' BatchNorm layers raise with a single sample. Held constant across
+# models so the quick runs stay comparable.
+#
+# This is a micro-batch, not the effective batch the optimizer sees: raise
+# grad_accum_steps and/or amp below to reach the production effective batch of
+# 32 (batch 4 x accum 8, as used for the production segmenter) without
+# exceeding VRAM. BatchNorm still only sees `batch_size` samples per step, so
+# accumulation does not lift the batch-1 floor.
+batch_size    : 3
+grad_accum_steps : 1                 # effective batch = batch_size * grad_accum_steps
+amp           : false                # fp16 autocast + GradScaler (CUDA only)
+num_workers   : 4
+optimizer     : 'adamw'             # 'adamw' | 'sgd'
+lr            : 0.0001
+weight_decay  : 0.01
+sgd_momentum  : 0.9                 # sgd only
+augmentations : ['hflip', 'vflip', 'rot90']
+
+# -------- Loss / postprocessing --------
+loss             : 'bce_dice'       # 'bce_dice' | 'bce' | 'dice'
+threshold        : 0.5              # sigmoid binarization threshold
+# Which val metric picks best.pth. Do NOT use val_mIoU here: PV covers only
+# 0.2-0.5% of pixels and every model scores iouBG ~ 0.994, so mIoU is dominated
+# by background and can award best.pth to a near-empty prediction (DeepLabV3+
+# in the quick runs). Set val_instanceF1 to select on the object-level metric
+# instead.
+selection_metric : 'val_pixelF1'    # 'val_pixelF1' | 'val_instanceF1'
+
+# -------- Outputs --------
+num_val_previews : 8                # input|GT|pred PNGs under runs/<run>/val_preds/
+fps_batches      : 50               # images used to measure FPS in eval.py

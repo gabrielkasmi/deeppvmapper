@@ -121,6 +121,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv.*
 env/
 venv/
 ENV/
@@ -145,9 +146,17 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# misc 
+# misc
 
 /models
 *.html
 draft.ipynb
 .DS_Store
+
+# Training scaffold (refs #11) — never commit runs, weights, or local data
+runs/
+models/
+*.ckpt
+*.pth
+logs/
+.env

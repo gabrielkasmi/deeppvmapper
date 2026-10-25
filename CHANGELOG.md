@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Training scaffold for candidate segmentation backbones on BDAPPV, under 
+  `training/` (refs #11, contributed by @ojask3150).
+
 ## [1.0] - 2026-06-17
 
 First tagged stable release — pipeline validated end-to-end.
