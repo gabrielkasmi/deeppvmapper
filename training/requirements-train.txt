@@ -4,11 +4,11 @@
 
 # Core
 numpy>=1.22,<2
-torch>=1.12
+torch>=2.3
 torchvision>=0.13
 
 # Models: architectures (segmentation-models-pytorch) + timm encoders (tu-*)
-segmentation-models-pytorch>=0.3.3,<0.5
+segmentation-models-pytorch>=0.4,<0.5
 timm>=0.9,<2
 
 # Dataset snapshot + artifact upload (scripts/upload_results.sh)

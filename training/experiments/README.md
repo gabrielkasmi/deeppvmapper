@@ -1,5 +1,7 @@
 # Experiments — candidate segmentation backbones (refs #11)
 
+> Run every command in this folder from `training/` (paths are relative to it).
+
 Quick, reproducible architecture comparison for the new-backbones issue:
 SegFormer, DeepLabV3+ (ConvNeXt-Tiny) and U-Net (ConvNeXt-Tiny /
 EfficientNet-B0) trained on BDAPPV positives, evaluated with the same
