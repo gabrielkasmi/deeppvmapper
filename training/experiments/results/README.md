@@ -21,4 +21,3 @@ in [`experiments/README.md`](../README.md).
 | `inference_fps` | single-image forward passes/s at `input_size` |
 | `checkpoint_path` | local path to the evaluated checkpoint (not committed) |
 
-The draft PR table is filled from these files (see `pr_body.md`).
