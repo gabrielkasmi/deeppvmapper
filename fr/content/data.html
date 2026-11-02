@@ -53,6 +53,13 @@ header_html: |2-
     <!-- Interactive map: the primary way in -->
     <section id="map-section">
         <div class="container">
+            <div class="am-tabs" role="tablist" aria-label="Modes du visualiseur">
+                <button type="button" role="tab" id="tab-btn-inst" data-tab="inst" aria-controls="tab-inst" aria-selected="true">Par installation</button>
+                <button type="button" role="tab" id="tab-btn-agg" data-tab="agg" aria-controls="tab-agg" aria-selected="false" tabindex="-1">Agrégée</button>
+            </div>
+        </div>
+        <div id="tab-inst" class="am-tabpanel" role="tabpanel" aria-labelledby="tab-btn-inst">
+        <div class="container">
 
             <div id="me-search-standalone">
                 <div id="me-search-box" class="me-glass">
@@ -221,6 +228,13 @@ header_html: |2-
                     <li>Curieux de voir ce que la communauté a déjà signalé ? Cochez <strong>Show unreviewed community edits</strong> dans le panneau de filtres (icône engrenage). Les nouvelles installations et corrections de contour apparaissent avec un contour orange en pointillés ; les faux positifs signalés (pas encore retirés des données officielles) apparaissent avec un contour rouge en pointillés. Cliquez sur l'un d'eux pour voir les détails et, si vous le souhaitez, marquez-le <strong>Looks right</strong> ou <strong>Looks wrong</strong> — cela n'approuve ni ne supprime rien en soi, cela donne simplement une information supplémentaire à la personne qui relira la modification. La puissance, la surface et l'année ne sont pas garanties pour ces éléments — DeepPVMapper ne les calcule pas pour les contours soumis par la communauté tant qu'un mainteneur n'a pas relu la modification. Le bouton de rechargement à côté de la case relance la requête pour la sélection courante sans attendre une nouvelle sélection — pratique si vous éditez en direct avec d'autres personnes. Les téléchargements excluent toujours les faux positifs signalés, que cette case soit cochée ou non.</li>
                 </ul>
                 <p id="map-version-info" class="map-version-info"></p>
+            </div>
+        </div>
+        </div>
+        <div id="tab-agg" class="am-tabpanel" role="tabpanel" aria-labelledby="tab-btn-agg" hidden>
+            <div class="container">
+                <p class="am-tabintro">Installations agrégées sur une grille de carreaux, avec en option un croisement avec des variables socio-économiques de l&rsquo;INSEE. Pour parcourir les installations une par une, utilisez l&rsquo;onglet &laquo;&nbsp;Par installation&nbsp;&raquo;.</p>
+                {% include aggmap.html mode="full" base="../../" %}
             </div>
         </div>
     </section>

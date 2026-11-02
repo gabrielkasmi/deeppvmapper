@@ -53,6 +53,13 @@ header_html: |2-
     <!-- Interactive map: the primary way in -->
     <section id="map-section">
         <div class="container">
+            <div class="am-tabs" role="tablist" aria-label="Interactive viewer modes">
+                <button type="button" role="tab" id="tab-btn-inst" data-tab="inst" aria-controls="tab-inst" aria-selected="true">Per installation</button>
+                <button type="button" role="tab" id="tab-btn-agg" data-tab="agg" aria-controls="tab-agg" aria-selected="false" tabindex="-1">Aggregated</button>
+            </div>
+        </div>
+        <div id="tab-inst" class="am-tabpanel" role="tabpanel" aria-labelledby="tab-btn-inst">
+        <div class="container">
 
             <div id="me-search-standalone">
                 <div id="me-search-box" class="me-glass">
@@ -221,6 +228,13 @@ header_html: |2-
                     <li>Curious what the community has already flagged? Check <strong>Show unreviewed community edits</strong> in the filter panel (gear icon). New installations and shape corrections show with a dashed amber outline; reported false positives (not yet removed from the official data) show with a dashed red outline. Click one for details, and optionally mark it <strong>Looks right</strong> or <strong>Looks wrong</strong> &mdash; this doesn't approve or remove anything itself, it just gives whoever reviews it an extra data point. Capacity/surface/year aren't guaranteed for these &mdash; DeepPVMapper doesn't compute them for community-submitted shapes until a maintainer reviews the edit. The reload button next to the checkbox re-fetches for the current selection without waiting for a new one &mdash; handy if you're editing live with others. Downloads always exclude reported false positives, whether or not this is checked.</li>
                 </ul>
                 <p id="map-version-info" class="map-version-info"></p>
+            </div>
+        </div>
+        </div>
+        <div id="tab-agg" class="am-tabpanel" role="tabpanel" aria-labelledby="tab-btn-agg" hidden>
+            <div class="container">
+                <p class="am-tabintro">Installations aggregated on a square grid, optionally crossed with INSEE socio-economic variables. To browse individual installations, use the &ldquo;Per installation&rdquo; tab.</p>
+                {% include aggmap.html mode="full" base="../" %}
             </div>
         </div>
     </section>

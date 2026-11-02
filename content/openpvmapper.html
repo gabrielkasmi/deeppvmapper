@@ -159,9 +159,9 @@ header_html: |2-
     <section class="abstract">
         <div class="container">
             <h2><span class="section-number">5.</span>Results</h2>
-            <figure style="margin-top: 10px; text-align: center;">
-                <img src="../static/images/assets/density-map.webp" alt="Density of PV installations recorded in OpenPVMapper, by hexagonal grid cell, across mainland France" class="teaser-image" style="max-width: 620px;">
-                <figcaption class="caption">Rooftop PV density recorded in OpenPVMapper: number of installations per hexagonal grid cell (mean area &asymp; 8&nbsp;km&sup2;), on a logarithmic color scale.</figcaption>
+            <figure style="margin-top: 10px;">
+                {% include aggmap.html mode="simple" base="../" fallback="static/images/assets/density-map.webp" alt="Density of PV installations recorded in OpenPVMapper, aggregated on a square grid, across mainland France" %}
+                <figcaption class="caption" style="text-align: center;">Rooftop PV recorded in OpenPVMapper, aggregated on a square grid. Drag the slider to change the cell size, or map the installed capacity and normalise it by population, households or income. Hover (or tap) a cell for its values. <a href="data.html#aggregated">Open the full aggregated viewer &rarr;</a></figcaption>
             </figure>
 
             <p>

@@ -1,0 +1,241 @@
+# Strings of the aggregated PV viewer (static/js/aggmap/aggmap.js), per language.
+# _includes/aggmap.html embeds the block for the page language as JSON; the script never needs another file.
+# Placeholders {like_this} are filled in by the script.
+en:
+  lang: "en"
+  locale: "en-GB"
+  oldBrowser: "This browser is too old to display the map."
+  loading: "Loading data…"
+  loadErr: "The data could not be loaded. Please try again later."
+  mapAria: "Map of rooftop PV installations across mainland France, aggregated on a square grid"
+  lead: "{n} installations detected on aerial imagery ({gwp} GWp estimated), aggregated on square cells of 2 km or more. Drag the slider: cell size and colours are recomputed on the fly."
+  res: "Cell size"
+  resOne: "1 single cell"
+  resOneTick: "1 cell"
+  resHint: "Each cell groups {k} × {k} INSEE 1 km cells ({area} km²)."
+  resHintOne: "A single cell covers the whole country: you read the national value (mean or total)."
+  nCells: "{n} cells displayed."
+  variable: "Mapped variable"
+  variableRose: "Mapped variable (pink)"
+  normBy: "Normalise by"
+  baseLabel: "OpenStreetMap background"
+  baseHint: "The grid looks slightly tilted: it is the LAEA grid (EPSG:3035), reprojected to Web Mercator."
+  tilesErr: "Map tiles could not be loaded (no connection, or refused by the tile server)."
+  adv: "Advanced options"
+  advBiv: "cross-tabulation on"
+  advHc: "corroborated detections"
+  advHint: "Cross PV with an explanatory variable (INSEE, power classes), filter by power class and by reliability, colour scale, opacity."
+  clsLabel: "Power classes kept"
+  clsHint: "Filters the number of installations and the capacity of the mapped variable. The classes are also available as explanatory variables."
+  hc: "Keep corroborated detections only (≥ 2 sources)"
+  hcTitle: "{n} installations, {gwp} GWp"
+  display: "Display"
+  dispOne: "PV only"
+  dispBiv: "Cross with a variable"
+  explVar: "Explanatory variable (blue)"
+  scale: "Colour scale"
+  scLog: "Log"
+  scLin: "Linear"
+  scQuant: "Quantiles"
+  scaleHint:
+    log: "Colours orders of magnitude: useful when a few cells concentrate most of the value."
+    lin: "Range between the 2nd and 98th percentiles, values beyond are saturated."
+    quant: "Each colour covers as many cells: shows the ranking, not the gaps."
+  scatterTitle: "Relationship between the two variables"
+  scatterAria: "Density of cells in the plane of the two variables"
+  rho: "Spearman ρ = {rho}"
+  rhoTail: " over {n} cells{sample}. Rank correlation: it describes an association, not a causal link."
+  rhoSample: " (sample of {n})"
+  log: "log"
+  opacity: "Data opacity"
+  exportTitle: "Export"
+  png: "PNG image"
+  csv: "CSV data"
+  csvTitle: "One row per displayed cell"
+  geo: "GeoJSON"
+  geoTitle: "Cells as polygons (WGS 84), for QGIS"
+  exportHint: "Exported data are those of the displayed map (resolution, variables and detections kept)."
+  preparing: "Preparing…"
+  zin: "Zoom in"
+  zout: "Zoom out"
+  zfit: "Reset view"
+  wheelHint: "Use Ctrl + scroll to zoom"
+  capOne: "A single cell"
+  capK: "{k} km cells"
+  capHc: "corroborated detections"
+  noteZero: "zero value: darkest colour"
+  noteZero2: "two zero values: lightest cell"
+  noteGrey: "grey: ratio not computed (denominator too small)"
+  tipOne: "A single cell: the whole country"
+  tipK: "{k} × {k} km cell"
+  tipInst: "Installations"
+  tipPop: "Population"
+  quantNote: "rank scale (quantiles)"
+  bivTitle: "Cell terciles"
+  thrInd: "inhabitants"
+  thrMen: "households"
+  thrUnit: "units"
+  thrNote: "Computed on cells with at least {thr} {what}."
+  unitSnv: "€/year"
+  kwpPerCap: {label: "Capacity per inhabitant", unit: "W/inhab."}
+  fmt:
+    pct: "{short} (% {pct})"
+    per: "{short} {per}"
+  groups: {pv: "Photovoltaics", cls: "Power classes", pop: "Population and income", hh: "Households"}
+  classes:
+    - {long: "0 to 3 kWp", short: "0–3 kWp"}
+    - {long: "3 to 9 kWp", short: "3–9 kWp"}
+    - {long: "9 to 36 kWp", short: "9–36 kWp"}
+    - {long: "36 to 250 kWp", short: "36–250 kWp"}
+    - {long: "more than 250 kWp", short: "> 250 kWp"}
+  clsInst: "Installations of {c}"
+  clsInstShort: "Installations {s}"
+  clsKwp: "Capacity of installations of {c}"
+  clsKwpShort: "Capacity {s}"
+  meas:
+    n: {label: "Number of installations", short: "Installations", unit: "installations"}
+    kwp: {label: "Installed capacity", short: "Capacity", unit: "kWp"}
+    ind: {label: "Population", short: "Population", unit: "inhab."}
+    snv: {label: "Mean living standard (€ per year)", short: "Living standard", unit: "€/year"}
+    men: {label: "Households", short: "Households", unit: "households"}
+    men_pauv: {label: "Households in poverty", short: "Poor households", unit: "households"}
+    men_prop: {label: "Owner households", short: "Owners", unit: "households"}
+    men_mais: {label: "Households in houses", short: "Households in houses", unit: "households"}
+  den:
+    none: {label: "None (value per cell)"}
+    ind: {label: "Population", short: "population", per: "/ 1,000 inhab.", perLab: "per 1,000 inhabitants", pctLab: "of the population"}
+    men: {label: "Households", short: "households", per: "/ 100 households", perLab: "per 100 households", pctLab: "of households"}
+    mais: {label: "Households in houses", short: "households in houses", per: "/ 100 households in houses", perLab: "per 100 households in houses", pctLab: "of households in houses"}
+    rev: {label: "Income (cumulated living standard)", short: "income", per: "/ M€ of living standard", perLab: "per million euros of cumulated living standard", pctLab: "of the living standard"}
+    pvall: {label: "All installations", short: "all installations", per: "/ installation", perLab: "per installation", pctLab: "of installations"}
+    kall: {label: "Total capacity", short: "total capacity", per: "/ kWp", perLab: "per kWp", pctLab: "of the installed capacity"}
+  pngSub: "Mainland France · cells of {k} × {k} km"
+  pngHc: " · corroborated detections (≥ 2 sources)"
+  pngCredit1: "Installations: DeepPVMapper / OpenPVMapper — Gabriel Kasmi (CC BY 4.0), deeppvmapper.fr"
+  pngCredit2: "Population, income: INSEE, Filosofi 2021, 1 km grid · LAEA grid (EPSG:3035)"
+  pngBase: " · Background: {a}"
+  foot1: "Detection is partial (precision ≈ 75 %, estimated recall ≈ 0.6): no detection does not mean no panels. Capacity, tilt and orientation are model estimates."
+  foot2: "Installations: DeepPVMapper / OpenPVMapper — Gabriel Kasmi, CC BY 4.0. Population, households, income: INSEE, Filosofi 2021, 1 km grid (64 % of cells are imputed). LAEA grid (EPSG:3035)."
+  geoAll: "all"
+  geoHc: "corroborated (≥ 2 sources)"
+  geoGrid: "INSPIRE cells aggregated, EPSG:3035 (LAEA); geometry exported in WGS 84"
+  geoSrc: "DeepPVMapper / OpenPVMapper (CC BY 4.0), deeppvmapper.fr; INSEE Filosofi 2021, 1 km grid"
+fr:
+  lang: "fr"
+  locale: "fr-FR"
+  oldBrowser: "Ce navigateur est trop ancien pour afficher la carte."
+  loading: "Chargement des données…"
+  loadErr: "Les données n’ont pas pu être chargées. Réessayez plus tard."
+  mapAria: "Carte des installations photovoltaïques en toiture en France métropolitaine, agrégées sur une grille de carreaux"
+  lead: "{n} installations détectées sur imagerie aérienne ({gwp} GWc estimés), agrégées par carreaux de 2 km minimum. Faites glisser le curseur : la taille du carreau et les couleurs se recalculent."
+  res: "Taille du carreau"
+  resOne: "1 seul carreau"
+  resOneTick: "1 seul"
+  resHint: "Chaque carreau regroupe {k} × {k} carreaux INSEE de 1 km ({area} km²)."
+  resHintOne: "Un seul carreau couvre toute la France : on lit la valeur nationale (moyenne ou total)."
+  nCells: "{n} carreaux affichés."
+  variable: "Variable cartographiée"
+  variableRose: "Variable cartographiée (rose)"
+  normBy: "Normaliser par"
+  baseLabel: "Fond de carte OpenStreetMap"
+  baseHint: "La grille est légèrement inclinée : c’est la grille LAEA (EPSG:3035), reprojetée en Web Mercator."
+  tilesErr: "Impossible de charger les tuiles du fond de carte (connexion absente ou refus du serveur)."
+  adv: "Options avancées"
+  advBiv: "croisement actif"
+  advHc: "détections corroborées"
+  advHint: "Croiser le PV avec une variable explicative (INSEE, classes de puissance), filtrer par classe de puissance et par fiabilité, échelle de couleur, opacité."
+  clsLabel: "Classes de puissance retenues"
+  clsHint: "Filtre le nombre d’installations et la puissance de la variable cartographiée. Les classes sont aussi disponibles comme variables explicatives."
+  hc: "Ne garder que les détections corroborées (≥ 2 sources)"
+  hcTitle: "{n} installations, {gwp} GWc"
+  display: "Affichage"
+  dispOne: "PV seul"
+  dispBiv: "Croiser avec une variable"
+  explVar: "Variable explicative (bleu)"
+  scale: "Échelle de couleur"
+  scLog: "Log"
+  scLin: "Linéaire"
+  scQuant: "Quantiles"
+  scaleHint:
+    log: "Colore les ordres de grandeur : utile quand quelques carreaux concentrent beaucoup de valeur."
+    lin: "Écart entre le 2e et le 98e centile, valeurs au-delà saturées."
+    quant: "Chaque couleur couvre autant de carreaux : montre le classement, pas les écarts."
+  scatterTitle: "Relation entre les deux variables"
+  scatterAria: "Densité des carreaux dans le plan des deux variables"
+  rho: "ρ de Spearman = {rho}"
+  rhoTail: " sur {n} carreaux{sample}. Corrélation de rang : elle décrit l’association, pas une causalité."
+  rhoSample: " (échantillon de {n})"
+  log: "log"
+  opacity: "Opacité des données"
+  exportTitle: "Exporter"
+  png: "Image PNG"
+  csv: "Données CSV"
+  csvTitle: "Une ligne par carreau affiché"
+  geo: "GeoJSON"
+  geoTitle: "Carreaux en polygones (WGS 84), pour QGIS"
+  exportHint: "Les données exportées sont celles de la carte affichée (résolution, variables et détections retenues)."
+  preparing: "Préparation…"
+  zin: "Zoom avant"
+  zout: "Zoom arrière"
+  zfit: "Recentrer"
+  wheelHint: "Ctrl + molette pour zoomer"
+  capOne: "Un seul carreau"
+  capK: "Carreaux de {k} km"
+  capHc: "détections corroborées"
+  noteZero: "valeur nulle : couleur la plus sombre"
+  noteZero2: "deux valeurs nulles : case la plus claire"
+  noteGrey: "gris : ratio non calculé (dénominateur trop faible)"
+  tipOne: "Un seul carreau : toute la France"
+  tipK: "Carreau de {k} × {k} km"
+  tipInst: "Installations"
+  tipPop: "Population"
+  quantNote: "échelle par rang (quantiles)"
+  bivTitle: "Terciles des carreaux"
+  thrInd: "habitants"
+  thrMen: "ménages"
+  thrUnit: "unités"
+  thrNote: "Calculé sur les carreaux d’au moins {thr} {what}."
+  unitSnv: "€/an"
+  kwpPerCap: {label: "Puissance par habitant", unit: "W/hab."}
+  fmt:
+    pct: "{short} (% {pct})"
+    per: "{short} {per}"
+  groups: {pv: "Photovoltaïque", cls: "Classes de puissance", pop: "Population et revenus", hh: "Composition des ménages"}
+  classes:
+    - {long: "0 à 3 kWc", short: "0–3 kWc"}
+    - {long: "3 à 9 kWc", short: "3–9 kWc"}
+    - {long: "9 à 36 kWc", short: "9–36 kWc"}
+    - {long: "36 à 250 kWc", short: "36–250 kWc"}
+    - {long: "plus de 250 kWc", short: "> 250 kWc"}
+  clsInst: "Installations de {c}"
+  clsInstShort: "Installations {s}"
+  clsKwp: "Puissance des installations de {c}"
+  clsKwpShort: "Puissance {s}"
+  meas:
+    n: {label: "Nombre d’installations", short: "Installations", unit: "installations"}
+    kwp: {label: "Puissance installée", short: "Puissance", unit: "kWc"}
+    ind: {label: "Population", short: "Population", unit: "hab."}
+    snv: {label: "Niveau de vie moyen (€ par an)", short: "Niveau de vie", unit: "€/an"}
+    men: {label: "Ménages", short: "Ménages", unit: "ménages"}
+    men_pauv: {label: "Ménages pauvres", short: "Ménages pauvres", unit: "ménages"}
+    men_prop: {label: "Ménages propriétaires", short: "Propriétaires", unit: "ménages"}
+    men_mais: {label: "Ménages en maison", short: "Ménages en maison", unit: "ménages"}
+  den:
+    none: {label: "Aucune (valeur par carreau)"}
+    ind: {label: "Population", short: "population", per: "/ 1 000 hab.", perLab: "pour 1 000 habitants", pctLab: "de la population"}
+    men: {label: "Ménages", short: "ménages", per: "/ 100 ménages", perLab: "pour 100 ménages", pctLab: "des ménages"}
+    mais: {label: "Ménages en maison", short: "ménages en maison", per: "/ 100 ménages en maison", perLab: "pour 100 ménages en maison", pctLab: "des ménages en maison"}
+    rev: {label: "Revenu (niveau de vie cumulé)", short: "revenu", per: "/ M€ de niveau de vie", perLab: "par million d’euros de niveau de vie cumulé", pctLab: "du niveau de vie"}
+    pvall: {label: "Toutes les installations", short: "toutes installations", per: "/ installation", perLab: "par installation", pctLab: "des installations"}
+    kall: {label: "Puissance totale", short: "puissance totale", per: "/ kWc", perLab: "par kWc", pctLab: "de la puissance installée"}
+  pngSub: "France métropolitaine · carreaux de {k} × {k} km"
+  pngHc: " · détections corroborées (≥ 2 sources)"
+  pngCredit1: "Installations : DeepPVMapper / OpenPVMapper — Gabriel Kasmi (CC BY 4.0), deeppvmapper.fr"
+  pngCredit2: "Population, revenus : INSEE, Filosofi 2021, carreaux de 1 km · Grille LAEA (EPSG:3035)"
+  pngBase: " · Fond : {a}"
+  foot1: "La détection est partielle (précision ≈ 75 %, rappel estimé ≈ 0,6) : l’absence de détection n’est pas l’absence de panneaux. Puissance, inclinaison et orientation sont des estimations du modèle."
+  foot2: "Installations : DeepPVMapper / OpenPVMapper — Gabriel Kasmi, CC BY 4.0. Population, ménages, revenus : INSEE, Filosofi 2021, carreaux de 1 km (64 % des carreaux sont imputés). Grille LAEA (EPSG:3035)."
+  geoAll: "toutes"
+  geoHc: "corroborées (≥ 2 sources)"
+  geoGrid: "carreaux INSPIRE agrégés, EPSG:3035 (LAEA) ; géométrie exportée en WGS 84"
+  geoSrc: "DeepPVMapper / OpenPVMapper (CC BY 4.0), deeppvmapper.fr ; INSEE Filosofi 2021, carreaux de 1 km"

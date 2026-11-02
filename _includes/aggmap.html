@@ -1,0 +1,18 @@
+{%- comment -%}
+  Aggregated PV viewer (static/js/aggmap/aggmap.js). Usage:
+    {% include aggmap.html mode="simple" base="../" fallback="static/images/assets/density-map.webp" alt="…" %}
+    {% include aggmap.html mode="full"   base="../" %}
+  mode  : simple (map + cell size + variable + normalisation) or full (adds INSEE crossing, power classes, OSM background, exports)
+  base  : relative path from the page to the site root ("../" for content/*.html, "../../" for fr/content/*.html)
+  The strings come from _data/aggmap.yml (block of the page language); data files from static/data/agg/.
+{%- endcomment -%}
+{%- assign _am_lang = page.lang | default: site.lang | default: 'en' -%}
+{%- assign _am_mode = include.mode | default: 'simple' -%}
+<div class="aggmap aggmap--{{ _am_mode }}" data-mode="{{ _am_mode }}" data-base="{{ include.base }}static/data/agg/">
+  {%- if include.fallback %}
+  <img class="am-fallback" src="{{ include.base }}{{ include.fallback }}" alt="{{ include.alt }}" loading="lazy" style="max-width:{{ include.fallback_width | default: 620 }}px;width:100%">
+  {%- endif %}
+  <script type="application/json" class="am-i18n">{{ site.data.aggmap[_am_lang] | jsonify }}</script>
+</div>
+<link rel="stylesheet" href="{{ include.base }}static/css/aggmap.css">
+<script defer src="{{ include.base }}static/js/aggmap/aggmap.js"></script>

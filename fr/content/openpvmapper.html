@@ -164,9 +164,9 @@ header_html: |2-
     <section class="abstract">
         <div class="container">
             <h2><span class="section-number">5.</span>Résultats</h2>
-            <figure style="margin-top: 10px; text-align: center;">
-                <img src="../../static/images/assets/density-map.webp" alt="Densité des installations PV recensées dans OpenPVMapper, par cellule hexagonale, sur la France métropolitaine" class="teaser-image" style="max-width: 620px;">
-                <figcaption class="caption">Densité du PV en toiture recensé dans OpenPVMapper : nombre d'installations par cellule hexagonale (surface moyenne &asymp; 8&nbsp;km&sup2;), sur une échelle de couleurs logarithmique.</figcaption>
+            <figure style="margin-top: 10px;">
+                {% include aggmap.html mode="simple" base="../../" fallback="static/images/assets/density-map.webp" alt="Densité des installations PV recensées dans OpenPVMapper, agrégées sur une grille de carreaux, sur la France métropolitaine" %}
+                <figcaption class="caption" style="text-align: center;">Le PV en toiture recensé dans OpenPVMapper, agrégé sur une grille de carreaux. Faites glisser le curseur pour changer la taille des carreaux, ou cartographiez la puissance installée et normalisez-la par la population, les ménages ou le revenu. Survolez (ou touchez) un carreau pour lire ses valeurs. <a href="data.html#aggregated">Ouvrir le visualiseur agrégé complet &rarr;</a></figcaption>
             </figure>
 
             <p>
