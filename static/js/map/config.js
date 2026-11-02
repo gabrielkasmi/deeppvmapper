@@ -49,7 +49,8 @@ export const ZONE_FETCH_MAX  = 300000;  // exhaustive GeoJSON export
 export const DEPT_OVERVIEW_MIN_RADIUS = 8;
 export const DEPT_OVERVIEW_MAX_RADIUS = 28;
 
-export const GEO_BASE   = '../static/data/geo';
+// Resolved against this module (not the page): the viewer lives at /content/data.html AND /fr/content/data.html.
+export const GEO_BASE   = new URL('../../data/geo', import.meta.url).href.replace(/\/$/, '');
 
 // Half-width (in degrees) of the little box fetched around a clicked marker
 // to pull its real polygon — generous enough to contain a large rooftop

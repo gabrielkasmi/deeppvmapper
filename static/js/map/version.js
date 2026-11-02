@@ -10,7 +10,7 @@
 // each time you cut a release; older entries stay there as a version history
 // even though only the first (current) one is rendered here today.
 
-const VERSION_JSON_URL = '../static/data/version.json';
+const VERSION_JSON_URL = new URL('../../data/version.json', import.meta.url).href;   // page-independent (EN and /fr/ pages)
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'];
