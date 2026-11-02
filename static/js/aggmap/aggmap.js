@@ -28,7 +28,7 @@ function ui(I,FULL){
     <div class="am-wheel" data-id="wheel">${I.wheelHint}</div>
     <div class="am-loading" data-id="loading">${I.loading}</div>
   </div>`;
-  if(!FULL) return `<div class="am-wrap">${stage}<div class="am-panel">${res}${sel('selA',I.variable)}${sel('denA',I.normBy)}<label class="am-chk" style="grid-column:1/-1"><input type="checkbox" data-id="chkBase" checked> ${I.baseLabel}</label><p class="am-hint" data-id="resHint"></p></div></div>`;
+  if(!FULL) return `<div class="am-wrap">${stage}<div class="am-panel">${res}${sel('selA',I.variable)}${sel('denA',I.normBy)}<p class="am-hint" data-id="resHint"></p></div></div>`;
   const adv=`<details class="am-adv" data-id="adv"><summary data-id="advSum">${I.adv}</summary><div class="am-advbody">
     <p class="am-hint">${I.advHint}</p>
     <div class="am-ctl"><span class="am-lab">${I.clsLabel}</span><div class="am-clsgrid">${I.classes.map((c,i)=>`<label class="am-chk"><input type="checkbox" data-id="cls${i}" data-c="${i}" checked> ${c.short}</label>`).join('')}</div><p class="am-hint">${I.clsHint}</p></div>
@@ -42,7 +42,7 @@ function ui(I,FULL){
   return `<div class="am-wrap">${stage}<div class="am-panel">
     <p class="am-lead" data-id="lead"></p>${res}<p class="am-hint" data-id="resHint"></p>
     ${sel('selA',I.variable)}${sel('denA',I.normBy)}
-    <label class="am-chk"><input type="checkbox" data-id="chkBase" checked> ${I.baseLabel}</label><p class="am-hint" data-id="baseHint"></p>
+    <p class="am-hint" data-id="baseHint"></p>
     ${adv}
     <div class="am-ctl"><span class="am-lab">${I.exportTitle}</span><div class="am-exp"><button type="button" class="am-btn" data-id="btnPng">${I.png}</button><button type="button" class="am-btn2" data-id="btnCsv" title="${I.csvTitle}">${I.csv}</button><button type="button" class="am-btn2" data-id="btnGeo" title="${I.geoTitle}">${I.geo}</button></div><p class="am-hint">${I.exportHint}</p></div>
     <p class="am-foot"><span>${I.foot1}</span><span>${I.foot2}</span></p>
@@ -556,7 +556,6 @@ async function init(root){
     const at=$('attr'); at.style.display=on?'block':'none'; if(on) at.innerHTML=OSM.attr;
     tileErr=0; interact(); schedule();
   }
-  $('chkBase').onchange=e=>setBase(e.target.checked);
   $('alpha').addEventListener('input',e=>{ setAlpha(+e.target.value/100); schedule(); });
   setAlpha(S.alpha); $('res').value=posOfK(S.k);
   const T=META.totals;
@@ -628,7 +627,7 @@ async function init(root){
   /* ---------- 13. démarrage ---------- */
   new ResizeObserver(()=>{ resize(); if(CW>0&&CH>0){ if(!fitted){ fitted=true; fitView(); } schedule(); if(S.mode==='biv') renderScatter(); } }).observe(stage);
   resize(); if(CW>0&&CH>0){ fitted=true; view.s=fitS(CW,CH); }
-  setBase(true); $('chkBase').checked=true; fitView();
+  setBase(true); fitView();
   refresh();
   $('loading').classList.add('off');
   const fb=root.querySelector('.am-fallback'); if(fb) fb.remove();
