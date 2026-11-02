@@ -552,7 +552,7 @@ async function init(root){
   function setBase(on){
     const nm=on?'merc':'laea'; S.base=on?'osm':'none';
     if(nm!==MODE){ if(nm==='merc') laeaToMerc(); else mercToLaea(); MODE=nm; }
-    $('baseHint').hidden=!on; $('baseHint').textContent=on?I.baseHint:'';
+    $('baseHint').textContent='';
     const at=$('attr'); at.style.display=on?'block':'none'; if(on) at.innerHTML=OSM.attr;
     tileErr=0; interact(); schedule();
   }
