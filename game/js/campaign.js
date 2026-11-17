@@ -65,12 +65,13 @@ export function recordDecision(card, decision, comment = null) {
 
 /** Cancels the pending (not-yet-written) decision and hands the card back
  *  to be shown again. Returns the card, or null if it was already flushed
- *  (i.e. another decision has been made since). */
+ *  (i.e. another decision has been made since). Does NOT re-queue it: the
+ *  caller (doUndo in swipe.js) puts it back in front of the queue itself —
+ *  queuing it here too showed the undone card twice (and allowed a double vote). */
 export function undoLastDecision() {
     if (!pending) return null;
     const { card } = pending;
     pending = null;
-    S.queue.unshift(card);
     return card;
 }
 
