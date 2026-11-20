@@ -122,6 +122,7 @@ export default {
     "login.bad": "E-mail ou mot de passe incorrect.",
     "pseudo.taken": "Ce nom est déjà pris — essayez-en un autre.",
     "pseudo.invalid": "Utilisez entre 2 et 24 caractères.",
+    "pseudo.refused": "Ce nom n’est pas accepté — essayez-en un autre.",
     "error.generic": "Une erreur est survenue — réessayez.",
     "menu.signoutConfirm": "Se déconnecter efface la session locale (nom, historique sur cet appareil) — les votes déjà envoyés restent enregistrés. Continuer ?",
     "menu.deleteConfirm": "Supprimer définitivement votre compte ? Votre nom et votre e-mail seront effacés — c’est irréversible. Les vérifications déjà envoyées restent comptées pour la saison, mais ne sont plus rattachées à vous.",

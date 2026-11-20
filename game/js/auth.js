@@ -72,7 +72,7 @@ export async function ensureSession() {
 }
 
 /** Attempts to claim a pseudo for the current session. Returns
- *  {ok:true} or {ok:false, reason:'taken'|'invalid'|'error'}. */
+ *  {ok:true} or {ok:false, reason:'taken'|'invalid'|'refused'|'error'}. */
 export async function claimPseudo(pseudo) {
     const clean = pseudo.trim();
     if (clean.length < 2 || clean.length > 24) return { ok: false, reason: 'invalid' };
@@ -82,6 +82,8 @@ export async function claimPseudo(pseudo) {
     if (error) {
         // Postgres unique_violation
         if (error.code === '23505') return { ok: false, reason: 'taken' };
+        // Postgres check_violation: refused by profiles_pseudo_ok() (scripts/pseudo_moderation.sql)
+        if (error.code === '23514') return { ok: false, reason: 'refused' };
         console.error('claimPseudo failed:', error);
         return { ok: false, reason: 'error' };
     }
@@ -94,7 +96,7 @@ export async function claimPseudo(pseudo) {
  *  in menu.js). Same validation/uniqueness rules as claimPseudo(), just an
  *  update instead of an insert — see the "authenticated can update own
  *  profile" RLS policy in scripts/verifications_setup.sql. Returns
- *  {ok:true} or {ok:false, reason:'taken'|'invalid'|'error'}. */
+ *  {ok:true} or {ok:false, reason:'taken'|'invalid'|'refused'|'error'}. */
 export async function editPseudo(pseudo) {
     const clean = pseudo.trim();
     if (clean.length < 2 || clean.length > 24) return { ok: false, reason: 'invalid' };
@@ -104,6 +106,8 @@ export async function editPseudo(pseudo) {
     if (error) {
         // Postgres unique_violation
         if (error.code === '23505') return { ok: false, reason: 'taken' };
+        // Postgres check_violation: refused by profiles_pseudo_ok() (scripts/pseudo_moderation.sql)
+        if (error.code === '23514') return { ok: false, reason: 'refused' };
         console.error('editPseudo failed:', error);
         return { ok: false, reason: 'error' };
     }

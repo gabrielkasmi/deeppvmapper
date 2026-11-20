@@ -291,6 +291,7 @@ async function attemptPlay() {
     if (res.ok) { startGame(); return; }
     const msg = { taken: t('pseudo.taken', 'That name is already taken — try another.'),
                   invalid: t('pseudo.invalid', 'Use 2 to 24 characters.'),
+                  refused: t('pseudo.refused', 'That name is not accepted — try another.'),
                   error: t('error.generic', 'Something went wrong — try again.') }[res.reason];
     const err = $('#pseudo-error');
     err.textContent = msg; show(err);
